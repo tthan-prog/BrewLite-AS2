@@ -1,208 +1,28 @@
-@startuml erd
-title BrewLite - ERD
-hide circle
-skinparam linetype ortho
-
-entity users {
-    * id : int <<PK>>
-    --
-    email : varchar <<UNIQUE>>
-    name : varchar
-    password_hash : varchar
-    role : enum
-    points : int
-}
-entity products {
-    * id : int <<PK>>
-    --
-    name : varchar
-    description : text
-    base_price : int
-    category : varchar
-    image_url : varchar
-    stock : int
-}
-entity toppings {
-    * id : int <<PK>>
-    --
-    name : varchar
-    price : int
-}
-entity promotions {
-    * id : int <<PK>>
-    --
-    code : varchar <<UNIQUE>>
-    type : enum
-    value : int
-    min_order : int
-    expires_at : timestamp
-    usage_limit : int
-    used_count : int
-}
-entity orders {
-    * id : int <<PK>>
-    --
-    user_id : int <<FK>>
-    promotion_id : int <<FK, null>>
-    status : enum
-    subtotal : int
-    discount : int
-    total : int
-    failure_reason : varchar
-    created_at : timestamp
-}
-entity order_items {
-    * id : int <<PK>>
-    --
-    order_id : int <<FK>>
-    product_id : int <<FK>>
-    quantity : int
-    size : enum
-    sugar : int
-    ice : int
-    unit_price : int
-    uses_recipe : bool
-}
-entity order_item_toppings {
-    * order_item_id : int <<PK, FK>>
-    * topping_id : int <<PK, FK>>
-    --
-    quantity : int
-    price : int
-}
-entity payments {
-    * id : int <<PK>>
-    --
-    order_id : int <<FK>>
-    user_id : int <<FK>>
-    method : enum
-    status : enum
-    amount : int
-    idempotency_key : varchar
-    request_hash : varchar
-    created_at : timestamp
-    ..
-    UNIQUE(user_id, idempotency_key)
-}
-entity loyalty_transactions {
-    * id : int <<PK>>
-    --
-    user_id : int <<FK>>
-    order_id : int <<FK, null>>
-    type : enum
-    points : int
-    created_at : timestamp
-    ..
-    UNIQUE(order_id, type)
-}
-entity ingredients {
-    * id : int <<PK>>
-    --
-    name : varchar <<UNIQUE>>
-    unit : varchar
-    stock : int
-    low_threshold : int
-    sugar_scaled : bool
-    ice_scaled : bool
-}
-entity recipe_items {
-    * id : int <<PK>>
-    --
-    product_id : int <<FK>>
-    ingredient_id : int <<FK>>
-    quantity : int
-    ..
-    UNIQUE(product_id, ingredient_id)
-}
-entity topping_recipe_items {
-    * id : int <<PK>>
-    --
-    topping_id : int <<FK>>
-    ingredient_id : int <<FK>>
-    quantity : int
-    ..
-    UNIQUE(topping_id, ingredient_id)
-}
-entity order_ingredient_uses {
-    * order_id : int <<PK, FK>>
-    * ingredient_id : int <<PK, FK>>
-    --
-    quantity : int
-    consumed : bool
-}
-entity payment_accounts {
-    * id : int <<PK>>
-    --
-    identifier : varchar
-    holder_name : varchar
-    pin_hash : varchar
-    balance : int
-}
-entity payment_intents {
-    * id : int <<PK>>
-    --
-    token : varchar <<UNIQUE>>
-    qr_content : varchar
-    order_id : int <<FK>>
-    account_id : int <<FK, null>>
-    amount : int
-    status : enum
-    expires_at : timestamp
-}
-entity rewards {
-    * id : int <<PK>>
-    --
-    name : varchar
-    points_cost : int
-    active : bool
-}
-entity reward_redemptions {
-    * id : int <<PK>>
-    --
-    user_id : int <<FK>>
-    reward_id : int <<FK>>
-    points_spent : int
-    code : varchar <<UNIQUE>>
-}
-
-users ||--o{
-    orders
-    users ||--o{
-        payments
-        users ||--o{
-            loyalty_transactions
-            users ||--o{
-                reward_redemptions
-                promotions |o--o{
-                    orders
-                    orders ||--|{
-                        order_items
-                        orders ||--o{
-                            payments
-                            orders |o--o{
-                                loyalty_transactions
-                                orders ||--o{
-                                    order_ingredient_uses
-                                    orders ||--o{
-                                        payment_intents
-                                        products ||--o{
-                                            order_items
-                                            order_items ||--o{
-                                                order_item_toppings
-                                                toppings ||--o{
-                                                    order_item_toppings
-                                                    products ||--o{
-                                                        recipe_items
-                                                        toppings ||--o{
-                                                            topping_recipe_items
-                                                            ingredients ||--o{
-                                                                recipe_items
-                                                                ingredients ||--o{
-                                                                    topping_recipe_items
-                                                                    ingredients ||--o{
-                                                                        order_ingredient_uses
-                                                                        payment_accounts |o--o{
-                                                                            payment_intents
-                                                                            rewards ||--o{
-                                                                                reward_redemptions
-                                                                                @enduml
+$f = Join-Path (Get-Location) "docs\diagrams\erd.puml"
+$lines = [System.IO.File]::ReadAllLines($f)
+$i = ($lines | Select-String -Pattern '^users ' | Select-Object -First 1).LineNumber - 1
+$head = $lines[0..($i-1)]
+$rels = @(
+'users ||--o{ orders',
+'users ||--o{ payments',
+'users ||--o{ loyalty_transactions',
+'users ||--o{ reward_redemptions',
+'promotions |o--o{ orders',
+'orders ||--|{ order_items',
+'orders ||--o{ payments',
+'orders |o--o{ loyalty_transactions',
+'orders ||--o{ order_ingredient_uses',
+'orders ||--o{ payment_intents',
+'products ||--o{ order_items',
+'order_items ||--o{ order_item_toppings',
+'toppings ||--o{ order_item_toppings',
+'products ||--o{ recipe_items',
+'toppings ||--o{ topping_recipe_items',
+'ingredients ||--o{ recipe_items',
+'ingredients ||--o{ topping_recipe_items',
+'ingredients ||--o{ order_ingredient_uses',
+'payment_accounts |o--o{ payment_intents',
+'rewards ||--o{ reward_redemptions',
+'@enduml'
+)
+[System.IO.File]::WriteAllLines($f, ($head + $rels), (New-Object System.Text.UTF8Encoding $false))
