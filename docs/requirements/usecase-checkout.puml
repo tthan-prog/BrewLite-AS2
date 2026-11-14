@@ -1,0 +1,48 @@
+
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+title BrewLite AS2 - UC-01 Dat va thanh toan don hang
+
+actor "Khách hàng" as Customer
+actor "Cổng thanh toán\n(mô phỏng, VNPay sandbox)" as Gateway
+
+rectangle "UC-01 - Đặt và thanh toán đơn hàng" {
+  usecase "Đặt đơn" as Order
+  usecase "Đăng nhập" as Login
+  usecase "Kiểm tra giỏ hàng\nvà nguyên liệu" as Validate
+  usecase "Áp mã khuyến mãi" as Promo
+  usecase "Thanh toán đơn" as Pay
+  usecase "Thanh toán QR" as QR
+}
+
+Customer -- Order
+Customer -- Login
+Customer -- Promo
+Customer -- Pay
+Customer -- QR
+
+Gateway -- Pay
+Gateway -- QR
+
+Order ..> Login : <<include>>
+Order ..> Validate : <<include>>
+
+Promo ..> Order : <<extend>>
+QR ..> Pay : <<extend>>
+
+note right of Order
+  Đơn được tạo ở trạng thái PENDING.
+  Chưa trừ nguyên liệu khi tạo đơn.
+end note
+
+note right of Pay
+  Ví / Thẻ mô phỏng.
+  Sử dụng Idempotency-Key.
+  Thành công: PAID.
+  Thất bại: PAYMENT_FAILED.
+end note
+
+@enduml
