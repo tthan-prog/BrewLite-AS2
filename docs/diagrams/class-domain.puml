@@ -1,13 +1,51 @@
 @startuml class-domain
 title BrewLite - Class diagram (domain)
 skinparam classAttributeIconSize 0
+left to right direction
 
-enum Role { CUSTOMER\nSTAFF }
-enum OrderStatus { PENDING\nPAID\nPAYMENT_FAILED\nPREPARING\nREADY\nCOMPLETED\nCANCELLED }
-enum PaymentMethod { WALLET\nCARD }
-enum PaymentStatus { SUCCESS\nFAILED }
-enum PromotionType { PERCENT\nFIXED }
-enum LoyaltyType { EARN\nREVERSAL }
+enum Role {
+  CUSTOMER
+  STAFF
+}
+enum OrderStatus {
+  PENDING
+  PAID
+  PAYMENT_FAILED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+enum Size {
+  S
+  M
+  L
+}
+enum PaymentMethod {
+  WALLET
+  CARD
+  QR
+  VNPAY
+}
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+}
+enum PromotionType {
+  PERCENT
+  FIXED
+}
+enum LoyaltyType {
+  EARN
+  REVERSAL
+  REDEEM
+}
+enum IntentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
 
 class User {
   id: int
@@ -24,6 +62,7 @@ class Product {
   basePrice: int
   category: string
   imageUrl: string
+  stock: int  (chỉ dùng khi món chưa có công thức)
 }
 class Topping {
   id: int
@@ -36,13 +75,17 @@ class Order {
   subtotal: int
   discount: int
   total: int
+  failureReason: string
   createdAt: datetime
 }
 class OrderItem {
   id: int
-  quantity: int
-  size: string
+  quantity: int  [1..50]
+  size: Size
+  sugar: int  [0|30|50|70|100]
+  ice: int  [0|30|50|70|100]
   unitPrice: int
+  usesRecipe: bool
 }
 class Payment {
   id: int
@@ -50,6 +93,8 @@ class Payment {
   status: PaymentStatus
   amount: int
   idempotencyKey: string
+  requestHash: string
+  createdAt: datetime
 }
 class Promotion {
   id: int
@@ -58,25 +103,86 @@ class Promotion {
   value: int
   minOrder: int
   expiresAt: datetime
+  usageLimit: int
+  usedCount: int
 }
 class LoyaltyTransaction {
   id: int
   type: LoyaltyType
   points: int
+  createdAt: datetime
+}
+class Ingredient {
+  id: int
+  name: string
+  unit: string
+  stock: int
+  lowThreshold: int
+  sugarScaled: bool
+  iceScaled: bool
+}
+class RecipeItem {
+  quantity: int  (cho 1 ly size S)
+}
+class ToppingRecipeItem {
+  quantity: int
+}
+class OrderIngredientUse {
+  quantity: int  (nhu cầu ghi lúc tạo đơn)
+  consumed: bool  (true khi đã trừ kho lúc thanh toán)
+}
+class PaymentAccount {
+  id: int
+  identifier: string
+  holderName: string
+  pinHash: string
+  balance: int
+}
+class PaymentIntent {
+  id: int
+  token: string
+  qrContent: string
+  amount: int
+  status: IntentStatus
+  expiresAt: datetime
+}
+class Reward {
+  id: int
+  name: string
+  pointsCost: int
+  active: bool
+}
+class RewardRedemption {
+  id: int
+  pointsSpent: int
+  code: string
 }
 
 User "1" -- "0..*" Order : đặt
 User "1" -- "0..*" LoyaltyTransaction
+User "1" -- "0..*" RewardRedemption
 Order "1" *-- "1..*" OrderItem : gồm
 OrderItem "0..*" -- "1" Product
 OrderItem "0..*" -- "0..*" Topping : kèm
 Order "1" -- "0..*" Payment : thanh toán
 Order "0..*" -- "0..1" Promotion : áp dụng
-Order "1" -- "0..*" LoyaltyTransaction
+Order "1" -- "0..*" LoyaltyTransaction : (EARN, REVERSAL)
+Order "1" -- "0..*" OrderIngredientUse
+Order "1" -- "0..*" PaymentIntent : phiên QR
+OrderIngredientUse "0..*" -- "1" Ingredient
+Product "1" -- "0..*" RecipeItem
+Topping "1" -- "0..*" ToppingRecipeItem
+RecipeItem "0..*" -- "1" Ingredient
+ToppingRecipeItem "0..*" -- "1" Ingredient
+PaymentIntent "0..*" -- "0..1" PaymentAccount : thanh toán bằng
+Reward "1" -- "0..*" RewardRedemption
+
+User ..> Role
 Order ..> OrderStatus
+OrderItem ..> Size
 Payment ..> PaymentMethod
 Payment ..> PaymentStatus
-User ..> Role
 Promotion ..> PromotionType
 LoyaltyTransaction ..> LoyaltyType
+PaymentIntent ..> IntentStatus
 @enduml
