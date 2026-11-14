@@ -11,7 +11,7 @@ Một quán cà phê nhỏ muốn khách đặt món và thanh toán không dùn
 | Khách hàng | Đặt và thanh toán đơn | Đặt nhanh, giá rõ ràng, biết món còn hay hết, theo dõi được đơn, được thưởng khi mua nhiều | Menu, giỏ hàng, thanh toán, lịch sử đơn, điểm thưởng, đổi quà |
 | Nhân viên quầy | Pha chế, giao món | Chỉ nhận đơn đã thanh toán, cập nhật trạng thái nhanh, biết nguyên liệu sắp hết | Màn hình xử lý đơn, máy trạng thái đơn, quản lý nguyên liệu |
 | Quản lý cửa hàng | Kiểm soát vận hành | Không bán vượt nguyên liệu đang có, kiểm soát khuyến mãi và điểm thưởng | Công thức và tồn kho nguyên liệu, khuyến mãi, quà đổi điểm |
-| Đơn vị thanh toán (mô phỏng) | Xử lý Ví, Thẻ, QR | Nhận yêu cầu hợp lệ, không trừ tiền hai lần | Idempotency, trạng thái thanh toán, hạn của mã QR |
+| Đơn vị thanh toán (cổng mô phỏng, VNPay sandbox) | Xử lý Ví, Thẻ, QR | Nhận yêu cầu hợp lệ, không trừ tiền hai lần | Idempotency, trạng thái thanh toán, hạn của mã QR |
 | Giảng viên (khách hàng nghiệm thu) | Chấm và nghiệm thu | Sản phẩm chạy được, đủ tạo phẩm của Task 1 đến Task 5, quy trình đúng thứ tự | Toàn bộ tạo phẩm Assignment 2 |
 | Nhóm phát triển | Xây dựng sản phẩm | Xong đúng hạn, mã dễ bảo trì, có CI/CD | Ràng buộc công nghệ, quy trình Scrum, CI/CD |
 
@@ -43,10 +43,11 @@ Một quán cà phê nhỏ muốn khách đặt món và thanh toán không dùn
 - Thanh toán bằng QR qua cổng mô phỏng (Should): khách quét mã bằng điện thoại, chọn tài khoản thử nghiệm và nhập PIN; mã QR có hạn dùng.
 - Đổi điểm lấy quà, nhận mã quà để dùng tại quầy (Could).
 - Tự hủy đơn chưa thanh toán sau một khoảng thời gian cấu hình được (Could).
+- Thanh toán qua VNPay sandbox, môi trường thử nghiệm không dùng tiền thật (Could).
 
 ### 3.3. Không thực hiện trong phiên bản này (Won't)
 
-- Kết nối cổng thanh toán thật hoặc sandbox của VNPay, MoMo.
+- Kết nối cổng thanh toán thật (tiền thật); cổng MoMo.
 - Giao diện quản trị sản phẩm, khuyến mãi, báo cáo doanh thu.
 - Ứng dụng di động native; PWA đầy đủ (offline, thông báo đẩy).
 - Giao hàng, bản đồ, nhiều chi nhánh.

@@ -33,8 +33,9 @@ Mức ưu tiên theo MoSCoW: Must (bắt buộc cho MVP), Should (nên có), Cou
 | FR-18 | Thanh toán | Thanh toán bằng QR qua cổng mô phỏng: khách quét mã bằng điện thoại, chọn tài khoản thử nghiệm và nhập PIN | Should | Xác nhận đúng PIN và đủ số dư thì đơn chuyển PAID và trang đặt hàng tự chuyển sang xác nhận. Sai PIN, thiếu số dư hoặc QR hết hạn thì không trừ tiền. Xác nhận lặp lại chỉ thành công một lần |
 | FR-19 | Đổi quà | Khách đổi điểm lấy quà và nhận mã quà để dùng tại quầy | Could | Đủ điểm thì trừ điểm và trả mã quà; không đủ điểm thì từ chối; đổi đồng thời không làm âm điểm |
 | FR-20 | Đặt đơn | Tự hủy đơn chưa thanh toán sau thời gian cấu hình được (mặc định 15 phút) | Could | Đơn PENDING quá hạn chuyển CANCELLED và trả lại lượt dùng mã khuyến mãi; không đụng tới kho |
-| FR-21 | Quản trị | Giao diện quản lý sản phẩm, khuyến mãi, báo cáo doanh thu | Won't | Không làm trong phiên bản này |
-| FR-22 | Thanh toán | Kết nối cổng thanh toán thật hoặc sandbox (VNPay, MoMo) | Won't | Không làm trong phiên bản này; toàn bộ thanh toán chạy qua cổng mô phỏng |
+| FR-21 | Thanh toán | Thanh toán qua VNPay sandbox (môi trường thử nghiệm, không dùng tiền thật) | Could | Thanh toán thành công trên sandbox thì đơn chuyển PAID qua Return URL; máy chủ kiểm tra chữ ký HMAC và số tiền trước khi chốt đơn; sai chữ ký hoặc sai số tiền thì từ chối và đơn giữ nguyên trạng thái; thông tin cấu hình sandbox chỉ nằm trong biến môi trường |
+| FR-22 | Quản trị | Giao diện quản lý sản phẩm, khuyến mãi, báo cáo doanh thu | Won't | Không làm trong phiên bản này |
+| FR-23 | Thanh toán | Kết nối cổng thanh toán thật (tiền thật) và cổng MoMo | Won't | Không làm trong phiên bản này |
 
 ## 2. Yêu cầu phi chức năng
 
@@ -57,4 +58,5 @@ Mức ưu tiên theo MoSCoW: Must (bắt buộc cho MVP), Should (nên có), Cou
 - Actor: Khách hàng, Nhân viên, Cổng thanh toán (mô phỏng).
 - Use case: Xem menu, Xem chi tiết sản phẩm, Quản lý giỏ hàng, Đăng ký, Đăng nhập, Đặt đơn, Thanh toán đơn, Xem lịch sử đơn, Đổi quà bằng điểm, Xử lý đơn (cập nhật trạng thái), Hủy đơn, Quản lý nguyên liệu.
 - Đặc tả chi tiết của use case trọng tâm: `use-case-checkout.md`.
-- Sơ đồ use case được vẽ ở Task 2.
+- Sơ đồ use case tổng quát: `docs/requirements/usecase-overview.puml` (kèm ảnh kết xuất).
+- Sơ đồ use case cho phạm vi UC-01: `docs/requirements/usecase-checkout.puml` (kèm ảnh kết xuất).
