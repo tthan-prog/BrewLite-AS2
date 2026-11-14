@@ -1,0 +1,126 @@
+
+@startuml
+' BrewLite AS2 - Task 2.1 - Activity Diagram
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+title Activity Diagram - Luồng đặt và thanh toán BrewLite
+
+|Khách hàng|
+start
+:Xem menu và chọn món;
+:Chọn size, topping, đường và đá;
+:Thêm món vào giỏ hàng;
+
+|Giao diện Next.js|
+:Hiển thị giỏ hàng và tổng tiền;
+
+|Khách hàng|
+:Nhấn Đặt hàng;
+
+|Giao diện Next.js|
+if (Đã đăng nhập?) then (Có)
+else (Chưa)
+  :Giữ giỏ hàng;
+  :Chuyển đến trang đăng nhập;
+
+  |Khách hàng|
+  :Nhập tài khoản và mật khẩu;
+
+  |NestJS API|
+  :Kiểm tra thông tin đăng nhập;
+
+  if (Đăng nhập hợp lệ?) then (Có)
+    :Cấp JWT;
+
+    |Giao diện Next.js|
+    :Lưu phiên đăng nhập;
+    :Quay lại giỏ hàng;
+  else (Không)
+    |Giao diện Next.js|
+    :Thông báo đăng nhập thất bại;
+    :Cho phép đăng nhập lại;
+    stop
+  endif
+endif
+
+|Giao diện Next.js|
+:Gửi POST /orders cùng JWT;
+
+|NestJS API|
+:Kiểm tra JWT và validate dữ liệu;
+:Kiểm tra giỏ hàng và nguyên liệu;
+
+if (Nguyên liệu đủ?) then (Có)
+  :Tạo đơn trạng thái PENDING;
+  note right
+    Đơn được tạo ở trạng thái PENDING.
+    Chưa trừ nguyên liệu khi tạo đơn.
+  end note
+else (Không)
+  |Giao diện Next.js|
+  :Thông báo món hết hàng;
+  :Cho khách chỉnh sửa giỏ hàng;
+  stop
+endif
+
+|Giao diện Next.js|
+:Hiển thị đơn và phương thức thanh toán;
+
+|Khách hàng|
+:Chọn Ví hoặc Thẻ và xác nhận;
+
+|Giao diện Next.js|
+:Gửi POST /payments;
+:Gửi kèm Idempotency-Key;
+
+|NestJS API|
+:Kiểm tra JWT và validate dữ liệu;
+:Kiểm tra Idempotency-Key;
+
+if (Yêu cầu đã được xử lý?) then (Có)
+  :Trả lại kết quả đã lưu;
+else (Chưa)
+  |Cổng thanh toán (mô phỏng, VNPay sandbox)|
+  :Kiểm tra yêu cầu thanh toán;
+
+  if (Thanh toán được chấp nhận?) then (Có)
+    |NestJS API|
+    :Bắt đầu transaction;
+    :Kiểm tra lại tồn kho;
+
+    if (Tồn kho vẫn đủ?) then (Có)
+      :Trừ nguyên liệu;
+      :Cập nhật đơn PAID;
+      :Lưu Payment;
+      :Cộng điểm nếu áp dụng;
+      :Commit transaction;
+    else (Không)
+      :Rollback transaction;
+      :Cập nhật PAYMENT_FAILED;
+      :Không trừ nguyên liệu;
+    endif
+  else (Không)
+    |NestJS API|
+    :Cập nhật PAYMENT_FAILED;
+  endif
+
+  :Lưu kết quả theo Idempotency-Key;
+endif
+
+|Giao diện Next.js|
+if (Trạng thái PAID?) then (Có)
+  :Hiển thị xác nhận thanh toán;
+  :Hiển thị mã đơn hàng;
+  :Cho xem trạng thái và lịch sử đơn;
+else (Không)
+  :Hiển thị lỗi thanh toán;
+  :Cho phép thử thanh toán lại;
+
+  |Khách hàng|
+  :Có thể thực hiện yêu cầu thanh toán mới;
+endif
+
+|Khách hàng|
+stop
+@enduml
