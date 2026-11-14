@@ -1,0 +1,90 @@
+@startuml
+' BrewLite AS2 - Task 2.2 - Sequence diagram cho UC-01 Đặt và thanh toán đơn hàng
+' Tham chiếu: docs/requirements/use-case-checkout.md (UC-01), srs.md (FR-05..FR-10, FR-12..FR-14, NFR-02, NFR-04)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+autonumber "<b>[0]"
+
+title Sequence Diagram - UC-01 Đặt và thanh toán đơn hàng
+
+actor "Khách hàng" as C
+participant "Next.js UI" as UI
+participant "NestJS API" as API
+database "PostgreSQL" as DB
+participant "Payment Service\n(mô phỏng)" as PS
+
+== Đặt đơn ==
+C -> UI : Bấm "Đặt đơn" trong giỏ hàng
+UI -> API : POST /orders\nAuthorization: Bearer <JWT>\n{items[], promotionCode?}
+API -> API : Kiểm tra JWT (JwtAuthGuard)
+alt JWT thiếu hoặc hết hạn
+  API --> UI : 401 Unauthorized
+  UI --> C : Chuyển sang trang đăng nhập, giữ giỏ hàng
+else JWT hợp lệ
+  API -> API : Validate dữ liệu (ValidationPipe)
+  alt Dữ liệu không hợp lệ
+    API --> UI : 400 Bad Request + thông báo lỗi
+    UI --> C : Hiển thị lỗi
+  else Dữ liệu hợp lệ
+    API -> DB : BEGIN TRANSACTION
+    API -> DB : Đọc Product, công thức (RecipeItem, ToppingRecipeItem), Ingredient.stock
+    DB --> API : Dữ liệu sản phẩm và tồn kho
+    API -> API : Cộng dồn nguyên liệu cần cho cả đơn\n(size, topping, mức đường và đá)
+    opt Có mã khuyến mãi
+      API -> DB : Kiểm tra Promotion (hạn, lượt dùng)
+      DB --> API : Promotion hợp lệ hoặc không
+    end
+    alt Không đủ nguyên liệu hoặc mã khuyến mãi không hợp lệ
+      API -> DB : ROLLBACK
+      API --> UI : 400 + món thiếu nguyên liệu hoặc lý do mã không hợp lệ
+      UI --> C : Hiển thị lỗi, giỏ hàng giữ nguyên
+    else Đủ nguyên liệu
+      API -> DB : INSERT Order (PENDING), OrderItem[],\nOrderIngredientUse (chưa trừ kho)
+      API -> DB : COMMIT
+      API --> UI : 201 Created {orderId, total}
+      UI --> C : Hiển thị màn hình thanh toán
+    end
+  end
+end
+
+== Thanh toán ==
+C -> UI : Chọn Ví hoặc Thẻ, bấm "Thanh toán"
+UI -> UI : Tạo Idempotency-Key (UUID) cho lần thanh toán này
+UI -> API : POST /payments\nAuthorization: Bearer <JWT>\nIdempotency-Key: <key>\n{orderId, method}
+API -> API : Kiểm tra JWT và validate dữ liệu
+API -> DB : Tìm Payment theo (userId, idempotencyKey)
+DB --> API : Kết quả tìm
+
+alt Đã có Payment với cùng key (client gửi lại yêu cầu)
+  API --> UI : 200 + kết quả đã lưu lần trước\n(không gọi Payment Service, không tạo Payment mới)
+  UI --> C : Hiển thị kết quả như lần trước
+else Key mới
+  API -> DB : BEGIN TRANSACTION
+  API -> DB : UPDATE Ingredient SET stock = stock - cần\nWHERE id = ? AND stock >= cần
+  DB --> API : Số dòng cập nhật
+  alt Kho vừa hết (đơn khác thanh toán trước)
+    API -> DB : ROLLBACK
+    API -> DB : INSERT Payment (FAILED, idempotencyKey)\nUPDATE Order SET status = PAYMENT_FAILED, failureReason
+    API --> UI : 200 {status: PAYMENT_FAILED, reason}
+    UI --> C : Báo hết nguyên liệu; không gọi Payment Service nên không trừ tiền
+  else Đã giữ đủ nguyên liệu trong transaction
+    API -> PS : charge(orderId, amount, method)
+    PS --> API : Kết quả thanh toán
+    alt Thanh toán thành công
+      API -> DB : INSERT Payment (SUCCESS, idempotencyKey)
+      API -> DB : UPDATE Order SET status = PAID,\nOrderIngredientUse.consumed = true
+      API -> DB : UPDATE User.points\nINSERT LoyaltyTransaction (EARN)
+      API -> DB : COMMIT
+      API --> UI : 200 {status: PAID, pointsEarned}
+      UI --> C : Hiển thị trang xác nhận đơn
+    else Thanh toán thất bại
+      API -> DB : ROLLBACK (hoàn lại phần kho vừa trừ)
+      API -> DB : INSERT Payment (FAILED, idempotencyKey)\nUPDATE Order SET status = PAYMENT_FAILED
+      API --> UI : 200 {status: PAYMENT_FAILED}
+      UI --> C : Báo thanh toán thất bại, giữ giỏ hàng, cho thử lại
+    end
+  end
+end
+
+@enduml
