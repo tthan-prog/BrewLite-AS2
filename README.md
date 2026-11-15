@@ -41,19 +41,41 @@ docker compose up --build
 ## Chạy khi phát triển
 
 ```bash
-npm ci
-cp .env.example .env
-docker compose up -d db      # chỉ chạy database
-npm run dev:api              # API ở cổng 3001
-npm run dev:web              # Web ở cổng 3000
+npm ci                         # cài thư viện, tự chạy "prisma generate" cho apps/api
+cp .env.example .env           # dùng cho docker compose và API
+cp .env.example apps/api/.env  # dùng cho Prisma CLI khi chạy trong apps/api
+docker compose up -d db        # chỉ chạy PostgreSQL
+npm run db:migrate -w apps/api # áp migration vào database local
+npm run db:seed -w apps/api    # nạp dữ liệu mẫu
+npm run dev:api                # API ở cổng 3001
+npm run dev:web                # Web ở cổng 3000
 ```
+
+Khi chạy bằng `docker compose up --build`, container `api` tự áp migration (`prisma migrate deploy`) trước khi khởi động. Nạp dữ liệu mẫu từ máy (database mở cổng 5432): `npm run db:seed -w apps/api`.
+
+### Tài khoản thử (dữ liệu seed, chỉ dùng để kiểm thử)
+
+| Vai trò | Email | Mật khẩu |
+|---|---|---|
+| Khách hàng | `customer@brewlite.test` | `Customer@123` |
+| Nhân viên | `staff@brewlite.test` | `Staff@123` |
+
+Tài khoản thanh toán QR thử: `TEST-0001` (số dư 1.000.000đ), `TEST-0002` (số dư 10.000đ), PIN `123456`.
+
+## API hiện có
+
+| Phương thức | Đường dẫn | Mô tả | Yêu cầu |
+|---|---|---|---|
+| GET | `/health` | Trạng thái API và database (`503` khi database lỗi) | NFR-09 |
+| GET | `/products` | Danh sách món: giá, danh mục, còn hàng, số ly tối đa đặt được | FR-01, FR-16 |
+| GET | `/products/:id` | Chi tiết món kèm size (phụ phí), topping, mức đường và đá | FR-03, FR-16 |
 
 ## Lint, test, build
 
 ```bash
 npm run lint                     # ESLint cho api và web
 npm test                         # Unit test (Vitest) cho api và web
-npm run test:e2e -w apps/api     # Test tích hợp API (supertest)
+npm run test:e2e -w apps/api     # Test tích hợp HTTP của API (supertest, Prisma giả lập)
 npm run build                    # Build api và web
 ```
 
