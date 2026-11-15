@@ -7,5 +7,6 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.spec.ts'],
+    env: { JWT_SECRET: 'unit-test-secret' },
   },
 });
