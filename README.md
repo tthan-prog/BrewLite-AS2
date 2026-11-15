@@ -64,22 +64,45 @@ Tài khoản thanh toán QR thử: `TEST-0001` (số dư 1.000.000đ), `TEST-000
 
 ## API hiện có
 
-| Phương thức | Đường dẫn | Mô tả | Yêu cầu |
-|---|---|---|---|
-| GET | `/health` | Trạng thái API và database (`503` khi database lỗi) | NFR-09 |
-| GET | `/products` | Danh sách món: giá, danh mục, còn hàng, số ly tối đa đặt được | FR-01, FR-16 |
-| GET | `/products/:id` | Chi tiết món kèm size (phụ phí), topping, mức đường và đá | FR-03, FR-16 |
+Chi tiết request, response và mã lỗi: [docs/api/api-contract.md](docs/api/api-contract.md).
+
+| Phương thức | Đường dẫn | Quyền | Mô tả | Yêu cầu |
+|---|---|---|---|---|
+| GET | `/health` | Công khai | Trạng thái API và database (`503` khi database lỗi) | NFR-09 |
+| GET | `/products` | Công khai | Danh sách món: giá, danh mục, còn hàng, số ly tối đa đặt được | FR-01, FR-16 |
+| GET | `/products/:id` | Công khai | Chi tiết món kèm size (phụ phí), topping, mức đường và đá | FR-03, FR-16 |
+| POST | `/auth/register` | Công khai | Đăng ký tài khoản khách hàng | FR-05 |
+| POST | `/auth/login` | Công khai | Đăng nhập, trả `accessToken` (JWT) | FR-05 |
+| GET | `/auth/me` | Đăng nhập | Thông tin tài khoản và điểm thưởng | FR-05, FR-14 |
+| POST | `/orders` | Đăng nhập | Tạo đơn PENDING, kiểm tra nguyên liệu, áp mã khuyến mãi | FR-06, FR-07, FR-13 |
+| GET | `/orders/me` | Đăng nhập | Lịch sử đơn của tôi | FR-11 |
+| GET | `/orders/:id` | Chủ đơn hoặc STAFF | Chi tiết đơn | FR-11 |
+| GET | `/orders?status=` | STAFF | Danh sách đơn theo trạng thái | FR-15 |
+| PATCH | `/orders/:id/status` | STAFF | Chuyển trạng thái đơn theo máy trạng thái | FR-10, FR-15 |
+| POST | `/payments` | Đăng nhập | Thanh toán Ví hoặc Thẻ mô phỏng, header `Idempotency-Key` bắt buộc | FR-08, FR-09, FR-12, FR-14 |
 
 ## Lint, test, build
 
 ```bash
 npm run lint                     # ESLint cho api và web
 npm test                         # Unit test (Vitest) cho api và web
-npm run test:e2e -w apps/api     # Test tích hợp HTTP của API (supertest, Prisma giả lập)
+npm run test:e2e -w apps/api     # Test HTTP của API (supertest, Prisma giả lập)
 npm run build                    # Build api và web
 ```
 
-CI chạy các bước Install → Lint → Unit Test → Build cho mọi pull request (`.github/workflows/ci.yml`).
+Test tích hợp dùng PostgreSQL thật. Test sẽ **xóa toàn bộ dữ liệu** của database được trỏ tới, nên dùng database riêng, không dùng database đang chạy thử:
+
+```bash
+docker compose up -d db
+docker compose exec db createdb -U brewlite brewlite_test
+cd apps/api
+# PowerShell: $env:DATABASE_URL="postgresql://brewlite:brewlite@localhost:5432/brewlite_test?schema=public"
+export DATABASE_URL="postgresql://brewlite:brewlite@localhost:5432/brewlite_test?schema=public"
+npx prisma migrate deploy
+npm run test:int
+```
+
+CI chạy Install → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`).
 
 ## Quy ước làm việc
 
