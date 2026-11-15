@@ -3,7 +3,6 @@
 
 import { API_URL } from "../../lib/config";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 
 type Product = {
@@ -14,6 +13,28 @@ type Product = {
   category?: string;
 };
 
+
+async function fetchProducts(
+  signal: AbortSignal
+): Promise<Product[]> {
+  const response = await fetch(`${API_URL}/products`, {
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error("Không thể tải thực đơn");
+  }
+
+  const data: unknown = await response.json();
+
+  if (!Array.isArray(data)) {
+    throw new Error("Dữ liệu không hợp lệ");
+  }
+
+  return data as Product[];
+}
+
+
 export default function MenuPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,69 +42,40 @@ export default function MenuPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Tất cả");
 
-  async function loadProducts() {
-    setLoading(true);
-    setError("");
+  
+  const [retryKey, setRetryKey] = useState(0);
 
-    try {
-      // API mẫu chỉ dùng khi phát triển giao diện độc lập.
-      // Khi tích hợp AS2, thay bằng API NestJS GET /products.
-      const response = await fetch(`${API_URL}/products`);
-
-      if (!response.ok) {
-        throw new Error("Không thể tải thực đơn");
-      }
-
-      const data: unknown = await response.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error("Dữ liệu không hợp lệ");
-      }
-
-      setProducts(data as Product[]);
-    } catch {
-      setError("Không thể tải thực đơn. Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
+  
   useEffect(() => {
-  const controller = new AbortController();
+    const controller = new AbortController();
 
-  async function fetchProducts() {
-    try {
-      const response = await fetch(`${API_URL}/products`, {
-        signal: controller.signal,
+    fetchProducts(controller.signal)
+      .then((data) => {
+        if (controller.signal.aborted) return;
+
+        setProducts(data);
+        setError("");
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+
+        setError("Không thể tải thực đơn. Vui lòng thử lại.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       });
 
-      if (!response.ok) {
-        throw new Error("Không thể tải thực đơn");
-      }
+    return () => controller.abort();
+  }, [retryKey]);
 
-      const data: unknown = await response.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error("Dữ liệu không hợp lệ");
-      }
-
-      if (!controller.signal.aborted) {
-        setProducts(data as Product[]);
-        setError("");
-        setLoading(false);
-      }
-    } catch {
-      if (!controller.signal.aborted) {
-        setError("Không thể tải thực đơn. Vui lòng thử lại.");
-        setLoading(false);
-      }
-    }
+  function handleRetry() {
+    setLoading(true);
+    setError("");
+    setRetryKey((previous) => previous + 1);
   }
 
-  void fetchProducts();
-
-  return () => controller.abort();
-}, []);
 
   const categories = [
     "Tất cả",
@@ -178,7 +170,7 @@ export default function MenuPage() {
           <div role="alert" className="rounded-2xl bg-red-50 p-8 text-center">
             <p className="mb-5 text-red-700">{error}</p>
             <button
-              onClick={() => void loadProducts()}
+              onClick={handleRetry}
               className="rounded-xl bg-[#30271F] px-6 py-3 text-white"
             >
               Thử lại
@@ -226,12 +218,9 @@ export default function MenuPage() {
                       {product.price.toLocaleString("vi-VN")}đ
                     </span>
 
-                    <Link
-                      href={`/product/${product.id}`}
-                      className="rounded-xl bg-[#30271F] px-3 py-2 text-xs font-semibold text-white"
-                        >
-                        Chọn món
-                    </Link>
+                    <span className="rounded-xl bg-[#F3E8DA] px-3 py-2 text-xs font-semibold text-[#74502F]">
+                        Xem thực đơn
+                    </span>
                   </div>
                 </div>
               </article>
