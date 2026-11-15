@@ -25,13 +25,28 @@ async function fetchProducts(
     throw new Error("Không thể tải thực đơn");
   }
 
-  const data: unknown = await response.json();
+  
+const data: unknown = await response.json();
 
-  if (!Array.isArray(data)) {
-    throw new Error("Dữ liệu không hợp lệ");
-  }
+// Hỗ trợ cả dạng mảng và dạng { value: [...] }
+let products: unknown;
 
-  return data as Product[];
+if (Array.isArray(data)) {
+  products = data;
+} else if (
+  typeof data === "object" &&
+  data !== null &&
+  "value" in data
+) {
+  products = data.value;
+}
+
+if (!Array.isArray(products)) {
+  throw new Error("Dữ liệu sản phẩm không hợp lệ");
+}
+
+return products as Product[];
+
 }
 
 
