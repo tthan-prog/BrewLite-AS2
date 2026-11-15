@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 export interface HealthStatus {
   status: 'ok';
   db: 'up';
+  /** Phiên bản image đang chạy (APP_VERSION gắn lúc build), dùng cho smoke test sau deploy. */
+  version: string;
   uptime: number;
   timestamp: string;
 }
@@ -23,6 +25,7 @@ export class HealthController {
     return {
       status: 'ok',
       db: 'up',
+      version: process.env.APP_VERSION ?? 'dev',
       uptime: Math.round(process.uptime()),
       timestamp: new Date().toISOString(),
     };
