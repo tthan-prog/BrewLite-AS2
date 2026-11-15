@@ -126,3 +126,14 @@ Xem [docs/contributing.md](docs/contributing.md): chiến lược nhánh, pull r
 - Yêu cầu: [docs/requirements](docs/requirements)
 - Sơ đồ: [docs/diagrams](docs/diagrams)
 - Kiến trúc và ADR: [docs/architecture](docs/architecture)
+- API: [docs/api/api-contract.md](docs/api/api-contract.md)
+- Triển khai production: [docs/deployment.md](docs/deployment.md), runbook: [docs/deploy/runbook.md](docs/deploy/runbook.md)
+- Scrum: [Product Backlog](docs/scrum/product-backlog.md), [Sprint 1 Review và Retro](docs/scrum/sprint-1-review-retro.md), [Sprint 2 Review và Retro](docs/scrum/sprint-2-review-retro.md)
+- Phiên bản: [CHANGELOG.md](CHANGELOG.md), [release notes v1.0.0](docs/release/release-notes-v1.0.0.md)
+
+## Production
+
+- Web: https://brewlite-as2-web.onrender.com
+- API: https://brewlite-as2-api-k8xj.onrender.com, health check: https://brewlite-as2-api-k8xj.onrender.com/health
+
+Gói Free của Render ngủ khi không có truy cập; lần mở đầu có thể chậm khoảng 50 giây.
