@@ -32,17 +32,20 @@ type Product = {
   iceLevels: number[];
 };
 
+
 type CartItem = {
   key: string;
-  productId: string;
+  productId: number;
   name: string;
   size: string;
   topping: string;
+  toppingIds: number[];
+  sugar: number;
+  ice: number;
   quantity: number;
   unitPrice: number;
-  sugar?: number;
-  ice?: number;
 };
+
 
 function readCart(): CartItem[] {
   try {
@@ -142,8 +145,8 @@ export default function ProductDetailPage() {
 
     // Đếm tổng số ly cùng sản phẩm trong giỏ.
     const currentQuantity = cart
-      .filter((item) => item.productId === String(product.id))
-      .reduce((sum, item) => sum + item.quantity, 0);
+  .filter((item) => Number(item.productId) === product.id)
+  .reduce((sum, item) => sum + item.quantity, 0);
 
     if (currentQuantity + quantity > product.maxQuantity) {
       setCartError(
@@ -162,10 +165,11 @@ export default function ProductDetailPage() {
           ...cart,
           {
             key,
-            productId: String(product.id),
+            productId: product.id,
             name: product.name,
             size,
             topping: toppingName,
+            toppingIds: selectedTopping ? [selectedTopping.id] : [],
             sugar,
             ice,
             quantity,
