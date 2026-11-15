@@ -13,7 +13,9 @@ Pipeline `.github/workflows/cd.yml` chạy khi push tag `v*`:
 1. **CI**: gọi lại `ci.yml` (lint, unit test, e2e, integration test với PostgreSQL, build).
 2. **Build và push**: build image API (kèm `APP_VERSION=<tag>`) và Web (kèm `NEXT_PUBLIC_API_URL`), push lên GHCR với 3 tag: `<tag>`, `sha-<commit>`, `latest`.
 3. **Deploy**: gọi deploy hook của Render với `imgURL` trỏ đúng image `<tag>`.
-4. **Smoke test**: chờ `GET /health` trả `"version":"<tag>"` và `"db":"up"`, gọi `GET /products`, rồi kiểm tra trang `/` và `/menu` của web trả 200. Quá 10 phút thì pipeline báo lỗi.
+4. **Smoke test**: chờ `GET /health` trả `"version":"<tag>"` và `"db":"up"`, gọi `GET /products`, rồi kiểm tra trang `/` và `/menu` của web trả 200. Quá 15 phút thì pipeline báo lỗi.
+
+Trước bước 3, pipeline gọi `/health` và trang web để đánh thức dịch vụ. Gói Free của Render tắt dịch vụ khi không có truy cập; nếu deploy lúc dịch vụ đang ngủ, yêu cầu đầu tiên của smoke test sẽ đánh thức bản cũ và tiếp tục đi vào bản cũ (đã gặp ở lần chạy `v0.9.1`).
 
 ## Cấu hình một lần
 
