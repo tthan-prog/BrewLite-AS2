@@ -111,6 +111,12 @@ npm run test:int
 
 CI chạy Install → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`).
 
+## Triển khai (CD)
+
+Push tag `v*` chạy `.github/workflows/cd.yml`: CI → build image API và Web → push GHCR → deploy Render → smoke test `/health` (đúng phiên bản, database up), `/products`, trang `/` và `/menu`. Rollback: Actions → CD → Run workflow với tag cũ.
+
+Cấu hình Render, biến môi trường, seed production và rollback: [docs/deploy/runbook.md](docs/deploy/runbook.md).
+
 ## Quy ước làm việc
 
 Xem [docs/contributing.md](docs/contributing.md): chiến lược nhánh, pull request, quy ước commit, Definition of Done.
