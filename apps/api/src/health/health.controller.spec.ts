@@ -10,6 +10,7 @@ describe('HealthController', () => {
     const result = await withDb(vi.fn().mockResolvedValue([{ '?column?': 1 }])).check();
     expect(result.status).toBe('ok');
     expect(result.db).toBe('up');
+    expect(result.version).toBe(process.env.APP_VERSION ?? 'dev');
     expect(result.uptime).toBeGreaterThanOrEqual(0);
     expect(Number.isNaN(Date.parse(result.timestamp))).toBe(false);
   });

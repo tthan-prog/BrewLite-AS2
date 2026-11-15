@@ -1,5 +1,7 @@
 # Build từ thư mục gốc repository: docker build -f apps/api/Dockerfile .
 FROM node:22-alpine AS deps
+# Prisma cần OpenSSL; image node alpine không có sẵn
+RUN apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
@@ -13,7 +15,10 @@ COPY apps/api ./apps/api
 RUN npm run build --workspace apps/api
 
 FROM node:22-alpine AS runner
-ENV NODE_ENV=production
+RUN apk add --no-cache openssl
+# Phiên bản (tag git) do pipeline CD truyền vào; /health trả về để smoke test kiểm tra đúng bản
+ARG APP_VERSION=dev
+ENV NODE_ENV=production APP_VERSION=${APP_VERSION}
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/

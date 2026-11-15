@@ -175,9 +175,54 @@ Khi `status` là `FAILED`: giữ giỏ hàng, hiện `failureReason`, cho bấm 
 
 Thanh toán thành công cộng 1 điểm cho mỗi 10.000đ của `total`.
 
+## Kho nguyên liệu (STAFF, FR-17)
+
+### `GET /ingredients` → `200`
+
+```json
+[{ "id": 1, "name": "Cà phê rang xay", "unit": "g", "stock": 4954, "lowThreshold": 500, "flag": "OK" }]
+```
+
+`flag`: `OUT` (hết, tồn kho ≤ 0), `LOW` (sắp hết, tồn kho ≤ `lowThreshold`), `OK`.
+
+### `PATCH /ingredients/:id/restock` → `200`
+
+```json
+{ "quantity": 500 }
+```
+
+Số nguyên dương, tối đa 1.000.000 mỗi lần; cộng dồn vào tồn kho. Trả nguyên liệu sau khi nhập (cùng dạng như trên). Số lượng không dương trả `400`, id không tồn tại trả `404`. CUSTOMER gọi nhận `403`.
+
+## Đổi quà (FR-19)
+
+### `GET /rewards` → `200` (công khai)
+
+```json
+[{ "id": 1, "name": "Giảm 10.000đ", "pointsCost": 50 }]
+```
+
+### `POST /rewards/:id/redeem` → `201` (đăng nhập)
+
+Không có body. Đủ điểm thì trừ điểm và trả mã quà để dùng tại quầy:
+
+```json
+{ "redemptionId": 1, "rewardId": 1, "rewardName": "Giảm 10.000đ", "pointsSpent": 50, "code": "BL-7K3QX9MP", "pointsLeft": 77 }
+```
+
+Không đủ điểm trả `400` (`"Không đủ điểm để đổi phần thưởng này"`), điểm giữ nguyên. Quà đã ngừng hoặc không tồn tại trả `404`. Nhiều yêu cầu đổi cùng lúc không làm điểm âm.
+
+### `GET /rewards/me` → `200` (đăng nhập)
+
+Các mã quà đã đổi, mới nhất trước: `[{ "id", "rewardId", "rewardName", "pointsSpent", "code" }]`.
+
+## Tự hủy đơn quá hạn (FR-20)
+
+Đơn `PENDING` quá `ORDER_TIMEOUT_MINUTES` phút (mặc định 15) tự chuyển `CANCELLED` với `failureReason: "Quá hạn thanh toán, đơn tự hủy"` và trả lại lượt dùng mã khuyến mãi. API quét mỗi phút. Đơn đã thanh toán không bị ảnh hưởng.
+
 ## Gợi ý nối giao diện
 
 - **Đăng nhập (Long, PR #19):** đọc `accessToken` từ `POST /auth/login`, lưu `sessionStorage["brewlite_token"]` như hiện tại.
 - **Lịch sử đơn (Long, PR #19):** `GET /orders/me` trả mảng; mã đơn hiển thị là `#${id}`.
 - **Chi tiết món (Lực, PR #12):** gọi `GET ${API_URL}/products/:id` (không phải `/api/products`). Lưu vào giỏ `productId` (số), `size`, `sugar`, `ice`, `toppingIds` (mảng id) để gửi thẳng lên `POST /orders`.
+- **Đổi quà (Lực, PR #12):** điểm lấy từ `GET /auth/me`, danh sách quà từ `GET /rewards`, bấm đổi gọi `POST /rewards/:id/redeem` rồi hiện `code`.
 - **Thanh toán (Lực, PR #12):** chưa đăng nhập thì chuyển `/login` và giữ giỏ (FR-06). Gọi `POST /orders` → lấy `id` → `POST /payments` kèm `Idempotency-Key`. `SUCCESS` thì xóa giỏ và chuyển trang xác nhận; `FAILED` thì giữ giỏ và hiện lý do.
