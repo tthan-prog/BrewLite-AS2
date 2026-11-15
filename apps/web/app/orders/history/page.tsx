@@ -68,12 +68,18 @@ export default function OrderHistoryPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    void loadOrders(controller.signal);
-    return () => controller.abort();
-  }, [loadOrders, retryKey]);
+useEffect(() => {
+  const controller = new AbortController();
 
+  const timer = setTimeout(() => {
+    void loadOrders(controller.signal);
+  }, 0);
+
+  return () => {
+    clearTimeout(timer);
+    controller.abort();
+  };
+}, [loadOrders, retryKey]);
   return (
     <main className="min-h-screen bg-[#F8F5EF] px-4 py-10 text-[#30271F] sm:px-6 sm:py-14">
       <div className="mx-auto max-w-6xl">
