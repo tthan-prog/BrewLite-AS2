@@ -4,15 +4,47 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+
 type CartItem = {
   key: string;
-  productId: string;
+  productId: number;
   name: string;
   size: string;
   topping: string;
+  toppingIds: number[];
+  sugar: number;
+  ice: number;
   quantity: number;
   unitPrice: number;
 };
+
+
+function isValidCartItem(value: unknown): value is CartItem {
+  if (!value || typeof value !== "object") return false;
+
+  const item = value as Partial<CartItem>;
+
+  return (
+    typeof item.key === "string" &&
+    typeof item.productId === "number" &&
+    Number.isInteger(item.productId) &&
+    typeof item.name === "string" &&
+    ["S", "M", "L"].includes(item.size ?? "") &&
+    Array.isArray(item.toppingIds) &&
+    item.toppingIds.every(
+      (id) => Number.isInteger(id) && id > 0
+    ) &&
+    [0, 30, 50, 70, 100].includes(item.sugar ?? -1) &&
+    [0, 30, 50, 70, 100].includes(item.ice ?? -1) &&
+    typeof item.quantity === "number" &&
+    Number.isInteger(item.quantity) &&
+    item.quantity >= 1 &&
+    typeof item.unitPrice === "number" &&
+    Number.isFinite(item.unitPrice)
+  );
+}
+
+
 
 
 function readCart(): CartItem[] {
@@ -20,11 +52,15 @@ function readCart(): CartItem[] {
     const saved = localStorage.getItem("brewlite-as2-cart");
     const parsed: unknown = saved ? JSON.parse(saved) : [];
 
-    return Array.isArray(parsed) ? (parsed as CartItem[]) : [];
+    if (!Array.isArray(parsed)) return [];
+
+    // Loại dữ liệu demo cũ chưa đúng API.
+    return parsed.filter(isValidCartItem);
   } catch {
     return [];
   }
 }
+
 
 
 export default function CartPage() {
@@ -99,9 +135,14 @@ useEffect(() => {
                 <div className="flex flex-wrap justify-between gap-4">
                   <div>
                     <h2 className="text-lg font-bold">{item.name}</h2>
+                    
                     <p className="mt-1 text-sm text-gray-600">
                       Size {item.size} · {item.topping}
                     </p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Đường {item.sugar}% · Đá {item.ice}%
+                    </p>
+
                     <p className="mt-2 font-semibold">
                       {item.unitPrice.toLocaleString("vi-VN")}đ / ly
                     </p>

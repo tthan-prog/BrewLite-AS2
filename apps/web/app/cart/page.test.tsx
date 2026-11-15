@@ -16,17 +16,22 @@ import {
 } from "@testing-library/react";
 import CartPage from "./page";
 
+
 const sampleCart = [
   {
-    key: "1-L-Trân châu",
-    productId: "1",
+    key: "1-L-1-100-100",
+    productId: 1,
     name: "Cà phê sữa đá",
     size: "L",
-    topping: "Trân châu",
+    topping: "Trân châu đen",
+    toppingIds: [1],
+    sugar: 100,
+    ice: 100,
     quantity: 2,
-    unitPrice: 44000,
+    unitPrice: 46000,
   },
 ];
+
 
 beforeEach(() => {
   localStorage.clear();
@@ -71,11 +76,11 @@ describe("BrewLite - Gio hang Task 5", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("Size L · Trân châu")
+      screen.getByText("Size L · Trân châu đen")
     ).toBeInTheDocument();
 
     expect(
-      screen.getAllByText("88.000đ").length
+      screen.getAllByText("92.000đ").length
     ).toBeGreaterThan(0);
   });
 
@@ -94,7 +99,7 @@ describe("BrewLite - Gio hang Task 5", () => {
     );
 
     expect(
-      screen.getAllByText("132.000đ").length
+      screen.getAllByText("138.000đ").length
     ).toBeGreaterThan(0);
 
     fireEvent.click(
@@ -102,7 +107,7 @@ describe("BrewLite - Gio hang Task 5", () => {
     );
 
     expect(
-      screen.getAllByText("88.000đ").length
+      screen.getAllByText("92.000đ").length
     ).toBeGreaterThan(0);
 
     const saved = JSON.parse(

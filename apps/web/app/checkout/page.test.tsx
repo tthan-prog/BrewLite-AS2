@@ -15,20 +15,37 @@ import {
 } from "@testing-library/react";
 import CheckoutPage from "./page";
 
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+  }),
+}));
+
+
 const sampleCart = [
   {
-    key: "1-L-Trân châu",
-    productId: "1",
+    key: "1-L-1-100-100",
+    productId: 1,
     name: "Cà phê sữa đá",
     size: "L",
-    topping: "Trân châu",
+    topping: "Trân châu đen",
+    toppingIds: [1],
+    sugar: 100,
+    ice: 100,
     quantity: 2,
-    unitPrice: 44000,
+    unitPrice: 46000,
   },
 ];
 
+
 beforeEach(() => {
   localStorage.clear();
+
+    sessionStorage.clear();
+    sessionStorage.setItem("brewlite_token", "test-token");
 
   vi.stubGlobal(
     "requestAnimationFrame",
@@ -62,14 +79,14 @@ describe("BrewLite - Checkout Task 5", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getAllByText("88.000đ").length
-    ).toBeGreaterThan(0);
+  screen.getAllByText("92.000đ").length
+).toBeGreaterThan(0);
 
     expect(
-      screen.getByRole("button", {
-        name: /Thanh toán 88.000đ/,
-      })
-    ).toBeDisabled();
+  screen.getByRole("button", {
+    name: "Thanh toán đơn hàng",
+  })
+).toBeEnabled();
   });
 
   it("cho phep chon Vi hoac The", async () => {
