@@ -62,9 +62,7 @@ class Product {
   basePrice: int
   category: string
   imageUrl: string
-  stock: int
 }
-note right of Product : stock chỉ dùng khi món chưa có công thức
 class Topping {
   id: int
   name: string
@@ -86,7 +84,6 @@ class OrderItem {
   sugar: int  [0|30|50|70|100]
   ice: int  [0|30|50|70|100]
   unitPrice: int
-  usesRecipe: bool
 }
 class Payment {
   id: int
