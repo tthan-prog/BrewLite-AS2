@@ -21,15 +21,15 @@ Story point theo `product-backlog.md`. "API xong" nghĩa là phần API đã mer
 | US-09 Thanh toán Ví/Thẻ, idempotency | 8 | API xong; giao diện đang review | #42 (A), #12 (D) ⏳ |
 | US-10 Không bán vượt nguyên liệu | 5 | **Done** | #42 (A) |
 | US-11 Xác nhận, lịch sử đơn | 3 | API xong; giao diện đang review | #42 (A), #19 (C) ⏳ |
-| US-12 Nhân viên xử lý đơn | 5 | API xong; trang nhân viên ⏳ | #42 (A) |
+| US-12 Nhân viên xử lý đơn | 5 | **Done** | #42, #48 (A) |
 | US-13 Mã khuyến mãi | 3 | API xong; ô nhập mã nằm trong trang thanh toán | #42 (A), #12 (D) ⏳ |
 | US-14 Điểm thưởng | 3 | **Done** | #42 (A) |
-| US-15 Kho nguyên liệu | 3 | API xong; trang nhân viên ⏳ | #44 (A), dữ liệu #15 (B) |
-| US-16 Thanh toán QR | 5 | ⏳ | |
+| US-15 Kho nguyên liệu | 3 | **Done** | #44, #48 (A), dữ liệu #15 (B) |
+| US-16 Thanh toán QR | 5 | API, trang xác nhận trên điện thoại, thành phần QR xong; gắn vào trang thanh toán sau PR #12 | ⏳ (A) |
 | US-17 Đổi quà | 3 | API xong; giao diện đổi quà ⏳ | #44 (A), #12 (D) ⏳ |
 | US-18 Tự hủy đơn quá hạn | 2 | **Done** | #44 (A) |
 | US-19 VNPay sandbox | 5 | ⏳ | |
-| US-20 Test tích hợp và E2E | 5 | Integration test API xong (29 test, CI chạy với PostgreSQL); E2E giao diện ⏳ | #42, #44 (A) ⏳ (C) |
+| US-20 Test tích hợp và E2E | 5 | Integration test API xong (37 test, CI chạy với PostgreSQL); E2E giao diện ⏳ | #42, #44 (A) ⏳ (C) |
 | US-21 Production và CD | 8 | **Done** | #43, #45, #46 (A) |
 | US-22 Tài liệu bàn giao | 3 | Đang làm: README, release notes, deployment, Sprint Review/Retro; ma trận truy vết và video ⏳ | ⏳ |
 
