@@ -1,20 +1,21 @@
-import { Test } from '@nestjs/testing';
+import { ServiceUnavailableException } from '@nestjs/common';
 import { HealthController } from './health.controller';
+import type { PrismaService } from '../prisma/prisma.service';
+
+const withDb = (queryRaw: ReturnType<typeof vi.fn>) =>
+  new HealthController({ $queryRaw: queryRaw } as unknown as PrismaService);
 
 describe('HealthController', () => {
-  let controller: HealthController;
-
-  beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({
-      controllers: [HealthController],
-    }).compile();
-    controller = moduleRef.get(HealthController);
-  });
-
-  it('trả status ok kèm uptime và timestamp', () => {
-    const result = controller.check();
+  it('trả status ok, db up kèm uptime và timestamp', async () => {
+    const result = await withDb(vi.fn().mockResolvedValue([{ '?column?': 1 }])).check();
     expect(result.status).toBe('ok');
+    expect(result.db).toBe('up');
     expect(result.uptime).toBeGreaterThanOrEqual(0);
     expect(Number.isNaN(Date.parse(result.timestamp))).toBe(false);
+  });
+
+  it('trả 503 khi database không phản hồi', async () => {
+    const check = withDb(vi.fn().mockRejectedValue(new Error('connection refused'))).check();
+    await expect(check).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
 });
