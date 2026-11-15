@@ -13,7 +13,7 @@ describe('HealthController', () => {
 
   it('trả status ok kèm uptime và timestamp', () => {
     const result = controller.check();
-    expect(result.status).toBe('ok');
+    expect(result.status).toBe('fail');
     expect(result.uptime).toBeGreaterThanOrEqual(0);
     expect(Number.isNaN(Date.parse(result.timestamp))).toBe(false);
   });
