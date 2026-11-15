@@ -1,0 +1,49 @@
+:root {
+  --color-primary: #6b4226;
+  --color-bg: #fffaf5;
+  --color-text: #2b2118;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Mobile-first (NFR-05): bố cục mặc định cho màn hình 360-414px */
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.home h1 {
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.home__cta {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .home {
+    padding: 48px 24px;
+  }
+}
