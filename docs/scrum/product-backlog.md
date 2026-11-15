@@ -1,79 +1,59 @@
-# Product Backlog – BrewLite Assignment 2 (AS2)
+# Product Backlog – BrewLite (Assignment 2)
 
-- **Repository AS2:** `https://github.com/tthan-prog/BrewLite-AS2`.
-- **Product Owner tạm:** Hà Thiên Long (C).
-- **Scrum Master:** Nguyễn Lê Nhựt Thắng (A).
-- **Mốc nghiệm thu cuối cùng:** **15/11/2026**.
-- **Nguyên tắc:** AS2 được thực hiện trên repository riêng và làm lại theo trình tự Task 1 → Task 2 → Task 3 → Task 4 → Task 5. Task sau chỉ được nghiệm thu khi tạo phẩm của Task trước đã có trên repository. PR sau chỉ mở sau khi PR trước đã merge, ngoại trừ các PR thuộc cùng một Task được phép thực hiện song song theo kế hoạch.
+- **Repository:** https://github.com/tthan-prog/BrewLite-AS2
+- **Product Owner:** Hà Thiên Long (C)
+- **Scrum Master:** Nguyễn Lê Nhựt Thắng (A)
+- **Development Team:** Nguyễn Lê Nhựt Thắng (A), Hồ Thiên Ngân (B), Hà Thiên Long (C), Giản Thiên Lực (D)
+- **Nguồn yêu cầu:** `docs/requirements/srs.md` (mã FR/NFR, mức ưu tiên MoSCoW, tiêu chí chấp nhận), `docs/requirements/use-case-checkout.md` (UC-01)
+- **Quy ước làm việc và Definition of Done:** `docs/contributing.md`
 
-## 1. Danh sách hạng mục và mốc thời gian cập nhật
+## 1. Sprint
 
-- **Sprint 1:** 14/11/2026 (Task 1–4; Review/Retrospective lúc 16:00).
-- **Sprint 2:** 14–15/11/2026 (Task 5; hoàn tất release trước 16:00 ngày 15/11, video/slide trước 18:00).
-
-| Ưu tiên | Mã | Hạng mục | Tiêu chí hoàn thành chính | Thời gian / PR |
-|---|---|---|---|---|
-| 1 | 4.1 | Thiết lập repository, cấu trúc `apps/web`, `apps/api`, README, `.gitignore`, `.env.example`, quy ước branch/commit và DoD; tạo Product Backlog và bảng Issues Sprint 1, 2 | Repository có cấu trúc và tài liệu hướng dẫn; quy ước làm việc được ghi rõ; backlog và Issues được tạo | 14/11 trước 11:30 – PR 7 |
-| 2 | 4.2 | Quản lý tài liệu: đưa tạo phẩm Task 1–3 vào `docs`, thay đổi qua PR | Có tài liệu yêu cầu, use case, activity, sequence, class/ERD, kiến trúc, ADR và deployment diagram theo các PR 1–6 | 14/11 trước 10:30 – PR 1–6 |
-| 3 | 4.3 | MVP: Prisma schema, migration, seed; Products API; trang menu mobile-first; loading, empty, error và test component/API | Có schema và dữ liệu mẫu; `GET /products`, `GET /products/:id` hoạt động; trang menu chạy được và có kiểm thử | 14/11 trước 13:30–15:30 – PR 9–11 |
-| 4 | 4.4 | CI: Install → Lint → Unit Test → Build; bật bảo vệ nhánh | Có minh chứng một lần CI đỏ và một lần CI xanh; PR bị chặn khi CI không đạt | 14/11 trước 12:30 – PR 8 |
-| 5 | 5.1 | Hoàn thiện luồng MVP: chi tiết món, size, topping, giỏ hàng, đăng ký/đăng nhập JWT, tạo đơn, thanh toán Ví/Thẻ mô phỏng, xác nhận và lịch sử đơn; validate và xử lý lỗi | Luồng từ menu đến lịch sử đơn hoạt động; các giao diện và API được tích hợp | 14/11 16:00–24:00 – PR 12–18 |
-| 6 | 5.2 | Kiểm thử và tích hợp: unit, integration, E2E; Docker Compose; `/health` | Có unit test, integration test và ít nhất một E2E menu → xác nhận; Docker Compose và health check hoạt động | 14/11 trước 24:00 – PR 19 |
-| 7 | 5.3 | CD: build Docker image, push GHCR, deploy Render, smoke test và rollback | Pipeline CD chạy được; image được đẩy lên GHCR; production được deploy và có minh chứng smoke test/rollback | 15/11 trước 08:00 – PR 20 |
-| 8 | 5.1 mở rộng | Chức năng phụ: nhân viên xử lý đơn; kho nguyên liệu và công thức theo size/topping; thanh toán QR qua cổng mô phỏng; đổi điểm lấy phần thưởng | Từng chức năng có PR riêng; API, dữ liệu/seed và giao diện liên quan được tích hợp theo phân công | 15/11 08:00–14:00 – PR 21–24 |
-| 9 | 5.4, 8 | Release và bàn giao: release notes, README, hướng dẫn chạy local/test/build/deploy/rollback, ma trận truy vết | Có release `v1.0.0`; tài liệu bàn giao và ma trận truy vết được đưa lên repository | 15/11 trước 16:00 – PR 25 |
-| 10 | 5.4 | Sprint 2 Review/Retrospective, video demo production, báo cáo và slide | Có biên bản Review/Retro, video demo luồng end-to-end trên production, báo cáo và slide nộp bài | 15/11: Review/Retro lúc 16:00; video và slide trước 18:00 |
-
-## 2. Kế hoạch PR và nghiệm thu chi tiết (14–15/11/2026)
-
-Mỗi PR cần có người khác nghiệm thu và Approve trước khi merge. CI phải xanh từ Task 4 trở đi. Không mở PR của Task sau khi tạo phẩm Task trước chưa được merge.
-
-| PR | Hạn chót | Nội dung | Task | Người mở / thực hiện | Người nghiệm thu |
-|---:|---|---|---|---|---|
-| 1 | 14/11 trước 07:00 | Bối cảnh, phạm vi, SRS (FR/NFR, MoSCoW, tiêu chí chấp nhận), đặc tả Use Case Đặt và thanh toán | 1.1, 1.2, 1.3 | C | B |
-| 2 | 14/11 trước 08:00 | Use Case Diagram tổng quát và Use Case thanh toán | 1.2, 1.3 | D | C |
-| 3 | 14/11 trước 09:00 | Activity Diagram (swimlane, hết hàng, chưa đăng nhập, thanh toán lỗi) | 2.1 | D | A |
-| 4 | 14/11 trước 09:00 | Sequence Diagram đặt và thanh toán (JWT, validate, transaction, alt, idempotency) | 2.2 | A | D |
-| 5 | 14/11 trước 09:00 | Class Diagram và ERD | 2.3 | B | A |
-| 6 | 14/11 trước 10:30 | Mô tả kiến trúc, ADR và Deployment Diagram | 3.1, 3.2 | A | B |
-| 7 | 14/11 trước 11:30 | Khung repo, README, `.gitignore`, `.env.example`, quy ước branch/commit, DoD; Product Backlog và bảng Issues Sprint 1, 2 | 4.1, 4.2 | A (repo), C (backlog) | B |
-| 8 | 14/11 trước 12:30 | CI Install → Lint → Unit Test → Build; bật bảo vệ nhánh; một PR cố ý lỗi để minh chứng CI đỏ | 4.4 | A | C |
-| 9 | 14/11 trước 13:30 | Prisma schema đủ bảng, migration và seed | 4.3 | B | A |
-| 10 | 14/11 trước 14:30 | `GET /products`, `GET /products/:id` và test API | 4.3 | A | B |
-| 11 | 14/11 trước 15:30 | Trang menu mobile-first, loading, empty, error và test component | 4.3 | D | A |
-| 12–18 | 14/11 16:00–24:00 | Sprint 2: chi tiết món, size, topping; giỏ hàng; đăng ký/đăng nhập JWT; tạo đơn; thanh toán Ví/Thẻ; xác nhận và lịch sử đơn; validate | 5.1 | A (API), D (giao diện giỏ/thanh toán), C (giao diện đăng nhập/lịch sử) | Luân phiên theo PR |
-| 19 | 14/11 trước 24:00 | Unit nghiệp vụ, tích hợp API đơn/thanh toán, E2E menu → xác nhận; `docker-compose.yml`; `/health` | 5.2 | C (test), A (Docker) | A, C |
-| 20 | 15/11 trước 08:00 | Build Docker image, push GHCR, deploy Render, smoke test và rollback | 5.3 | A | B |
-| 21–24 | 15/11 08:00–14:00 | Chức năng phụ: nhân viên xử lý đơn; kho nguyên liệu; QR; đổi thưởng (mỗi chức năng một PR) | 5.1 mở rộng | A (API), B (bảng mở rộng và seed công thức), D (trang đổi thưởng) | Luân phiên |
-| 25 | 15/11 trước 16:00 | Release `v1.0.0`, release notes, README chạy local/test/build/deploy/rollback và ma trận truy vết | 5.4, 8 | A (release), C (truy vết) | B (release), C (truy vết) |
-
-## 3. Phân công theo thành viên
-
-| Thành viên | Phần việc chính | PR | Hạn chính |
-|---|---|---|---|
-| A – Nguyễn Lê Nhựt Thắng | Sequence diagram; kiến trúc/ADR/deployment; khung repo; CI; Products API và API Sprint 2; Docker Compose, `/health`; CD, Render, rollback; API chức năng phụ; release và tổng hợp báo cáo | 4, 6–8, 10, 12–20, 21–25 | Theo hạn từng PR; release trước 16:00 ngày 15/11 |
-| B – Hồ Thiên Ngân | Class Diagram, ERD; Prisma schema, migration, seed; bảng nguyên liệu, công thức size/topping, phần thưởng và seed | 5, 9, 21–24 | 14/11 09:00; 14/11 13:30; 15/11 12:00 |
-| C – Hà Thiên Long | Bối cảnh/phạm vi, SRS, đặc tả Use Case; Product Backlog và Issues; giao diện đăng nhập/đăng ký/lịch sử đơn; unit, integration, E2E; ma trận truy vết | 1, 7 (backlog), 12–18 (giao diện), 19 (test), 25 (truy vết) | 14/11 07:00; 14/11 11:30; 14/11 24:00; 15/11 16:00 |
-| D – Giản Thiên Lực | Use Case Diagram; Activity Diagram; trang menu; giao diện chi tiết món/giỏ hàng/thanh toán và trang đổi thưởng; video demo và slide | 2, 3, 11, 12–18, 21–24 | 14/11 08:00, 09:00, 15:30; video/slide 15/11 18:00 |
-
-## 4. Mốc kiểm tra và nghiệm thu
-
-| Mốc | Thời gian | Điều kiện |
+| Sprint | Task của đề | Sprint Goal |
 |---|---|---|
-| Hoàn thành Task 1–3 | 14/11/2026 trước 10:30 | PR 1–6 đã được nghiệm thu và merge theo đúng thứ tự |
-| Hoàn thành nền tảng Task 4 | 14/11/2026 trước 15:30 | PR 7–11 đã được nghiệm thu; CI có minh chứng đỏ và xanh |
-| Đánh giá Sprint 1 | 14/11/2026 lúc 16:00 | Có biên bản Sprint Review và Retrospective; nếu PR 1–11 chưa xong thì báo giảng viên xin thêm thời gian ngay |
-| Hoàn thành luồng MVP và kiểm thử | 14/11/2026 trước 24:00 | PR 12–19 hoàn thành theo kế hoạch; có test, Docker Compose và `/health` |
-| Hoàn thành CD/production | 15/11/2026 trước 08:00 | PR 20 hoàn thành; deploy, smoke test và rollback có minh chứng |
-| Hoàn thành chức năng mở rộng | 15/11/2026 trước 14:00 | PR 21–24 đã được nghiệm thu |
-| **Nghiệm thu cuối cùng** | **15/11/2026 trước 16:00** | PR 25 được nghiệm thu; release `v1.0.0`, tài liệu bàn giao và ma trận truy vết sẵn sàng |
-| Hoàn tất demo và nộp bài | 15/11/2026 trước 18:00 | Sprint Review/Retrospective, video demo production, báo cáo và slide hoàn tất |
+| Sprint 1 | Task 4 | Có nền tảng kỹ thuật (repository, CI, database có migration và seed) và MVP đầu tiên chạy được cho luồng xem menu |
+| Sprint 2 | Task 5 | Hoàn thành luồng đặt và thanh toán end-to-end, tự động đóng gói và triển khai bản production truy cập được qua HTTPS |
 
-## 5. Quy tắc cập nhật trạng thái và nghiệm thu
+Thứ tự ưu tiên trong mỗi Sprint: Must trước, sau đó Should, cuối cùng Could. Hạng mục Won't (FR-22, FR-23) không đưa vào backlog.
 
-- Trạng thái `Done` chỉ được ghi khi tạo phẩm đã có trên repository AS2, PR đã được người khác nghiệm thu/Approve và đã merge.
-- Không lấy trạng thái `Đạt DoD` trong biên bản Sprint cũ làm bằng chứng rằng PR tương ứng đã được thực hiện và nghiệm thu trên repository AS2 mới.
-- Không sửa ngày commit hoặc lịch sử Git. Commit phải phản ánh ngày làm việc thực tế.
-- Không đưa `.env`, mật khẩu hoặc token lên Git.
-- Từ Task 4 trở đi, CI phải xanh trước khi merge; không tắt branch protection để né lỗi.
-- Nếu chưa hoàn thành Sprint 1 trước 16:00 ngày 14/11, nhóm trưởng báo giảng viên và xin thêm thời gian theo kế hoạch trong file Word.
+## 2. Product Backlog
+
+Story point theo thang Fibonacci (1, 2, 3, 5, 8). Trạng thái: **Done** (đã merge vào `main`, đạt Definition of Done), **In progress**, **To do**. Mỗi user story tương ứng một GitHub Issue cùng mã, gắn Milestone `Sprint 1` hoặc `Sprint 2`.
+
+### Sprint 1
+
+| Mã | User story | Yêu cầu | MoSCoW | Point | Tiêu chí chấp nhận chính | Người làm | Trạng thái |
+|---|---|---|---|---|---|---|---|
+| US-01 | Là khách hàng, tôi muốn xem danh sách món với giá và tình trạng còn hàng để chọn đồ uống | FR-01, FR-02, NFR-05 | Must | 5 | `GET /products` trả danh sách món từ seed; trang `/menu` hiển thị đủ món, có trạng thái loading, empty, error và dùng được trên màn hình 360–414 px | D (giao diện), A (API) | Done (PR #11, #17) |
+| US-02 | Là khách hàng, tôi muốn xem chi tiết món với size, topping, mức đường và đá để biết lựa chọn của mình | FR-03, FR-16 | Must | 3 | `GET /products/:id` trả size kèm phụ phí, topping kèm tình trạng, mức đường và đá; món không tồn tại trả 404 | A | Done – API (PR #17); giao diện chi tiết thuộc US-05 |
+| US-03 | Là nhóm phát triển, tôi muốn có database với migration và dữ liệu mẫu để chạy và kiểm thử hệ thống giống nhau ở mọi máy | NFR-10 | Must | 3 | Prisma schema khớp ERD; migration áp được trên database trống; seed chạy lặp lại được | B | Done (PR #15) |
+| US-04 | Là nhóm phát triển, tôi muốn CI tự chạy lint, test, build và chặn merge khi lỗi để giữ `main` luôn chạy được | NFR-08, NFR-11 | Must | 3 | Workflow Install → Lint → Unit Test → Build chạy trên mọi pull request; ruleset bắt buộc check xanh mới merge; có minh chứng một lần đỏ và một lần xanh | A | Done (PR #9, #10) |
+| US-05 | Là nhóm phát triển, tôi muốn có Product Backlog và bảng Issues cho Sprint 1, 2 để theo dõi tiến độ | – | Must | 2 | Có file backlog này; mỗi user story có Issue gắn Milestone | C | Done (PR #14) |
+
+### Sprint 2
+
+| Mã | User story | Yêu cầu | MoSCoW | Point | Tiêu chí chấp nhận chính | Người làm | Trạng thái |
+|---|---|---|---|---|---|---|---|
+| US-06 | Là khách hàng, tôi muốn chọn size, topping, đường, đá và thêm món vào giỏ để đặt nhiều món một lần | FR-03, FR-04 | Must | 5 | Trang chi tiết món cập nhật giá theo lựa chọn; giỏ hàng sửa và xóa được; tổng tiền đúng; không quá 50 ly mỗi dòng hoặc quá số ly còn đặt được | D | To do |
+| US-07 | Là khách hàng, tôi muốn đăng ký và đăng nhập để đặt đơn và xem lại đơn của mình | FR-05, FR-06, NFR-02 | Must | 5 | Đăng nhập đúng nhận JWT; sai mật khẩu trả 401; mật khẩu băm bằng bcrypt; chưa đăng nhập thì không đặt đơn được và giỏ hàng được giữ | A (API), C (giao diện) | To do |
+| US-08 | Là khách hàng, tôi muốn đặt đơn từ giỏ hàng để cửa hàng chuẩn bị đồ uống | FR-07, FR-16 | Must | 5 | Đơn tạo ở trạng thái PENDING sau khi kiểm tra đủ nguyên liệu cho cả đơn; thiếu nguyên liệu trả 400 và không tạo đơn | A (API), D (giao diện) | To do |
+| US-09 | Là khách hàng, tôi muốn thanh toán bằng Ví hoặc Thẻ mô phỏng và không bị trừ tiền hai lần khi bấm lại | FR-08, FR-09 | Must | 8 | Thành công thì đơn PAID; thất bại thì PAYMENT_FAILED và cho thử lại; gửi lại cùng Idempotency-Key chỉ có một bản ghi Payment | A (API), D (giao diện) | To do |
+| US-10 | Là quản lý cửa hàng, tôi muốn không bán vượt nguyên liệu khi nhiều khách thanh toán cùng lúc | FR-12 | Must | 5 | Trừ kho bằng cập nhật có điều kiện trong transaction; test N thanh toán đồng thời không làm tồn kho âm | A | To do |
+| US-11 | Là khách hàng, tôi muốn xem xác nhận, trạng thái và lịch sử đơn để theo dõi đơn của mình | FR-10, FR-11 | Must | 3 | `GET /orders/me` chỉ trả đơn của người đăng nhập; xem đơn người khác trả 404; trang lịch sử hiển thị mã đơn, ngày, trạng thái, tổng tiền | A (API), C (giao diện) | To do |
+| US-12 | Là nhân viên, tôi muốn xem đơn theo trạng thái và chuyển trạng thái đơn để xử lý pha chế | FR-10, FR-15 | Should | 5 | Chỉ STAFF gọi được API đổi trạng thái (CUSTOMER nhận 403); chuyển trạng thái sai trả 400 | A | To do |
+| US-13 | Là khách hàng, tôi muốn dùng mã khuyến mãi để được giảm giá | FR-13 | Should | 3 | Mã hợp lệ giảm đúng; mã sai, hết hạn, hết lượt bị từ chối kèm lý do | A | To do |
+| US-14 | Là khách hàng, tôi muốn được cộng điểm khi thanh toán để nhận ưu đãi | FR-14 | Should | 3 | Cộng 1 điểm mỗi 10.000đ khi đơn PAID; trừ lại khi hủy đơn đã PAID; mỗi thay đổi có LoyaltyTransaction | A | To do |
+| US-15 | Là nhân viên, tôi muốn xem tồn kho nguyên liệu và nhập thêm để không bị hết hàng | FR-17 | Should | 3 | Chỉ STAFF xem và nhập kho; số lượng nhập phải dương; hiển thị cờ "Sắp hết", "Hết" | A (API), B (dữ liệu) | To do |
+| US-16 | Là khách hàng, tôi muốn thanh toán bằng QR qua cổng mô phỏng bằng điện thoại | FR-18 | Should | 5 | Đúng PIN và đủ số dư thì đơn PAID; sai PIN, thiếu số dư, QR hết hạn thì không trừ tiền | A | To do |
+| US-17 | Là khách hàng, tôi muốn đổi điểm lấy quà để dùng tại quầy | FR-19 | Could | 3 | Đủ điểm thì trừ điểm và trả mã quà; không đủ thì từ chối | D (giao diện), A (API) | To do |
+| US-18 | Là quản lý, tôi muốn đơn chưa thanh toán tự hủy sau thời gian quy định | FR-20 | Could | 2 | Đơn PENDING quá hạn chuyển CANCELLED và trả lượt dùng mã khuyến mãi | A | To do |
+| US-19 | Là khách hàng, tôi muốn thanh toán qua VNPay sandbox | FR-21 | Could | 5 | Return URL hợp lệ (đúng chữ ký HMAC, đúng số tiền) thì đơn PAID; sai thì từ chối | A | To do |
+| US-20 | Là nhóm phát triển, tôi muốn có test tích hợp và end-to-end cho luồng chính để phát hiện lỗi trước khi phát hành | NFR-11 | Must | 5 | Có integration test API tạo đơn và thanh toán; ít nhất một E2E từ menu đến xác nhận đơn | C | To do |
+| US-21 | Là giảng viên, tôi muốn truy cập bản production qua HTTPS và hệ thống được triển khai tự động | NFR-03, NFR-07, NFR-08, NFR-09 | Must | 8 | Pipeline CD: lint, test, build image, push registry, deploy, smoke test `/health`, có cách rollback; database production không public; secret không nằm trong repository | A | To do |
+| US-22 | Là giảng viên, tôi muốn có tài liệu bàn giao để chạy và kiểm tra hệ thống | – | Must | 3 | Release `v1.0.0` có release notes; README hướng dẫn chạy local, test, build, deploy, rollback; ma trận truy vết; Sprint Review và Retrospective; video demo | A, C, D | To do |
+
+## 3. Cập nhật backlog
+
+- Trạng thái **Done** chỉ ghi khi pull request đã được review và merge vào `main`, đạt Definition of Done; ghi kèm số PR.
+- Ngày hoàn thành thực tế lấy theo ngày đóng Issue và ngày merge PR trên GitHub.
+- Thay đổi phạm vi (thêm, bỏ, đổi mức ưu tiên) cập nhật vào file này qua pull request và ghi lý do trong mô tả PR.
