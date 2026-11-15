@@ -1,0 +1,60 @@
+@startuml deployment-diagram
+' BrewLite AS2 - Task 3.2 - Deployment diagram (production trên Render, có ranh giới local / CI)
+skinparam shadowing false
+skinparam defaultFontName Arial
+title BrewLite - Deployment diagram
+
+rectangle "Local (máy lập trình viên)" as Local {
+  node "Docker Compose" as Compose {
+    node "web :3000" as LWeb
+    node "api :3001" as LApi
+    database "db PostgreSQL :5432\n(volume pgdata)" as LDb
+  }
+  LWeb --> LApi : HTTP
+  LApi --> LDb : TCP 5432
+}
+
+rectangle "CI/CD (GitHub)" as CI {
+  node "GitHub repository\ntthan-prog/BrewLite-AS2" as Repo
+  node "GitHub Actions runner" as Runner {
+    artifact "ci.yml\nInstall → Lint → Unit test → Build" as CiWf
+    artifact "cd.yml\nTest → Build image → Push → Deploy → Smoke test" as CdWf
+  }
+  database "GitHub Container Registry (GHCR)\nghcr.io/tthan-prog/brewlite-as2-api:<tag>\nghcr.io/tthan-prog/brewlite-as2-web:<tag>" as GHCR
+  artifact "GitHub Secrets\n(GHCR token, Render deploy hook)" as GhSecrets
+  Repo --> Runner : push / pull request / tag v*
+  Runner --> GHCR : docker push
+  Runner ..> GhSecrets : đọc
+}
+
+node "Thiết bị người dùng\n(điện thoại, máy tính)" as Device {
+  artifact "Trình duyệt / PWA" as BrowserApp
+}
+
+rectangle "Production - Render (region Singapore)" as Prod {
+  node "Render edge (TLS, CDN)" as Edge
+  node "Web Service brewlite-as2-web\n(container Docker)" as RWeb {
+    artifact "Next.js server\n(image brewlite-as2-web)" as WebArt
+  }
+  node "Web Service brewlite-as2-api\n(container Docker)" as RApi {
+    artifact "NestJS API\n(image brewlite-as2-api)\nhealth check: GET /health\nlog: stdout" as ApiArt
+  }
+  database "Render PostgreSQL 16\n(persistent storage,\nchỉ kết nối nội bộ)" as RDb
+  artifact "Biến môi trường Render\nDATABASE_URL, JWT_SECRET,\nNEXT_PUBLIC_API_URL, VNPAY_*" as Env
+}
+
+cloud "VNPay sandbox\n(sandbox.vnpayment.vn)" as VNP
+
+BrowserApp --> Edge : HTTPS 443
+Edge --> RWeb : HTTPS
+Edge --> RApi : HTTPS (REST/JSON, JWT)
+RApi --> RDb : TCP 5432 (mạng nội bộ Render)
+RApi --> VNP : HTTPS 443
+RWeb ..> Env
+RApi ..> Env
+Runner --> RApi : deploy hook (image tag mới)
+Runner --> RWeb : deploy hook (image tag mới)
+RApi ..> GHCR : pull image
+RWeb ..> GHCR : pull image
+Runner --> Edge : smoke test\nGET /health, GET /
+@enduml

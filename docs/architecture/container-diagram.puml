@@ -1,0 +1,69 @@
+@startuml container-diagram
+' BrewLite AS2 - Task 3.1 - Sơ đồ container và module (kiến trúc phân lớp)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam componentStyle rectangle
+title BrewLite - Container và module
+
+actor "Khách hàng" as Customer
+actor "Nhân viên" as Staff
+
+node "Trình duyệt / PWA" as Browser
+
+package "apps/web - Next.js (App Router)" as Web {
+  [Trang menu, chi tiết] as P1
+  [Giỏ hàng (localStorage)] as P2
+  [Đặt đơn, thanh toán, xác nhận] as P3
+  [Lịch sử đơn, đổi quà] as P4
+  [Màn hình nhân viên, nguyên liệu] as P5
+  [API client (fetch + JWT)] as Client
+}
+
+package "apps/api - NestJS (modular monolith)" as Api {
+  package "Module theo domain (controller → service → PrismaService)" {
+    [auth] as Auth
+    [catalog] as Catalog
+    [orders] as Orders
+    [payments] as Payments
+    [inventory] as Inventory
+    [promotions] as Promotions
+    [loyalty] as Loyalty
+    [health] as Health
+  }
+  interface "PaymentGateway" as PG
+  [MockPaymentGateway\n(Ví, Thẻ, QR)] as Mock
+  [VnpayGateway] as Vnpay
+  [PrismaService] as Prisma
+}
+
+database "PostgreSQL 16\n(schema theo ERD,\nPrisma Migrate)" as DB
+cloud "VNPay sandbox" as VNP
+
+Customer --> Browser
+Staff --> Browser
+Browser --> Web : HTTPS
+P1 ..> Client
+P3 ..> Client
+P4 ..> Client
+P5 ..> Client
+Client --> Api : HTTPS REST/JSON\nAuthorization: Bearer JWT
+
+Orders --> Inventory : reserve / consume / release
+Orders --> Promotions : áp mã
+Payments --> Orders : cập nhật trạng thái
+Payments --> Loyalty : cộng / trừ điểm
+Payments --> PG
+Mock ..|> PG
+Vnpay ..|> PG
+Vnpay --> VNP : HTTPS redirect,\nReturn URL (HMAC)
+
+Auth --> Prisma
+Catalog --> Prisma
+Orders --> Prisma
+Payments --> Prisma
+Inventory --> Prisma
+Promotions --> Prisma
+Loyalty --> Prisma
+Health --> Prisma
+Prisma --> DB : TCP 5432 (nội bộ)
+@enduml
