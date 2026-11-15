@@ -1,12 +1,12 @@
-import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
 
-// SWC giữ decorator metadata cho dependency injection của NestJS khi chạy test.
+// Không dùng plugin SWC (binary native có thể bị Windows Smart App Control chặn).
+// Các constructor dùng @Inject() tường minh nên DI không phụ thuộc decorator metadata.
 export default defineConfig({
-  plugins: [swc.vite({ module: { type: 'es6' } })],
   test: {
     globals: true,
     environment: 'node',
     include: ['src/**/*.spec.ts'],
+    env: { JWT_SECRET: 'unit-test-secret' },
   },
 });

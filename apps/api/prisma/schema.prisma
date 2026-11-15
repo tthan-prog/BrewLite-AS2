@@ -1,0 +1,327 @@
+// BrewLite AS2 - Prisma schema (khớp docs/diagrams/erd.puml)
+// Tiền tệ: VND, lưu số nguyên.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enum ----------
+
+enum Role {
+  CUSTOMER
+  STAFF
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PAYMENT_FAILED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum Size {
+  S
+  M
+  L
+}
+
+enum PaymentMethod {
+  WALLET
+  CARD
+  QR
+  VNPAY
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+}
+
+enum PromotionType {
+  PERCENT
+  FIXED
+}
+
+enum LoyaltyType {
+  EARN
+  REVERSAL
+  REDEEM
+}
+
+enum IntentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+// ---------- Người dùng, sản phẩm ----------
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  role         Role     @default(CUSTOMER)
+  points       Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  orders      Order[]
+  payments    Payment[]
+  loyalty     LoyaltyTransaction[]
+  redemptions RewardRedemption[]
+
+  @@map("users")
+}
+
+model Product {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String @default("")
+  basePrice   Int    @map("base_price")
+  category    String
+  imageUrl    String @default("") @map("image_url")
+
+  orderItems OrderItem[]
+  recipe     RecipeItem[]
+
+  @@map("products")
+}
+
+model Topping {
+  id    Int    @id @default(autoincrement())
+  name  String
+  price Int
+
+  orderItemToppings OrderItemTopping[]
+  recipe            ToppingRecipeItem[]
+
+  @@map("toppings")
+}
+
+model Promotion {
+  id         Int           @id @default(autoincrement())
+  code       String        @unique
+  type       PromotionType
+  value      Int
+  minOrder   Int           @default(0) @map("min_order")
+  expiresAt  DateTime?     @map("expires_at")
+  usageLimit Int?          @map("usage_limit")
+  usedCount  Int           @default(0) @map("used_count")
+
+  orders Order[]
+
+  @@map("promotions")
+}
+
+// ---------- Đơn hàng ----------
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  userId        Int         @map("user_id")
+  promotionId   Int?        @map("promotion_id")
+  status        OrderStatus @default(PENDING)
+  subtotal      Int
+  discount      Int         @default(0)
+  total         Int
+  failureReason String?     @map("failure_reason")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  user           User                 @relation(fields: [userId], references: [id])
+  promotion      Promotion?           @relation(fields: [promotionId], references: [id])
+  items          OrderItem[]
+  payments       Payment[]
+  loyalty        LoyaltyTransaction[]
+  ingredientUses OrderIngredientUse[]
+  intents        PaymentIntent[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int  @id @default(autoincrement())
+  orderId   Int  @map("order_id")
+  productId Int  @map("product_id")
+  quantity  Int
+  size      Size @default(S)
+  sugar     Int  @default(100)
+  ice       Int  @default(100)
+  unitPrice Int  @map("unit_price")
+
+  order    Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product  Product            @relation(fields: [productId], references: [id])
+  toppings OrderItemTopping[]
+
+  @@map("order_items")
+}
+
+model OrderItemTopping {
+  orderItemId Int @map("order_item_id")
+  toppingId   Int @map("topping_id")
+  quantity    Int @default(1)
+  price       Int
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  topping   Topping   @relation(fields: [toppingId], references: [id])
+
+  @@id([orderItemId, toppingId])
+  @@map("order_item_toppings")
+}
+
+// ---------- Thanh toán ----------
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  orderId        Int           @map("order_id")
+  userId         Int           @map("user_id")
+  method         PaymentMethod
+  status         PaymentStatus
+  amount         Int
+  idempotencyKey String        @map("idempotency_key")
+  requestHash    String?       @map("request_hash")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([userId, idempotencyKey])
+  @@map("payments")
+}
+
+model PaymentAccount {
+  id         Int    @id @default(autoincrement())
+  identifier String @unique
+  holderName String @map("holder_name")
+  pinHash    String @map("pin_hash")
+  balance    Int    @default(0)
+
+  intents PaymentIntent[]
+
+  @@map("payment_accounts")
+}
+
+model PaymentIntent {
+  id        Int          @id @default(autoincrement())
+  token     String       @unique
+  qrContent String       @map("qr_content")
+  orderId   Int          @map("order_id")
+  accountId Int?         @map("account_id")
+  amount    Int
+  status    IntentStatus @default(PENDING)
+  expiresAt DateTime     @map("expires_at")
+
+  order   Order           @relation(fields: [orderId], references: [id])
+  account PaymentAccount? @relation(fields: [accountId], references: [id])
+
+  @@map("payment_intents")
+}
+
+// ---------- Điểm thưởng, quà ----------
+
+model LoyaltyTransaction {
+  id        Int         @id @default(autoincrement())
+  userId    Int         @map("user_id")
+  orderId   Int?        @map("order_id")
+  type      LoyaltyType
+  points    Int
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id])
+  order Order? @relation(fields: [orderId], references: [id])
+
+  // Một đơn chỉ có tối đa một EARN và một REVERSAL (orderId null cho REDEEM không bị ràng buộc)
+  @@unique([orderId, type])
+  @@map("loyalty_transactions")
+}
+
+model Reward {
+  id         Int     @id @default(autoincrement())
+  name       String
+  pointsCost Int     @map("points_cost")
+  active     Boolean @default(true)
+
+  redemptions RewardRedemption[]
+
+  @@map("rewards")
+}
+
+model RewardRedemption {
+  id          Int    @id @default(autoincrement())
+  userId      Int    @map("user_id")
+  rewardId    Int    @map("reward_id")
+  pointsSpent Int    @map("points_spent")
+  code        String @unique
+
+  user   User   @relation(fields: [userId], references: [id])
+  reward Reward @relation(fields: [rewardId], references: [id])
+
+  @@map("reward_redemptions")
+}
+
+// ---------- Kho nguyên liệu ----------
+
+model Ingredient {
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  unit         String
+  stock        Int
+  lowThreshold Int     @default(0) @map("low_threshold")
+  sugarScaled  Boolean @default(false) @map("sugar_scaled")
+  iceScaled    Boolean @default(false) @map("ice_scaled")
+
+  recipeItems        RecipeItem[]
+  toppingRecipeItems ToppingRecipeItem[]
+  orderUses          OrderIngredientUse[]
+
+  @@map("ingredients")
+}
+
+// Công thức cho 1 ly size S; size M, L nhân hệ số trong code
+model RecipeItem {
+  id           Int @id @default(autoincrement())
+  productId    Int @map("product_id")
+  ingredientId Int @map("ingredient_id")
+  quantity     Int
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@unique([productId, ingredientId])
+  @@map("recipe_items")
+}
+
+model ToppingRecipeItem {
+  id           Int @id @default(autoincrement())
+  toppingId    Int @map("topping_id")
+  ingredientId Int @map("ingredient_id")
+  quantity     Int
+
+  topping    Topping    @relation(fields: [toppingId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@unique([toppingId, ingredientId])
+  @@map("topping_recipe_items")
+}
+
+model OrderIngredientUse {
+  orderId      Int     @map("order_id")
+  ingredientId Int     @map("ingredient_id")
+  quantity     Int
+  consumed     Boolean @default(false)
+
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@id([orderId, ingredientId])
+  @@map("order_ingredient_uses")
+}
