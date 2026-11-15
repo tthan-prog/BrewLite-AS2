@@ -80,6 +80,10 @@ Chi tiết request, response và mã lỗi: [docs/api/api-contract.md](docs/api/
 | GET | `/orders?status=` | STAFF | Danh sách đơn theo trạng thái | FR-15 |
 | PATCH | `/orders/:id/status` | STAFF | Chuyển trạng thái đơn theo máy trạng thái | FR-10, FR-15 |
 | POST | `/payments` | Đăng nhập | Thanh toán Ví hoặc Thẻ mô phỏng, header `Idempotency-Key` bắt buộc | FR-08, FR-09, FR-12, FR-14 |
+| POST | `/payments/qr` | Đăng nhập | Tạo mã QR thanh toán (hạn 5 phút) | FR-18 |
+| GET | `/payments/qr/:token/status` | Chủ đơn | Trạng thái mã QR | FR-18 |
+| GET | `/payments/qr/:token` | Công khai | Thông tin cho trang xác nhận trên điện thoại | FR-18 |
+| POST | `/payments/qr/:token/confirm` | Công khai | Chọn tài khoản thử, nhập PIN để thanh toán | FR-18 |
 | GET | `/ingredients` | STAFF | Tồn kho nguyên liệu kèm cờ hết, sắp hết | FR-17 |
 | PATCH | `/ingredients/:id/restock` | STAFF | Nhập thêm nguyên liệu | FR-17 |
 | GET | `/rewards` | Công khai | Danh sách quà đổi bằng điểm | FR-19 |

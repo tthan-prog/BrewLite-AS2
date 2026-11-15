@@ -175,6 +175,53 @@ Khi `status` là `FAILED`: giữ giỏ hàng, hiện `failureReason`, cho bấm 
 
 Thanh toán thành công cộng 1 điểm cho mỗi 10.000đ của `total`.
 
+## Thanh toán QR mô phỏng (FR-18)
+
+Luồng: trang thanh toán tạo mã QR → khách quét bằng điện thoại → trang `/pay/qr/<token>` trên điện thoại chọn tài khoản thử và nhập PIN → trang thanh toán hỏi trạng thái và tự chuyển sang xác nhận khi `PAID`. Giao diện có sẵn thành phần `apps/web/components/qr-payment-panel.tsx` để gắn vào trang thanh toán.
+
+### `POST /payments/qr` → `201` (đăng nhập, chủ đơn)
+
+```json
+{ "orderId": 12 }
+```
+
+Trả mã QR còn hạn (tạo lại khi đơn đã có mã còn hạn thì trả cùng mã):
+
+```json
+{
+  "token": "3f9c…(32 ký tự hex)", "orderId": 12, "amount": 73800, "status": "PENDING",
+  "expiresAt": "2026-11-16T03:05:00.000Z",
+  "qrContent": "https://brewlite-as2-web.onrender.com/pay/qr/3f9c…",
+  "qrImage": "data:image/png;base64,…"
+}
+```
+
+Hạn dùng: `QR_TTL_MINUTES` (mặc định 5). Link trong QR dùng `WEB_PUBLIC_URL`, nếu không có thì origin đầu tiên của `WEB_ORIGIN`. Đơn đã thanh toán trả `409`, đơn đã hủy trả `400`, đơn của người khác trả `404`.
+
+### `GET /payments/qr/:token/status` → `200` (đăng nhập, chủ đơn)
+
+`{ "token", "orderId", "status": "PENDING" | "PAID" | "FAILED" | "EXPIRED", "orderStatus" }`. Trang thanh toán gọi mỗi 3 giây.
+
+### `GET /payments/qr/:token` → `200` (công khai, cho điện thoại)
+
+`{ "token", "orderId", "amount", "status", "expiresAt", "accounts": [{ "identifier", "holderName" }] }`. Không trả số dư. Token sai trả `404`.
+
+### `POST /payments/qr/:token/confirm` → `200` (công khai)
+
+```json
+{ "accountIdentifier": "TEST-0001", "pin": "123456" }
+```
+
+| Trường hợp | Kết quả |
+|---|---|
+| Đúng PIN, đủ số dư | `200`, cùng dạng kết quả với `POST /payments`, `status: "SUCCESS"`, `method: "QR"`; trừ số dư, đơn `PAID`, mã QR `PAID` |
+| Sai tài khoản hoặc PIN | `400` `"Sai tài khoản hoặc PIN"`; không trừ tiền, được nhập lại |
+| Thiếu số dư | `200`, `status: "FAILED"`, `failureReason: "Số dư tài khoản không đủ"`; không trừ tiền, đơn `PAYMENT_FAILED`, mã QR `FAILED` (khách tạo mã mới) |
+| Mã hết hạn | `400` `"Mã QR đã hết hạn, vui lòng tạo mã mới"` |
+| Xác nhận lại mã đã thanh toán | `409` `"Mã QR này đã được thanh toán"`; nhiều lần bấm đồng thời chỉ một lần thành công |
+
+Tài khoản thử (seed): `TEST-0001` số dư 1.000.000đ, `TEST-0002` số dư 10.000đ, PIN `123456`.
+
 ## Kho nguyên liệu (STAFF, FR-17)
 
 ### `GET /ingredients` → `200`

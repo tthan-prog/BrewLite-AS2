@@ -4,6 +4,10 @@ Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic 
 
 ## [Chưa phát hành] – dự kiến v1.0.0
 
+### Thêm
+- Trang nhân viên `/staff` (xử lý đơn theo trạng thái) và `/staff/ingredients` (kho nguyên liệu, nhập thêm) (PR #48).
+- Thanh toán QR mô phỏng: `POST /payments/qr`, trang xác nhận trên điện thoại `/pay/qr/[token]`, thành phần `QrPaymentPanel` (US-16).
+
 Đang chờ merge giao diện khách hàng (PR #12, #19). Chi tiết: [docs/release/release-notes-v1.0.0.md](docs/release/release-notes-v1.0.0.md).
 
 ## [v0.9.2] – 16/11/2026
