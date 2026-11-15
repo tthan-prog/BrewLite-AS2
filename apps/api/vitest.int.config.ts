@@ -10,6 +10,6 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 30000,
     hookTimeout: 30000,
-    env: { JWT_SECRET: 'integration-test-secret' },
+    env: { JWT_SECRET: 'integration-test-secret', ORDER_EXPIRY_INTERVAL_MS: '0' },
   },
 });

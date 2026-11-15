@@ -80,6 +80,13 @@ Chi tiết request, response và mã lỗi: [docs/api/api-contract.md](docs/api/
 | GET | `/orders?status=` | STAFF | Danh sách đơn theo trạng thái | FR-15 |
 | PATCH | `/orders/:id/status` | STAFF | Chuyển trạng thái đơn theo máy trạng thái | FR-10, FR-15 |
 | POST | `/payments` | Đăng nhập | Thanh toán Ví hoặc Thẻ mô phỏng, header `Idempotency-Key` bắt buộc | FR-08, FR-09, FR-12, FR-14 |
+| GET | `/ingredients` | STAFF | Tồn kho nguyên liệu kèm cờ hết, sắp hết | FR-17 |
+| PATCH | `/ingredients/:id/restock` | STAFF | Nhập thêm nguyên liệu | FR-17 |
+| GET | `/rewards` | Công khai | Danh sách quà đổi bằng điểm | FR-19 |
+| POST | `/rewards/:id/redeem` | Đăng nhập | Đổi điểm lấy mã quà | FR-19 |
+| GET | `/rewards/me` | Đăng nhập | Mã quà đã đổi | FR-19 |
+
+Đơn chưa thanh toán tự hủy sau `ORDER_TIMEOUT_MINUTES` phút (mặc định 15, FR-20).
 
 ## Lint, test, build
 
@@ -103,12 +110,6 @@ npm run test:int
 ```
 
 CI chạy Install → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`).
-
-## Triển khai (CD)
-
-Push tag `v*` chạy `.github/workflows/cd.yml`: CI → build image API và Web → push GHCR → deploy Render → smoke test `/health` (đúng phiên bản, database up), `/products`, trang `/` và `/menu`. Rollback: Actions → CD → Run workflow với tag cũ.
-
-Cấu hình Render, biến môi trường, seed production và rollback: [docs/deploy/runbook.md](docs/deploy/runbook.md).
 
 ## Quy ước làm việc
 
