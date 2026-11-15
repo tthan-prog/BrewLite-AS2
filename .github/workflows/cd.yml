@@ -97,7 +97,7 @@ jobs:
     # Chạy sau build-push thành công, hoặc khi rollback thủ công (build-push bị bỏ qua)
     if: always() && (github.event_name == 'workflow_dispatch' || needs.build-push.result == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment:
       name: production
       url: ${{ vars.WEB_URL }}
@@ -145,6 +145,23 @@ jobs:
           docker manifest inspect "$WEB_IMAGE:$VERSION" > /dev/null
           echo "Triển khai phiên bản $VERSION"
 
+      # Gói Free của Render tắt dịch vụ khi không có truy cập. Nếu gọi deploy khi dịch vụ đang ngủ,
+      # lần gọi /health đầu tiên của smoke test sẽ đánh thức bản cũ và yêu cầu tiếp tục đi vào bản cũ.
+      # Vì vậy đánh thức API và web trước, rồi mới deploy.
+      - name: Đánh thức dịch vụ trước khi deploy
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          for url in "$API_URL/health" "$WEB_URL/"; do
+            for i in $(seq 1 18); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$url" || true)
+              echo "[$i] GET $url → $code"
+              if [ "$code" = "200" ]; then break; fi
+              sleep 10
+            done
+          done
+          echo "Phiên bản đang chạy trước khi deploy:"
+          curl -fsS --max-time 30 "$API_URL/health" || true
+
       - name: Gọi deploy hook Render
         if: steps.config.outputs.ready == 'true'
         run: |
@@ -156,7 +173,8 @@ jobs:
       - name: Smoke test API (/health trả đúng phiên bản, database up)
         if: steps.config.outputs.ready == 'true'
         run: |
-          for i in $(seq 1 60); do
+          # Tối đa 15 phút: Render kéo image, chạy migration, chờ health check rồi mới chuyển traffic
+          for i in $(seq 1 90); do
             body=$(curl -fsS --max-time 30 "$API_URL/health" || true)
             echo "[$i] $body"
             if echo "$body" | grep -q "\"version\":\"$VERSION\"" && echo "$body" | grep -q '"db":"up"'; then
@@ -165,7 +183,7 @@ jobs:
             fi
             sleep 10
           done
-          echo "::error::API không lên phiên bản $VERSION sau 10 phút"
+          echo "::error::API không lên phiên bản $VERSION sau 15 phút"
           exit 1
 
       - name: Smoke test Web (trang chủ và menu)
