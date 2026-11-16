@@ -12,6 +12,14 @@ type LoginResponse = {
   user?: { id?: string; name?: string; email?: string };
 };
 
+// Chỉ cho phép đường dẫn nội bộ (bắt đầu bằng "/", không phải "//" hay "/\").
+function getSafeNext(): string {
+  if (typeof window === "undefined") return "/menu";
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/menu";
+  return next;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -35,7 +43,7 @@ export default function LoginPage() {
       sessionStorage.setItem("brewlite_token", token);
       if (result.user) sessionStorage.setItem("brewlite_user", JSON.stringify(result.user));
       window.dispatchEvent(new Event("brewlite-auth"));
-      router.push("/menu");
+      router.push(getSafeNext());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể đăng nhập lúc này.");
     } finally {
@@ -66,7 +74,7 @@ export default function LoginPage() {
             </div>
             <div>
               <label htmlFor="password" className="mb-2 block text-sm font-semibold">Mật khẩu</label>
-              <input id="password" type="password" autoComplete="current-password" placeholder="Nhập mật khẩu" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={6} className="w-full rounded-xl border border-[#DED4C7] px-4 py-3 outline-none transition focus:border-[#98734D] focus:ring-2 focus:ring-[#98734D]/15" />
+              <input id="password" type="password" autoComplete="current-password" placeholder="Nhập mật khẩu" value={password} onChange={(event) => setPassword(event.target.value)} required className="w-full rounded-xl border border-[#DED4C7] px-4 py-3 outline-none transition focus:border-[#98734D] focus:ring-2 focus:ring-[#98734D]/15" />
             </div>
             {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             <button type="submit" disabled={busy} className="w-full rounded-xl bg-[#30271F] px-5 py-3.5 font-semibold text-white transition hover:bg-[#4A392B] disabled:cursor-not-allowed disabled:opacity-60">{busy ? "Đang đăng nhập..." : "Đăng nhập"}</button>

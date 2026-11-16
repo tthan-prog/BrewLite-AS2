@@ -5,6 +5,16 @@ export type ApiErrorBody = {
   error?: string;
 };
 
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -24,7 +34,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     const message = Array.isArray(body?.message)
       ? body.message.join("; ")
       : body?.message || body?.error || (typeof payload === "string" ? payload : `Yêu cầu thất bại (${response.status})`);
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   return payload as T;

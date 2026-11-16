@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { apiRequest } from "../../../lib/api";
+import { ApiError, apiRequest } from "../../../lib/api";
 
 type Order = {
   id?: string | number;
@@ -17,6 +17,21 @@ type Order = {
 };
 
 type OrdersResponse = Order[] | { data?: Order[]; items?: Order[] };
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "Chờ thanh toán",
+  PAID: "Đã thanh toán",
+  PAYMENT_FAILED: "Thanh toán thất bại",
+  PREPARING: "Đang pha chế",
+  READY: "Sẵn sàng nhận",
+  COMPLETED: "Hoàn tất",
+  CANCELLED: "Đã hủy",
+};
+
+function getStatusLabel(status?: string) {
+  if (!status) return STATUS_LABELS.PENDING;
+  return STATUS_LABELS[status] ?? status;
+}
 
 function getOrders(payload: OrdersResponse): Order[] {
   if (Array.isArray(payload)) return payload;
@@ -62,24 +77,34 @@ export default function OrderHistoryPage() {
       });
       if (!signal.aborted) setOrders(getOrders(result));
     } catch (err) {
-      if (!signal.aborted) setError(err instanceof Error ? err.message : "Không thể tải lịch sử đơn hàng.");
+      if (signal.aborted) return;
+      if (err instanceof ApiError && err.status === 401) {
+        sessionStorage.removeItem("brewlite_token");
+        window.dispatchEvent(new Event("brewlite-auth"));
+        setNeedsLogin(true);
+        setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        setOrders([]);
+      } else {
+        setError(err instanceof Error ? err.message : "Không thể tải lịch sử đơn hàng.");
+      }
     } finally {
       if (!signal.aborted) setLoading(false);
     }
   }, []);
 
-useEffect(() => {
-  const controller = new AbortController();
+  useEffect(() => {
+    const controller = new AbortController();
 
-  const timer = setTimeout(() => {
-    void loadOrders(controller.signal);
-  }, 0);
+    const timer = setTimeout(() => {
+      void loadOrders(controller.signal);
+    }, 0);
 
-  return () => {
-    clearTimeout(timer);
-    controller.abort();
-  };
-}, [loadOrders, retryKey]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [loadOrders, retryKey]);
+
   return (
     <main className="min-h-screen bg-[#F8F5EF] px-4 py-10 text-[#30271F] sm:px-6 sm:py-14">
       <div className="mx-auto max-w-6xl">
@@ -100,7 +125,7 @@ useEffect(() => {
                 <h2 className="text-xl font-bold">Chưa thể tải lịch sử</h2>
                 <p role="alert" className="mx-auto mt-3 max-w-lg text-sm leading-6 text-red-700">{error}</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  {needsLogin && <Link href="/login" className="rounded-xl bg-[#30271F] px-5 py-3 text-sm font-semibold text-white">Đăng nhập</Link>}
+                  {needsLogin && <Link href="/login?next=/orders/history" className="rounded-xl bg-[#30271F] px-5 py-3 text-sm font-semibold text-white">Đăng nhập</Link>}
                   <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="rounded-xl border border-[#DED4C7] px-5 py-3 text-sm font-semibold">Thử lại</button>
                 </div>
               </div>
@@ -114,7 +139,7 @@ useEffect(() => {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[620px] border-collapse text-left text-sm">
                   <thead><tr className="border-b border-[#E8DFD3] text-xs uppercase tracking-wider text-[#766B60]"><th className="px-3 py-4">Mã đơn</th><th className="px-3 py-4">Ngày đặt</th><th className="px-3 py-4">Trạng thái</th><th className="px-3 py-4 text-right">Tổng tiền</th></tr></thead>
-                  <tbody>{orders.map((order, index) => <tr key={order.id ?? order.orderCode ?? index} className="border-b border-[#F0EAE2] last:border-0"><td className="px-3 py-4 font-semibold">{order.orderCode ?? order.orderNumber ?? order.code ?? `#${order.id ?? index + 1}`}</td><td className="px-3 py-4">{formatDate(order.createdAt ?? order.created_at)}</td><td className="px-3 py-4"><span className="inline-flex rounded-full bg-[#F3EBDD] px-3 py-1 text-xs font-semibold text-[#76502F]">{order.status ?? "PENDING"}</span></td><td className="px-3 py-4 text-right font-semibold">{formatMoney(order.total ?? order.totalAmount)}</td></tr>)}</tbody>
+                  <tbody>{orders.map((order, index) => <tr key={order.id ?? order.orderCode ?? index} className="border-b border-[#F0EAE2] last:border-0"><td className="px-3 py-4 font-semibold">{order.orderCode ?? order.orderNumber ?? order.code ?? `#${order.id ?? index + 1}`}</td><td className="px-3 py-4">{formatDate(order.createdAt ?? order.created_at)}</td><td className="px-3 py-4"><span className="inline-flex rounded-full bg-[#F3EBDD] px-3 py-1 text-xs font-semibold text-[#76502F]">{getStatusLabel(order.status)}</span></td><td className="px-3 py-4 text-right font-semibold">{formatMoney(order.total ?? order.totalAmount)}</td></tr>)}</tbody>
                 </table>
               </div>
             )}

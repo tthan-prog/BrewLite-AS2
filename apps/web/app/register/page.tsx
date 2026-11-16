@@ -67,11 +67,11 @@ export default function RegisterPage() {
             </div>
             <div>
               <label htmlFor="password" className="mb-2 block text-sm font-semibold">Mật khẩu</label>
-              <input id="password" type="password" autoComplete="new-password" placeholder="Ít nhất 6 ký tự" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={6} className="w-full rounded-xl border border-[#DED4C7] px-4 py-3 outline-none focus:border-[#98734D] focus:ring-2 focus:ring-[#98734D]/15" />
+              <input id="password" type="password" autoComplete="new-password" placeholder="Ít nhất 8 ký tự" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} maxLength={72} className="w-full rounded-xl border border-[#DED4C7] px-4 py-3 outline-none focus:border-[#98734D] focus:ring-2 focus:ring-[#98734D]/15" />
             </div>
             <div>
               <label htmlFor="confirm" className="mb-2 block text-sm font-semibold">Xác nhận mật khẩu</label>
-              <input id="confirm" type="password" autoComplete="new-password" placeholder="Nhập lại mật khẩu" value={confirm} onChange={(event) => setConfirm(event.target.value)} required minLength={6} className="w-full rounded-xl border border-[#DED4C7] px-4 py-3 outline-none focus:border-[#98734D] focus:ring-2 focus:ring-[#98734D]/15" />
+              <input id="confirm" type="password" autoComplete="new-password" placeholder="Nhập lại mật khẩu" value={confirm} onChange={(event) => setConfirm(event.target.value)} required minLength={8} maxLength={72} className="w-full rounded-xl border border-[#DED4C7] px-4 py-3 outline-none focus:border-[#98734D] focus:ring-2 focus:ring-[#98734D]/15" />
             </div>
             {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             {success && <p role="status" className="rounded-xl bg-green-50 p-3 text-sm text-green-800">{success} <Link href="/login" className="font-semibold underline">Đăng nhập</Link></p>}
