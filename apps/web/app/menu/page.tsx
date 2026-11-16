@@ -1,9 +1,8 @@
-
 "use client";
 
+import Link from "next/link";
 import { API_URL } from "../../lib/config";
 import { useEffect, useState } from "react";
-
 
 type Product = {
   id: string | number;
@@ -11,44 +10,58 @@ type Product = {
   price: number;
   description?: string;
   category?: string;
+  available: boolean;
+  maxQuantity: number;
 };
 
-
-async function fetchProducts(
-  signal: AbortSignal
-): Promise<Product[]> {
-  const response = await fetch(`${API_URL}/products`, {
-    signal,
-  });
+async function fetchProducts(signal: AbortSignal): Promise<Product[]> {
+  const response = await fetch(`${API_URL}/products`, { signal });
 
   if (!response.ok) {
     throw new Error("Không thể tải thực đơn");
   }
 
-  
-const data: unknown = await response.json();
+  const data: unknown = await response.json();
 
-// Hỗ trợ cả dạng mảng và dạng { value: [...] }
-let products: unknown;
+  // Hỗ trợ cả dạng mảng và dạng { value: [...] }.
+  let products: unknown;
+  if (Array.isArray(data)) {
+    products = data;
+  } else if (typeof data === "object" && data !== null && "value" in data) {
+    products = data.value;
+  }
 
-if (Array.isArray(data)) {
-  products = data;
-} else if (
-  typeof data === "object" &&
-  data !== null &&
-  "value" in data
-) {
-  products = data.value;
+  if (!Array.isArray(products)) {
+    throw new Error("Dữ liệu sản phẩm không hợp lệ");
+  }
+
+  // Chuẩn hóa dữ liệu API, đặc biệt là trạng thái tồn kho.
+  return products.map((item: unknown) => {
+    if (typeof item !== "object" || item === null) {
+      throw new Error("Dữ liệu sản phẩm không hợp lệ");
+    }
+    const product = item as Record<string, unknown>;
+    if (
+      (typeof product.id !== "number" && typeof product.id !== "string") ||
+      typeof product.name !== "string" ||
+      typeof product.price !== "number"
+    ) {
+      throw new Error("Dữ liệu sản phẩm không hợp lệ");
+    }
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      description: typeof product.description === "string" ? product.description : undefined,
+      category: typeof product.category === "string" ? product.category : undefined,
+      // Thiếu trạng thái tồn kho => không cho chọn món, tránh đặt nhầm hàng hết.
+      available: product.available === true,
+      maxQuantity: typeof product.maxQuantity === "number" && Number.isFinite(product.maxQuantity)
+        ? product.maxQuantity
+        : 0,
+    };
+  });
 }
-
-if (!Array.isArray(products)) {
-  throw new Error("Dữ liệu sản phẩm không hợp lệ");
-}
-
-return products as Product[];
-
-}
-
 
 export default function MenuPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,30 +69,23 @@ export default function MenuPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Tất cả");
-
-  
   const [retryKey, setRetryKey] = useState(0);
 
-  
   useEffect(() => {
     const controller = new AbortController();
 
     fetchProducts(controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return;
-
         setProducts(data);
         setError("");
       })
       .catch(() => {
         if (controller.signal.aborted) return;
-
         setError("Không thể tải thực đơn. Vui lòng thử lại.");
       })
       .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        if (!controller.signal.aborted) setLoading(false);
       });
 
     return () => controller.abort();
@@ -91,23 +97,15 @@ export default function MenuPage() {
     setRetryKey((previous) => previous + 1);
   }
 
-
   const categories = [
     "Tất cả",
-    ...Array.from(
-      new Set(products.map((p) => p.category || "Đồ uống"))
-    ),
+    ...Array.from(new Set(products.map((p) => p.category || "Đồ uống"))),
   ];
 
   const filteredProducts = products.filter((product) => {
-    const matchSearch = product.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
+    const matchSearch = product.name.toLowerCase().includes(search.toLowerCase());
     const matchCategory =
-      category === "Tất cả" ||
-      (product.category || "Đồ uống") === category;
-
+      category === "Tất cả" || (product.category || "Đồ uống") === category;
     return matchSearch && matchCategory;
   });
 
@@ -118,9 +116,7 @@ export default function MenuPage() {
           <h1 className="text-2xl font-bold tracking-tight">
             BrewLite<span className="text-[#D7AB76]">.</span>
           </h1>
-          <span className="text-sm text-[#E6D8C8]">
-            Coffee & More
-          </span>
+          <span className="text-sm text-[#E6D8C8]">Coffee & More</span>
         </div>
       </header>
 
@@ -142,12 +138,8 @@ export default function MenuPage() {
 
       <section className="mx-auto max-w-6xl px-5 py-10">
         <div className="mb-7">
-          <h2 className="text-2xl font-bold">
-            Thực đơn hôm nay
-          </h2>
-          <p className="mt-1 text-sm text-[#766B60]">
-            Chọn hương vị bạn yêu thích
-          </p>
+          <h2 className="text-2xl font-bold">Thực đơn hôm nay</h2>
+          <p className="mt-1 text-sm text-[#766B60]">Chọn hương vị bạn yêu thích</p>
         </div>
 
         <input
@@ -176,9 +168,7 @@ export default function MenuPage() {
         </div>
 
         {loading && (
-          <div role="status" className="py-16 text-center">
-            Đang tải thực đơn...
-          </div>
+          <div role="status" className="py-16 text-center">Đang tải thực đơn...</div>
         )}
 
         {!loading && error && (
@@ -195,9 +185,7 @@ export default function MenuPage() {
 
         {!loading && !error && filteredProducts.length === 0 && (
           <div className="rounded-2xl bg-white p-10 text-center">
-            <p className="font-medium">
-              Không tìm thấy sản phẩm phù hợp.
-            </p>
+            <p className="font-medium">Không tìm thấy sản phẩm phù hợp.</p>
             <p className="mt-2 text-sm text-gray-500">
               Hãy thử từ khóa hoặc danh mục khác nhé.
             </p>
@@ -219,11 +207,7 @@ export default function MenuPage() {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#9A7853]">
                     {product.category || "Đồ uống"}
                   </p>
-
-                  <h3 className="text-xl font-bold">
-                    {product.name}
-                  </h3>
-
+                  <h3 className="text-xl font-bold">{product.name}</h3>
                   <p className="mt-2 min-h-10 text-sm text-[#766B60]">
                     {product.description || "Hương vị đặc biệt từ BrewLite."}
                   </p>
@@ -232,10 +216,21 @@ export default function MenuPage() {
                     <span className="text-lg font-bold text-[#84552D]">
                       {product.price.toLocaleString("vi-VN")}đ
                     </span>
-
-                    <span className="rounded-xl bg-[#F3E8DA] px-3 py-2 text-xs font-semibold text-[#74502F]">
-                        Xem thực đơn
-                    </span>
+                    {product.available && product.maxQuantity > 0 ? (
+                      <Link
+                        href={`/product/${product.id}`}
+                        className="rounded-xl bg-[#F3E8DA] px-3 py-2 text-xs font-semibold text-[#74502F] hover:bg-[#E9D5BC]"
+                      >
+                        Chọn món
+                      </Link>
+                    ) : (
+                      <span
+                        aria-disabled="true"
+                        className="cursor-not-allowed rounded-xl bg-gray-200 px-3 py-2 text-xs font-semibold text-gray-500"
+                      >
+                        Hết hàng
+                      </span>
+                    )}
                   </div>
                 </div>
               </article>

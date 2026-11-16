@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -29,7 +28,7 @@ type PaymentResult = {
   orderId: number;
   status: "SUCCESS" | "FAILED";
   failureReason: string | null;
-  pointsEarned: number;
+  pointsEarned?: number;
 };
 
 type PendingPayment = {
@@ -167,6 +166,7 @@ export default function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<PaymentResult | null>(null);
+  const [hasPending, setHasPending] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -178,6 +178,7 @@ export default function CheckoutPage() {
       }
 
       setCart(readCart());
+      setHasPending(Boolean(readPending()));
       setReady(true);
     });
 
@@ -188,6 +189,27 @@ export default function CheckoutPage() {
     (sum, item) => sum + item.quantity * item.unitPrice,
     0
   );
+
+  function createNewOrder() {
+    if (processingRef.current || busy) return;
+    const pending = readPending();
+    if (!pending) return;
+
+    // Một yêu cầu thanh toán mất kết nối có thể đã thành công.
+    // Không bỏ khóa idempotency khi trạng thái giao dịch chưa rõ.
+    if (pending.idempotencyKey) {
+      setError(
+        "Có giao dịch chưa xác nhận. Vui lòng thử lại thanh toán " +
+          "bằng cùng phương thức trước khi tạo đơn mới."
+      );
+      return;
+    }
+
+    sessionStorage.removeItem(PENDING_KEY);
+    setHasPending(false);
+    setCart(readCart());
+    setError("Đã bỏ đơn cũ. Bạn có thể thanh toán để tạo đơn mới.");
+  }
 
   async function pay() {
     if (processingRef.current || cart.length === 0) return;
@@ -227,9 +249,10 @@ export default function CheckoutPage() {
       let pending = readPending();
 
       if (pending && pending.cartSnapshot !== snapshot) {
+        setHasPending(true);
         throw new Error(
-          "Giỏ hàng hoặc mã giảm giá đã thay đổi. " +
-          "Vui lòng hoàn tất đơn cũ trước khi tạo đơn mới."
+          "Giỏ hàng đã thay đổi. Bấm 'Tạo đơn mới' để " +
+          "bỏ đơn cũ và đặt lại bằng giỏ hàng hiện tại."
         );
       }
 
@@ -254,6 +277,7 @@ export default function CheckoutPage() {
         };
 
         savePending(pending);
+        setHasPending(true);
       }
 
       const paymentBody = JSON.stringify({
@@ -297,6 +321,7 @@ export default function CheckoutPage() {
       if (payment.status === "SUCCESS") {
         localStorage.removeItem(CART_KEY);
         sessionStorage.removeItem(PENDING_KEY);
+        setHasPending(false);
         setCart([]);
         setResult(payment);
       } else if (payment.status === "FAILED") {
@@ -323,9 +348,48 @@ export default function CheckoutPage() {
         return;
       }
 
+      // Chỉ áp dụng cho thông báo cụ thể từ API thanh toán,
+      // không tự suy diễn mọi lỗi HTTP 400/409.
+      const message = failure.message || "";
+      const pending = readPending();
+      const normalized = message.toLocaleLowerCase("vi-VN");
+
+      if (
+        failure.status === 400 &&
+        pending &&
+        (normalized.includes("đơn đã bị hủy") ||
+          normalized.includes("đơn hàng đã bị hủy") ||
+          normalized.includes("đơn đã hết hạn"))
+      ) {
+        sessionStorage.removeItem(PENDING_KEY);
+        setHasPending(false);
+        setError(
+          "Đơn cũ đã hết hạn hoặc bị hủy. Giỏ hàng vẫn được giữ. " +
+            "Bấm Thanh toán đơn hàng để tạo đơn mới."
+        );
+        return;
+      }
+
+      if (
+        failure.status === 409 &&
+        pending &&
+        normalized.includes("đã được thanh toán")
+      ) {
+        localStorage.removeItem(CART_KEY);
+        sessionStorage.removeItem(PENDING_KEY);
+        setHasPending(false);
+        setCart([]);
+        setResult({
+          orderId: pending.orderId,
+          status: "SUCCESS",
+          failureReason: null,
+          // API 409 không trả số điểm đã nhận.
+        });
+        return;
+      }
+
       setError(
-        failure.message ||
-          "Không thể kết nối máy chủ. Vui lòng thử lại."
+        message || "Không thể kết nối máy chủ. Vui lòng thử lại."
       );
     } finally {
       processingRef.current = false;
@@ -343,9 +407,11 @@ export default function CheckoutPage() {
           <p className="mt-4">
             Đơn hàng #{result.orderId} đã được thanh toán.
           </p>
-          <p className="mt-2">
-            Điểm nhận được: {result.pointsEarned}
-          </p>
+          {typeof result.pointsEarned === "number" && (
+            <p className="mt-2">
+              Điểm nhận được: {result.pointsEarned}
+            </p>
+          )}
           <Link
             href="/menu"
             className="mt-6 inline-block rounded-xl bg-[#30271F] px-6 py-3 text-white"
@@ -480,6 +546,17 @@ export default function CheckoutPage() {
                 </div>
               )}
             </section>
+
+            {hasPending && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={createNewOrder}
+                className="w-full rounded-xl border border-[#84552D] bg-white px-5 py-3 font-semibold text-[#84552D] disabled:opacity-50"
+              >
+                Tạo đơn mới
+              </button>
+            )}
 
             {error && (
               <p
