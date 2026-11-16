@@ -84,6 +84,10 @@ Chi tiết request, response và mã lỗi: [docs/api/api-contract.md](docs/api/
 | GET | `/payments/qr/:token/status` | Chủ đơn | Trạng thái mã QR | FR-18 |
 | GET | `/payments/qr/:token` | Công khai | Thông tin cho trang xác nhận trên điện thoại | FR-18 |
 | POST | `/payments/qr/:token/confirm` | Công khai | Chọn tài khoản thử, nhập PIN để thanh toán | FR-18 |
+| GET | `/payments/vnpay/config` | Công khai | VNPay sandbox đã bật chưa | FR-21 |
+| POST | `/payments/vnpay` | Đăng nhập | Tạo URL thanh toán VNPay sandbox đã ký | FR-21 |
+| GET | `/payments/vnpay/return` | Công khai | Kiểm tra chữ ký, số tiền và chốt đơn khi VNPay chuyển khách về | FR-21 |
+| GET | `/payments/vnpay/ipn` | VNPay | Thông báo máy chủ–máy chủ của VNPay | FR-21 |
 | GET | `/ingredients` | STAFF | Tồn kho nguyên liệu kèm cờ hết, sắp hết | FR-17 |
 | PATCH | `/ingredients/:id/restock` | STAFF | Nhập thêm nguyên liệu | FR-17 |
 | GET | `/rewards` | Công khai | Danh sách quà đổi bằng điểm | FR-19 |

@@ -33,6 +33,7 @@ Smoke test thất bại thì pipeline đỏ; dịch vụ giữ bản đang chạ
 | Render, API | `JWT_SECRET` | Render sinh ngẫu nhiên |
 | Render, API | `JWT_EXPIRES_IN` | `1d` |
 | Render, API | `WEB_ORIGIN` | `https://brewlite-as2-web.onrender.com` (CORS) |
+| Render, API | `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_URL`, `VNPAY_RETURN_URL` | VNPay sandbox (FR-21), tùy chọn; xem runbook mục 5 |
 | GitHub Secrets | `RENDER_DEPLOY_HOOK_API`, `RENDER_DEPLOY_HOOK_WEB` | Deploy hook của từng dịch vụ |
 | GitHub Variables | `API_URL`, `WEB_URL` | URL công khai, không phải secret |
 

@@ -40,18 +40,19 @@ Thẻ thử: `4242 4242 4242 4242` (thành công), `4000 0000 0000 0002` (bị t
 | US-16 | Thanh toán QR mô phỏng: mã QR có hạn, xác nhận trên điện thoại bằng tài khoản thử và PIN | PR ⏳ | `/pay/qr/[token]`, `QrPaymentPanel` (gắn vào trang thanh toán ⏳) |
 | US-14, US-17 | Cộng điểm khi thanh toán, đổi điểm lấy mã quà | PR #42, #44 | PR #12 ⏳ |
 | US-18 | Đơn chưa thanh toán tự hủy sau 15 phút | PR #44 | – |
+| US-19 | VNPay sandbox: URL thanh toán đã ký, kiểm tra chữ ký HMAC-SHA512 và số tiền ở Return URL/IPN | PR ⏳ | `/checkout/vnpay-return`, `VnpayButton` |
 | US-21 | CI/CD: GHCR, Render, smoke test, rollback | PR #43, #46 | – |
 
-Chưa có trong v1.0.0 ⏳: US-19 VNPay sandbox (cập nhật nếu kịp merge).
+VNPay sandbox chỉ bật khi production có `VNPAY_TMN_CODE` và `VNPAY_HASH_SECRET` (runbook mục 5) ⏳.
 
 ## Kiểm thử
 
 | Loại | Số test | Lệnh |
 |---|---|---|
-| Unit API | 49 | `npm test -w apps/api` |
-| Unit web | 5 ⏳ (14 sau PR #12) | `npm test -w apps/web` |
+| Unit API | 55 | `npm test -w apps/api` |
+| Unit web | 27 (cộng thêm test của PR #12 khi merge) | `npm test -w apps/web` |
 | E2E API (Prisma giả) | 16 | `npm run test:e2e -w apps/api` |
-| Integration API (PostgreSQL thật) | 37 | `npm run test:int -w apps/api` |
+| Integration API (PostgreSQL thật) | 43 | `npm run test:int -w apps/api` |
 | End-to-end giao diện | ⏳ (US-20) | – |
 
 Test tích hợp gồm: thanh toán idempotent, 8 khách thanh toán đồng thời khi kho chỉ đủ 5 ly, kho hết đúng lúc thanh toán, hoàn kho khi hủy đơn đã thanh toán, đổi quà đồng thời không làm âm điểm, tự hủy đơn quá hạn. CI chạy toàn bộ với PostgreSQL trong service container.

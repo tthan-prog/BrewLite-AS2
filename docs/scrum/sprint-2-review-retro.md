@@ -28,8 +28,8 @@ Story point theo `product-backlog.md`. "API xong" nghĩa là phần API đã mer
 | US-16 Thanh toán QR | 5 | API, trang xác nhận trên điện thoại, thành phần QR xong; gắn vào trang thanh toán sau PR #12 | ⏳ (A) |
 | US-17 Đổi quà | 3 | API xong; giao diện đổi quà ⏳ | #44 (A), #12 (D) ⏳ |
 | US-18 Tự hủy đơn quá hạn | 2 | **Done** | #44 (A) |
-| US-19 VNPay sandbox | 5 | ⏳ | |
-| US-20 Test tích hợp và E2E | 5 | Integration test API xong (37 test, CI chạy với PostgreSQL); E2E giao diện ⏳ | #42, #44 (A) ⏳ (C) |
+| US-19 VNPay sandbox | 5 | API (ký và kiểm tra HMAC-SHA512, Return URL, IPN), trang kết quả, nút VNPay xong; bật trên production khi có thông tin sandbox | ⏳ (A) |
+| US-20 Test tích hợp và E2E | 5 | Integration test API xong (43 test, CI chạy với PostgreSQL); E2E giao diện ⏳ | #42, #44 (A) ⏳ (C) |
 | US-21 Production và CD | 8 | **Done** | #43, #45, #46 (A) |
 | US-22 Tài liệu bàn giao | 3 | Đang làm: README, release notes, deployment, Sprint Review/Retro; ma trận truy vết và video ⏳ | ⏳ |
 

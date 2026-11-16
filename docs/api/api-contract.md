@@ -222,6 +222,38 @@ Hạn dùng: `QR_TTL_MINUTES` (mặc định 5). Link trong QR dùng `WEB_PUBLIC
 
 Tài khoản thử (seed): `TEST-0001` số dư 1.000.000đ, `TEST-0002` số dư 10.000đ, PIN `123456`.
 
+## Thanh toán VNPay sandbox (FR-21)
+
+Môi trường thử nghiệm của VNPay, không dùng tiền thật. Bật khi máy chủ có đủ `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_URL`, `VNPAY_RETURN_URL`; thiếu thì các API dưới trả `503`.
+
+Luồng: trang thanh toán gọi `POST /payments/vnpay` → chuyển khách tới `paymentUrl` → khách thanh toán trên trang VNPay → VNPay chuyển về `VNPAY_RETURN_URL` (trang `/checkout/vnpay-return`) → trang gửi nguyên chuỗi query về `GET /payments/vnpay/return` → máy chủ kiểm tra chữ ký HMAC-SHA512, mã website, số tiền rồi mới chốt đơn. Giao diện có sẵn `apps/web/components/vnpay-button.tsx`.
+
+### `GET /payments/vnpay/config` → `200`
+
+`{ "enabled": true }` — giao diện ẩn nút VNPay khi `false`.
+
+### `POST /payments/vnpay` → `201` (đăng nhập, chủ đơn)
+
+```json
+{ "orderId": 12 }
+```
+
+Trả `{ "orderId", "txnRef", "amount", "expiresAt", "paymentUrl" }`. `paymentUrl` đã ký theo VNPay 2.1.0 (`vnp_Amount` = tổng tiền × 100, hạn 15 phút). Đơn đã thanh toán `409`, đã hủy `400`.
+
+### `GET /payments/vnpay/return?vnp_...` (công khai)
+
+| Trường hợp | Kết quả |
+|---|---|
+| Chữ ký đúng, số tiền đúng, `vnp_ResponseCode=00` | `200`, kết quả như `POST /payments`, `method: "VNPAY"`, `status: "SUCCESS"`; đơn `PAID`, trừ kho, cộng điểm |
+| Chữ ký đúng, mã khác `00` (ví dụ `24` khách hủy) | `200`, `status: "FAILED"`, `failureReason` tiếng Việt; đơn `PAYMENT_FAILED`, khách thanh toán lại bằng giao dịch mới |
+| Sai chữ ký hoặc sai mã website | `400` `"Chữ ký VNPay không hợp lệ"`; đơn giữ nguyên |
+| Chữ ký đúng nhưng số tiền khác đơn | `400` `"Số tiền giao dịch không khớp với đơn hàng"`; đơn giữ nguyên |
+| Gọi lại cùng giao dịch | Trả lại kết quả cũ, không tạo thêm thanh toán |
+
+### `GET /payments/vnpay/ipn?vnp_...` (VNPay gọi máy chủ–máy chủ)
+
+Xử lý giống Return URL, trả `{ "RspCode", "Message" }` theo tài liệu VNPay: `00` đã ghi nhận, `97` sai chữ ký, `01` không tìm thấy giao dịch, `04` sai số tiền, `02` đã xác nhận trước đó. Return URL và IPN cùng đến vẫn chỉ ghi một kết quả.
+
 ## Kho nguyên liệu (STAFF, FR-17)
 
 ### `GET /ingredients` → `200`
