@@ -117,7 +117,9 @@ npx prisma migrate deploy
 npm run test:int
 ```
 
-CI chạy Install → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`).
+Test E2E trên trình duyệt (Playwright, `tests/e2e`) chạy trên API, web và database thật đã seed; cách chạy trên máy xem [tests/e2e/README.md](tests/e2e/README.md).
+
+CI chạy Install → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`). Job thứ hai **E2E (Playwright)** migrate và seed một database riêng, khởi động API và web rồi chạy 7 kịch bản trên Chromium; khi lỗi, báo cáo và log được lưu thành artifact.
 
 ## Triển khai (CD)
 

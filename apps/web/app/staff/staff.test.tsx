@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import StaffOrdersPage from "./page";
 import StaffIngredientsPage from "./ingredients/page";
+import StaffRecipesPage from "./recipes/page";
 
 type Handler = (init: RequestInit | undefined) => { status?: number; body: unknown };
 
@@ -155,5 +156,87 @@ describe("Trang kho nguyên liệu /staff/ingredients (FR-17)", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Nhập" })[0]);
     expect(await screen.findByText("Đã nhập thêm 1000 g Cà phê rang xay. Tồn kho: 1000 g.")).toBeInTheDocument();
     expect(screen.queryByText("Hết")).not.toBeInTheDocument();
+  });
+});
+
+describe("Trang công thức /staff/recipes (FR-16, FR-17)", () => {
+  const recipes = (coffeeStock: number) => {
+    const s = Math.floor(coffeeStock / 18);
+    const m = Math.floor(coffeeStock / 23);
+    const l = Math.floor(coffeeStock / 27);
+    return {
+      products: [
+        {
+          id: 7, name: "Cà phê sữa đá", category: "Cà phê", imageUrl: "", basePrice: 29000,
+          ingredients: [
+            { id: 1, name: "Cà phê rang xay", unit: "g", stock: coffeeStock, flag: coffeeStock > 0 ? "OK" : "OUT", perCup: { S: 18, M: 23, L: 27 }, sugarScaled: false, iceScaled: false },
+            { id: 4, name: "Siro đường", unit: "ml", stock: 5000, flag: "OK", perCup: { S: 10, M: 13, L: 15 }, sugarScaled: true, iceScaled: false },
+          ],
+          cups: { S: s, M: m, L: l },
+          limiting: { S: "Cà phê rang xay", M: "Cà phê rang xay", L: "Cà phê rang xay" },
+        },
+        {
+          id: 8, name: "Matcha latte", category: "Trà", imageUrl: "", basePrice: 45000,
+          ingredients: [{ id: 5, name: "Bột matcha", unit: "g", stock: 600, flag: "OK", perCup: { S: 6, M: 8, L: 9 }, sugarScaled: false, iceScaled: false }],
+          cups: { S: 100, M: 75, L: 66 },
+          limiting: { S: "Bột matcha", M: "Bột matcha", L: "Bột matcha" },
+        },
+      ],
+      toppings: [{ id: 1, name: "Trân châu đen", price: 7000, ingredients: [{ id: 6, name: "Trân châu", unit: "g", stock: 400, flag: "OK", perServing: 40 }], servings: 10, limiting: "Trân châu" }],
+    };
+  };
+  let coffeeStock = 90;
+
+  beforeEach(() => {
+    coffeeStock = 90;
+    sessionStorage.setItem("brewlite_token", "staff-token");
+    routes["GET /auth/me"] = () => ({ body: staff });
+    routes["GET /ingredients/recipes"] = () => ({ body: recipes(coffeeStock) });
+  });
+
+  it("hiện công thức theo size, số ly S/M/L, nguyên liệu giới hạn, thống kê và topping", async () => {
+    render(<StaffRecipesPage />);
+    const card = await screen.findByRole("article", { name: "Cà phê sữa đá" });
+    expect(card).toHaveTextContent("Cà phê rang xay");
+    expect(screen.getByLabelText("Số ly làm được của Cà phê sữa đá")).toHaveTextContent(/S\s*5.*M\s*3.*L\s*3/);
+    expect(card).toHaveTextContent("Giới hạn bởi Cà phê rang xay");
+    expect(card).toHaveTextContent("theo mức đường");
+    expect(screen.getByText("Món còn dưới 10 ly (size S)").nextSibling).toHaveTextContent("1");
+    expect(screen.getByText("10 phần")).toBeInTheDocument();
+  });
+
+  it("nhập thêm nguyên liệu giới hạn: gửi PATCH rồi tải lại, số ly tăng ngay", async () => {
+    routes["PATCH /ingredients/1/restock"] = (init) => {
+      expect(JSON.parse(String(init?.body))).toEqual({ quantity: 900 });
+      coffeeStock += 900;
+      return { body: { id: 1, name: "Cà phê rang xay", unit: "g", stock: coffeeStock, lowThreshold: 500, flag: "OK" } };
+    };
+    render(<StaffRecipesPage />);
+    fireEvent.change(await screen.findByLabelText("Số lượng nhập Cà phê rang xay cho Cà phê sữa đá"), { target: { value: "900" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Nhập thêm" })[0]);
+    expect(await screen.findByText("Đã nhập thêm 900 g Cà phê rang xay. Số ly đã cập nhật theo tồn kho mới.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Số ly làm được của Cà phê sữa đá")).toHaveTextContent(/S\s*55.*M\s*43.*L\s*36/);
+  });
+
+  it("sắp xếp ít ly nhất trước và tìm theo tên", async () => {
+    render(<StaffRecipesPage />);
+    await screen.findByRole("article", { name: "Cà phê sữa đá" });
+    fireEvent.click(screen.getByRole("button", { name: "Ít ly nhất trước" }));
+    expect(screen.getAllByRole("article").map((a) => a.getAttribute("aria-label"))).toEqual(["Cà phê sữa đá", "Matcha latte"]);
+    fireEvent.change(screen.getByLabelText("Tìm món"), { target: { value: "matcha" } });
+    expect(screen.getAllByRole("article").map((a) => a.getAttribute("aria-label"))).toEqual(["Matcha latte"]);
+  });
+
+  it("trang kho hiện món dùng nguyên liệu kèm số ly, cập nhật sau khi nhập kho", async () => {
+    routes["GET /ingredients"] = () => ({ body: [{ id: 1, name: "Cà phê rang xay", unit: "g", stock: coffeeStock, lowThreshold: 500, flag: "LOW" }] });
+    routes["PATCH /ingredients/1/restock"] = () => {
+      coffeeStock += 900;
+      return { body: { id: 1, name: "Cà phê rang xay", unit: "g", stock: coffeeStock, lowThreshold: 500, flag: "OK" } };
+    };
+    render(<StaffIngredientsPage />);
+    expect(await screen.findByText("Cà phê sữa đá: 5")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Số lượng nhập Cà phê rang xay"), { target: { value: "900" } });
+    fireEvent.click(screen.getByRole("button", { name: "Nhập" }));
+    expect(await screen.findByText("Cà phê sữa đá: 55")).toBeInTheDocument();
   });
 });

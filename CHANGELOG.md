@@ -2,6 +2,20 @@
 
 Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic Versioning](https://semver.org/lang/vi/). Mỗi phiên bản là một tag Git; tag `v*` chạy pipeline CD (`.github/workflows/cd.yml`).
 
+## [Chưa phát hành] – dự kiến v1.1.0 (Sprint 3)
+
+### Thêm
+- Chọn nhiều topping cho một ly (tối đa 5); giá và số ly tối đa cập nhật theo size, đường, đá, topping.
+- `POST /products/availability`: số ly tối đa từng dòng theo lựa chọn và cả giỏ hàng; trang chi tiết món và giỏ hàng chặn đặt vượt nguyên liệu.
+- `GET /ingredients/recipes` và trang nhân viên `/staff/recipes`: công thức từng món theo size S/M/L, số ly làm được với tồn kho hiện tại, nguyên liệu giới hạn, nhập kho tại chỗ; trang kho hiện "Dùng cho" kèm số ly, cập nhật ngay sau khi nhập.
+- Trang chi tiết đơn `/orders/[id]` (tiến trình, món, giảm giá, phương thức thanh toán, tự cập nhật); liên kết từ lịch sử đơn, trang thanh toán thành công và VNPay.
+- Trang chủ mới, hình minh họa đồ uống (SVG tự vẽ), manifest PWA và biểu tượng.
+- Link "Quầy nhân viên" trên thanh điều hướng cho tài khoản STAFF; nhân viên đăng nhập vào thẳng `/staff`.
+- Test E2E Playwright (7 kịch bản) chạy trên API, web và PostgreSQL thật trong CI (US-20); test tích hợp số lượng port từ AS1 (size, topping, giỏ hàng tranh nguyên liệu, giới hạn 50 ly).
+
+### Sửa
+- Ảnh món trên menu bị lỗi (seed trỏ tới `/images/*.jpg` không tồn tại) thay bằng hình minh họa SVG.
+
 ## [v1.0.0] – 16/11/2026
 
 Phiên bản bàn giao. Chi tiết: [docs/release/release-notes-v1.0.0.md](docs/release/release-notes-v1.0.0.md).

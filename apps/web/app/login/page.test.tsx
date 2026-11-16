@@ -54,6 +54,17 @@ describe("BrewLite Login", () => {
     expect(sessionStorage.getItem("brewlite_token")).toBe("token-123");
   });
 
+  it("nhân viên đăng nhập không kèm ?next= thì vào thẳng /staff", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse({ accessToken: "staff-token", user: { id: 2, name: "Nhân viên", email: "staff@brewlite.test", role: "STAFF" } }))
+    );
+    render(<LoginPage />);
+    fillAndSubmit("staff@brewlite.test", "Staff@123");
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/staff"));
+    expect(JSON.parse(sessionStorage.getItem("brewlite_user") ?? "{}").role).toBe("STAFF");
+  });
+
   it("chuyển về đường dẫn trong ?next= khi đó là đường dẫn nội bộ", async () => {
     window.history.pushState({}, "", "/login?next=/orders/history");
     vi.stubGlobal(

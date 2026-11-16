@@ -33,8 +33,15 @@ const sampleCart = [
 ];
 
 
+let maxQuantity = 50;
 beforeEach(() => {
   localStorage.clear();
+  maxQuantity = 50;
+  vi.stubGlobal("fetch", vi.fn((_url: string, init?: RequestInit) => {
+    const items = (JSON.parse(String(init?.body)) as { items: Array<{ productId: number; quantity: number }> }).items;
+    const lines = items.map((i) => ({ productId: i.productId, requested: i.quantity, maxQuantity, ok: i.quantity <= maxQuantity, message: i.quantity <= maxQuantity ? null : `"Cà phê sữa đá" với lựa chọn này chỉ còn làm được tối đa ${maxQuantity} ly` }));
+    return Promise.resolve({ ok: true, status: 200, json: async () => ({ ok: lines.every((l) => l.ok), lines }) } as Response);
+  }));
 
   vi.stubGlobal(
     "requestAnimationFrame",
@@ -142,5 +149,17 @@ describe("BrewLite - Gio hang Task 5", () => {
         )
       ).toEqual([]);
     });
+  });
+
+  it("kiểm tra nguyên liệu cả giỏ: vượt số ly làm được thì báo lỗi, khóa nút tăng và nút thanh toán", async () => {
+    maxQuantity = 1;
+    localStorage.setItem("brewlite-as2-cart", JSON.stringify(sampleCart));
+    render(<CartPage />);
+    expect(await screen.findByText(/chỉ còn làm được tối đa 1 ly/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "+" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Điều chỉnh giỏ hàng để tiếp tục" })).toBeDisabled();
+    expect(screen.queryByRole("link", { name: "Tiếp tục thanh toán" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "−" }));
+    expect(await screen.findByRole("link", { name: "Tiếp tục thanh toán" })).toBeInTheDocument();
   });
 });

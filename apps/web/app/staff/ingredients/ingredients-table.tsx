@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { StaffApiError, staffRequest, type Ingredient } from "../staff-api";
+import { cupsTone, StaffApiError, staffRequest, type Ingredient, type RecipesResponse } from "../staff-api";
 
 const FLAG: Record<Ingredient["flag"], { label: string; className: string }> = {
   OUT: { label: "Hết", className: "bg-red-100 text-red-800" },
@@ -17,6 +17,20 @@ export function IngredientsTable({ onUnauthorized }: { onUnauthorized: () => voi
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState<number | null>(null);
+  const [usage, setUsage] = useState<Record<number, Array<{ name: string; cups: number }>>>({});
+
+  /** Món dùng từng nguyên liệu kèm số ly size S còn làm được (cập nhật sau mỗi lần nhập kho). */
+  const loadUsage = useCallback(async () => {
+    try {
+      const data = await staffRequest<RecipesResponse>("/ingredients/recipes");
+      const map: Record<number, Array<{ name: string; cups: number }>> = {};
+      for (const p of data.products) for (const i of p.ingredients) (map[i.id] ??= []).push({ name: p.name, cups: p.cups.S });
+      for (const t of data.toppings) for (const i of t.ingredients) (map[i.id] ??= []).push({ name: `Topping ${t.name}`, cups: t.servings ?? 0 });
+      setUsage(map);
+    } catch {
+      // Bảng tồn kho vẫn dùng được khi không tải được công thức
+    }
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -31,9 +45,12 @@ export function IngredientsTable({ onUnauthorized }: { onUnauthorized: () => voi
   }, [onUnauthorized]);
 
   useEffect(() => {
-    const timer = setTimeout(() => void load(), 0);
+    const timer = setTimeout(() => {
+      void load();
+      void loadUsage();
+    }, 0);
     return () => clearTimeout(timer);
-  }, [load]);
+  }, [load, loadUsage]);
 
   async function restock(item: Ingredient) {
     const quantity = Number(amounts[item.id]);
@@ -52,6 +69,7 @@ export function IngredientsTable({ onUnauthorized }: { onUnauthorized: () => voi
       setItems((list) => list.map((i) => (i.id === updated.id ? updated : i)));
       setAmounts((a) => ({ ...a, [item.id]: "" }));
       setNotice(`Đã nhập thêm ${quantity} ${updated.unit} ${updated.name}. Tồn kho: ${updated.stock} ${updated.unit}.`);
+      void loadUsage();
     } catch (e) {
       if (e instanceof StaffApiError && (e.status === 401 || e.status === 403)) return onUnauthorized();
       setError(e instanceof Error ? e.message : "Không nhập kho được.");
@@ -74,12 +92,13 @@ export function IngredientsTable({ onUnauthorized }: { onUnauthorized: () => voi
       {notice && <p role="status" className="mb-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">{notice}</p>}
       {error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       <div className="overflow-x-auto rounded-2xl border border-[#E8DFD3] bg-white">
-        <table className="w-full min-w-[560px] text-left text-sm">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="border-b border-[#E8DFD3] text-xs uppercase tracking-wider text-[#766B60]">
               <th className="px-4 py-3">Nguyên liệu</th>
               <th className="px-4 py-3 text-right">Tồn kho</th>
               <th className="px-4 py-3">Tình trạng</th>
+              <th className="px-4 py-3">Dùng cho (số ly size S)</th>
               <th className="px-4 py-3">Nhập thêm</th>
             </tr>
           </thead>
@@ -95,6 +114,15 @@ export function IngredientsTable({ onUnauthorized }: { onUnauthorized: () => voi
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${FLAG[item.flag].className}`}>
                     {FLAG[item.flag].label}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex max-w-xs flex-wrap gap-1">
+                    {(usage[item.id] ?? []).map((u) => (
+                      <span key={u.name} className={`rounded-full px-2 py-0.5 text-xs ${cupsTone(u.cups)}`}>
+                        {u.name}: {u.cups.toLocaleString("vi-VN")}
+                      </span>
+                    ))}
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">

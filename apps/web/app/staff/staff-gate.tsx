@@ -41,6 +41,8 @@ export function StaffGate({ children }: { children: (user: StaffUser, logout: ()
 
   const logout = useCallback(() => {
     clearToken();
+    sessionStorage.removeItem("brewlite_user");
+    window.dispatchEvent(new Event("brewlite-auth"));
     setState({ kind: "login" });
   }, []);
 
@@ -48,12 +50,14 @@ export function StaffGate({ children }: { children: (user: StaffUser, logout: ()
     event.preventDefault();
     setBusy(true);
     try {
-      const result = await staffRequest<{ accessToken: string }>(
+      const result = await staffRequest<{ accessToken: string; user?: StaffUser }>(
         "/auth/login",
         { method: "POST", body: JSON.stringify({ email: email.trim(), password }) },
         null,
       );
       saveToken(result.accessToken);
+      if (result.user) sessionStorage.setItem("brewlite_user", JSON.stringify(result.user));
+      window.dispatchEvent(new Event("brewlite-auth"));
       setPassword("");
       await verify(result.accessToken);
     } catch (e) {
@@ -115,18 +119,22 @@ export function StaffGate({ children }: { children: (user: StaffUser, logout: ()
   return <>{children(state.user, logout)}</>;
 }
 
-export function StaffNav({ user, logout, current }: { user: StaffUser; logout: () => void; current: "orders" | "ingredients" }) {
+export function StaffNav({ user, logout, current }: { user: StaffUser; logout: () => void; current: "orders" | "ingredients" | "recipes" }) {
   const tab = (active: boolean) =>
     `rounded-xl px-4 py-2 text-sm font-semibold ${active ? "bg-[#30271F] text-white" : "border border-[#DED4C7] bg-white"}`;
   return (
     <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <nav className="flex gap-2" aria-label="Trang nhân viên">
+      <nav className="flex flex-wrap gap-2" aria-label="Trang nhân viên">
         <Link href="/staff" className={tab(current === "orders")} aria-current={current === "orders" ? "page" : undefined}>
           Đơn hàng
         </Link>
         <Link href="/staff/ingredients" className={tab(current === "ingredients")}
           aria-current={current === "ingredients" ? "page" : undefined}>
           Kho nguyên liệu
+        </Link>
+        <Link href="/staff/recipes" className={tab(current === "recipes")}
+          aria-current={current === "recipes" ? "page" : undefined}>
+          Công thức & số ly
         </Link>
       </nav>
       <div className="flex items-center gap-3 text-sm">

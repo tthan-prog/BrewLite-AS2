@@ -9,7 +9,7 @@ type LoginResponse = {
   accessToken?: string;
   access_token?: string;
   token?: string;
-  user?: { id?: string; name?: string; email?: string };
+  user?: { id?: string | number; name?: string; email?: string; role?: string };
 };
 
 // Chỉ cho phép đường dẫn nội bộ (bắt đầu bằng "/", không phải "//" hay "/\").
@@ -43,7 +43,9 @@ export default function LoginPage() {
       sessionStorage.setItem("brewlite_token", token);
       if (result.user) sessionStorage.setItem("brewlite_user", JSON.stringify(result.user));
       window.dispatchEvent(new Event("brewlite-auth"));
-      router.push(getSafeNext());
+      const hasNext = new URLSearchParams(window.location.search).has("next");
+      // Nhân viên đăng nhập không kèm ?next= thì vào thẳng quầy nhân viên
+      router.push(!hasNext && result.user?.role === "STAFF" ? "/staff" : getSafeNext());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể đăng nhập lúc này.");
     } finally {

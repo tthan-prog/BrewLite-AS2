@@ -19,6 +19,12 @@ export class IngredientsController {
     return this.ingredients.list();
   }
 
+  /** GET /ingredients/recipes: công thức từng món theo size, số ly S/M/L làm được với tồn kho hiện tại. */
+  @Get('recipes')
+  recipes() {
+    return this.ingredients.recipes();
+  }
+
   /** PATCH /ingredients/:id/restock: nhập thêm, số lượng phải dương. */
   @Patch(':id/restock')
   restock(@Param('id', ParseIntPipe) id: number, @Body() dto: RestockDto) {

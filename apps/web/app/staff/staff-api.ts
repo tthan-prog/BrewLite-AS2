@@ -74,6 +74,53 @@ export interface Ingredient {
   flag: "OUT" | "LOW" | "OK";
 }
 
+export type Size = "S" | "M" | "L";
+
+export interface RecipeIngredient {
+  id: number;
+  name: string;
+  unit: string;
+  stock: number;
+  flag: Ingredient["flag"];
+  perCup: Record<Size, number>;
+  sugarScaled: boolean;
+  iceScaled: boolean;
+}
+
+export interface ProductRecipe {
+  id: number;
+  name: string;
+  category: string;
+  imageUrl: string;
+  basePrice: number;
+  ingredients: RecipeIngredient[];
+  cups: Record<Size, number>;
+  limiting: Record<Size, string | null>;
+}
+
+export interface ToppingRecipe {
+  id: number;
+  name: string;
+  price: number;
+  ingredients: Array<Omit<RecipeIngredient, "perCup" | "sugarScaled" | "iceScaled"> & { perServing: number }>;
+  servings: number | null;
+  limiting: string | null;
+}
+
+export interface RecipesResponse {
+  products: ProductRecipe[];
+  toppings: ToppingRecipe[];
+}
+
+export const SIZES: Size[] = ["S", "M", "L"];
+
+/** Màu theo số ly còn làm được: 0 đỏ, ít hơn 10 vàng, còn lại xanh. */
+export function cupsTone(cups: number): string {
+  if (cups <= 0) return "bg-red-100 text-red-800";
+  if (cups < 10) return "bg-amber-100 text-amber-800";
+  return "bg-green-100 text-green-800";
+}
+
 export class StaffApiError extends Error {
   constructor(
     message: string,
