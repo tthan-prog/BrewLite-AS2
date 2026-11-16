@@ -27,7 +27,7 @@
 
 1. Push nhánh và mở PR vào `main`, điền mẫu PR (liên kết issue bằng `Closes #<số>`).
 2. Chọn ít nhất **1 reviewer** khác người viết.
-3. **Chỉ merge khi CI xanh** (Lint, Unit Test, Build) và đã được approve.
+3. **Chỉ merge khi CI xanh** (job "Install, Lint, Unit Test, Build" bắt buộc; job "E2E (Playwright)" cũng phải xanh) và đã được approve.
 4. Dùng "Create a merge commit"; xóa nhánh sau khi merge.
 5. Thay đổi yêu cầu, sơ đồ hoặc kiến trúc phải ghi rõ lý do trong mô tả PR.
 
@@ -51,7 +51,7 @@ Một user story hoặc issue được coi là **Done** khi:
 
 1. Đáp ứng tiêu chí chấp nhận trong `docs/requirements/srs.md` hoặc trong issue.
 2. Có test tự động phù hợp (unit, integration hoặc e2e) và test chạy qua.
-3. CI xanh: Lint, Unit Test, Build.
+3. CI xanh: Lint, Unit Test, test HTTP, Integration Test, Build và E2E (Playwright).
 4. Đã được ít nhất 1 thành viên khác review và approve.
 5. Tài liệu liên quan được cập nhật: README, sơ đồ, `docs/traceability-matrix.md`.
 6. Không có secret, `.env` hoặc file build trong commit.

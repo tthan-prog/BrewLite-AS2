@@ -10,7 +10,7 @@ Mức ưu tiên theo MoSCoW: Must (bắt buộc cho MVP), Should (nên có), Cou
 |---|---|---|---|---|
 | FR-01 | Menu | Hiển thị danh sách sản phẩm có tên, giá, ảnh và tình trạng còn hoặc hết | Must | `GET /products` trả danh sách; trang menu hiển thị đủ sản phẩm trong seed |
 | FR-02 | Menu | Hiển thị trạng thái đang tải, danh sách rỗng và lỗi của menu | Must | Khi API chậm, trả rỗng hoặc trả lỗi, giao diện hiện đúng từng trạng thái |
-| FR-03 | Chi tiết | Xem chi tiết sản phẩm; chọn size S/M/L, topping, mức đường và đá (0, 30, 50, 70, 100%) | Must | `GET /products/:id` trả đủ tùy chọn; giá cập nhật theo lựa chọn (S +0, M +5.000, L +10.000; cộng giá topping) |
+| FR-03 | Chi tiết | Xem chi tiết sản phẩm; chọn size S/M/L, một hoặc nhiều topping (tối đa 5 mỗi ly), mức đường và đá (0, 30, 50, 70, 100%) | Must | `GET /products/:id` trả đủ tùy chọn; giá cập nhật theo lựa chọn (S +0, M +5.000, L +10.000; cộng giá từng topping); không chọn được quá 5 topping hoặc topping đã hết nguyên liệu |
 | FR-04 | Giỏ hàng | Thêm món, sửa số lượng, xóa món; hiển thị tổng tiền; tối đa 50 ly mỗi dòng | Must | Tổng tiền = Σ (giá món + phụ phí size + giá topping) × số lượng; không tăng được quá 50 ly hoặc quá số ly nguyên liệu còn cho phép |
 | FR-05 | Xác thực | Đăng ký, đăng nhập, phát JWT; mật khẩu băm bằng bcrypt | Must | Đăng nhập đúng nhận JWT; sai mật khẩu trả 401; database không lưu mật khẩu thô |
 | FR-06 | Xác thực | Chặn đặt đơn khi chưa đăng nhập | Must | `POST /orders` không có JWT trả 401; giao diện chuyển sang đăng nhập và giữ giỏ hàng |
@@ -60,3 +60,9 @@ Mức ưu tiên theo MoSCoW: Must (bắt buộc cho MVP), Should (nên có), Cou
 - Đặc tả chi tiết của use case trọng tâm: `use-case-checkout.md`.
 - Sơ đồ use case tổng quát: `docs/requirements/usecase-overview.puml` (kèm ảnh kết xuất).
 - Sơ đồ use case cho phạm vi UC-01: `docs/requirements/usecase-checkout.puml` (kèm ảnh kết xuất).
+
+## Lịch sử thay đổi
+
+| Ngày | Thay đổi | Lý do | PR |
+|---|---|---|---|
+| 17/11/2026 | FR-03 ghi rõ chọn nhiều topping, tối đa 5 mỗi ly | Giao diện v1.0.0 chỉ cho chọn 1 topping trong khi API và nghiệp vụ cho phép nhiều; Sprint 3 (US-23) sửa và làm rõ tiêu chí | PR tài liệu Sprint 3 |

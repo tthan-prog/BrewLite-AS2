@@ -2,9 +2,16 @@
 
 Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic Versioning](https://semver.org/lang/vi/). Mỗi phiên bản là một tag Git; tag `v*` chạy pipeline CD (`.github/workflows/cd.yml`).
 
+## [v1.1.1] – 17/11/2026
+
+### Sửa
+- Nhân viên bấm "Đăng xuất" thì về trang chủ thay vì ở lại form đăng nhập nhân viên.
+- Nút mức đường và đá trên trang chi tiết món bị cắt chữ "100%" ở màn hình rộng.
+- Manifest PWA thêm biểu tượng PNG 192 và 512 (Chrome báo không tải được biểu tượng SVG); image web chép thư mục `public` vào bản chạy.
+
 ## [v1.1.0] – 17/11/2026
 
-Sprint 3: hoàn thiện sau bản bàn giao (PR #53).
+Sprint 3: hoàn thiện sau bản bàn giao (PR #53). Chi tiết: [docs/release/release-notes-v1.1.0.md](docs/release/release-notes-v1.1.0.md).
 
 ### Thêm
 - Chọn nhiều topping cho một ly (tối đa 5); giá và số ly tối đa cập nhật theo size, đường, đá, topping.
