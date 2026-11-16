@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { API_URL } from "../../lib/config";
+import { QrPaymentPanel } from "../../components/qr-payment-panel";
+import { VnpayButton } from "../../components/vnpay-button";
 
 type CartItem = {
   key: string;
@@ -38,7 +40,7 @@ type PendingPayment = {
   paymentBody?: string;
 };
 
-type Method = "WALLET" | "CARD";
+type Method = "WALLET" | "CARD" | "QR" | "VNPAY";
 
 const CART_KEY = "brewlite-as2-cart";
 const PENDING_KEY = "brewlite-as2-pending-payment";
@@ -167,6 +169,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<PaymentResult | null>(null);
   const [hasPending, setHasPending] = useState(false);
+  const [externalOrder, setExternalOrder] = useState<{ orderId: number; method: "QR" | "VNPAY"; token: string } | null>(null);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -190,8 +193,24 @@ export default function CheckoutPage() {
     0
   );
 
+  const unauthorized = useCallback(() => {
+    sessionStorage.removeItem("brewlite_token");
+    window.dispatchEvent(new Event("brewlite-auth"));
+    router.push("/login?next=/checkout");
+  }, [router]);
+
+  function finishExternalPayment(orderId: number) {
+    localStorage.removeItem(CART_KEY);
+    sessionStorage.removeItem(PENDING_KEY);
+    window.dispatchEvent(new Event("brewlite-cart"));
+    setExternalOrder(null);
+    setHasPending(false);
+    setCart([]);
+    setResult({ orderId, status: "SUCCESS", failureReason: null });
+  }
+
   function createNewOrder() {
-    if (processingRef.current || busy) return;
+    if (processingRef.current || busy || externalOrder) return;
     const pending = readPending();
     if (!pending) return;
 
@@ -212,7 +231,7 @@ export default function CheckoutPage() {
   }
 
   async function pay() {
-    if (processingRef.current || cart.length === 0) return;
+    if (processingRef.current || cart.length === 0 || externalOrder) return;
 
     const token = sessionStorage.getItem("brewlite_token");
 
@@ -280,6 +299,17 @@ export default function CheckoutPage() {
         setHasPending(true);
       }
 
+      // QR/VNPay tạo một đơn rồi giao việc thanh toán cho component có sẵn.
+      if (method === "QR" || method === "VNPAY") {
+        if (pending.idempotencyKey) {
+          throw new Error(
+            "Có giao dịch Thẻ/Ví chưa xác nhận. Vui lòng thử lại phương thức cũ trước."
+          );
+        }
+        setExternalOrder({ orderId: pending.orderId, method, token });
+        return;
+      }
+
       const paymentBody = JSON.stringify({
         orderId: pending.orderId,
         method,
@@ -321,6 +351,7 @@ export default function CheckoutPage() {
       if (payment.status === "SUCCESS") {
         localStorage.removeItem(CART_KEY);
         sessionStorage.removeItem(PENDING_KEY);
+        window.dispatchEvent(new Event("brewlite-cart"));
         setHasPending(false);
         setCart([]);
         setResult(payment);
@@ -343,8 +374,7 @@ export default function CheckoutPage() {
       const failure = caught as Error & { status?: number };
 
       if (failure.status === 401) {
-        sessionStorage.removeItem("brewlite_token");
-        router.push("/login?next=/checkout");
+        unauthorized();
         return;
       }
 
@@ -377,6 +407,7 @@ export default function CheckoutPage() {
       ) {
         localStorage.removeItem(CART_KEY);
         sessionStorage.removeItem(PENDING_KEY);
+        window.dispatchEvent(new Event("brewlite-cart"));
         setHasPending(false);
         setCart([]);
         setResult({
@@ -490,7 +521,7 @@ export default function CheckoutPage() {
                   onChange={(e) =>
                     setPromotionCode(e.target.value)
                   }
-                  disabled={busy || Boolean(readPendingSafe())}
+                  disabled={busy || Boolean(readPendingSafe()) || Boolean(externalOrder)}
                   placeholder="Ví dụ: GIAM10"
                   className="mt-2 w-full rounded-xl border p-3 font-normal"
                 />
@@ -508,7 +539,7 @@ export default function CheckoutPage() {
                   name="payment-method"
                   checked={method === "WALLET"}
                   onChange={() => setMethod("WALLET")}
-                  disabled={busy}
+                  disabled={busy || Boolean(externalOrder)}
                 />
                 Ví điện tử (mô phỏng)
               </label>
@@ -519,9 +550,20 @@ export default function CheckoutPage() {
                   name="payment-method"
                   checked={method === "CARD"}
                   onChange={() => setMethod("CARD")}
-                  disabled={busy}
+                  disabled={busy || Boolean(externalOrder)}
                 />
                 Thẻ ngân hàng (mô phỏng)
+              </label>
+
+              <label className="mt-3 flex gap-3 rounded-xl border p-4">
+                <input type="radio" name="payment-method" checked={method === "QR"}
+                  onChange={() => setMethod("QR")} disabled={busy || Boolean(externalOrder)} />
+                Thanh toán QR
+              </label>
+              <label className="mt-3 flex gap-3 rounded-xl border p-4">
+                <input type="radio" name="payment-method" checked={method === "VNPAY"}
+                  onChange={() => setMethod("VNPAY")} disabled={busy || Boolean(externalOrder)} />
+                Thanh toán VNPay
               </label>
 
               {method === "CARD" && (
@@ -550,7 +592,7 @@ export default function CheckoutPage() {
             {hasPending && (
               <button
                 type="button"
-                disabled={busy}
+                disabled={busy || Boolean(externalOrder)}
                 onClick={createNewOrder}
                 className="w-full rounded-xl border border-[#84552D] bg-white px-5 py-3 font-semibold text-[#84552D] disabled:opacity-50"
               >
@@ -567,16 +609,39 @@ export default function CheckoutPage() {
               </p>
             )}
 
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void pay()}
-              className="w-full rounded-xl bg-[#30271F] py-4 font-bold text-white disabled:opacity-50"
-            >
-              {busy
-                ? "Đang xử lý..."
-                : "Thanh toán đơn hàng"}
-            </button>
+            {externalOrder ? (
+              <section aria-label="Thanh toán qua cổng" className="space-y-3">
+                <p className="text-sm text-[#766B60]">
+                  Đơn hàng #{externalOrder.orderId} đã được tạo. Hoàn tất thanh toán bên dưới.
+                </p>
+                {externalOrder.method === "QR" ? (
+                  <QrPaymentPanel
+                    orderId={externalOrder.orderId}
+                    authToken={externalOrder.token}
+                    onPaid={() => finishExternalPayment(externalOrder.orderId)}
+                    onUnauthorized={unauthorized}
+                  />
+                ) : (
+                  <VnpayButton
+                    orderId={externalOrder.orderId}
+                    authToken={externalOrder.token}
+                    onUnauthorized={unauthorized}
+                  />
+                )}
+                <p className="text-xs text-gray-500">
+                  Nếu VNPay chưa được bật, nút thanh toán sẽ tự ẩn. Đơn hàng vẫn được lưu để thử lại.
+                </p>
+              </section>
+            ) : (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void pay()}
+                className="w-full rounded-xl bg-[#30271F] py-4 font-bold text-white disabled:opacity-50"
+              >
+                {busy ? "Đang xử lý..." : "Thanh toán đơn hàng"}
+              </button>
+            )}
 
             <p className="text-center text-xs text-gray-500">
               Thanh toán mô phỏng, không trừ tiền thật.

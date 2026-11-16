@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { API_URL } from "../../lib/config";
@@ -111,14 +111,6 @@ export default function MenuPage() {
 
   return (
     <main className="min-h-screen bg-[#F8F5EF] text-[#30271F]">
-      <header className="bg-[#30271F] px-5 py-5 text-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">
-            BrewLite<span className="text-[#D7AB76]">.</span>
-          </h1>
-          <span className="text-sm text-[#E6D8C8]">Coffee & More</span>
-        </div>
-      </header>
 
       <section className="bg-[#EDE4D6] px-5 py-12">
         <div className="mx-auto max-w-6xl">
@@ -245,3 +237,4 @@ export default function MenuPage() {
     </main>
   );
 }
+
