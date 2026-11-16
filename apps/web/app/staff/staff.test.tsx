@@ -48,6 +48,19 @@ afterEach(() => {
 const authHeader = (init?: RequestInit) => (init?.headers as Record<string, string> | undefined)?.Authorization;
 
 describe("Trang nhân viên /staff (FR-15)", () => {
+  it("đăng xuất: xóa token và thông tin nhân viên, link dẫn về trang chủ", async () => {
+    sessionStorage.setItem("brewlite_token", "staff-token");
+    sessionStorage.setItem("brewlite_user", JSON.stringify(staff));
+    routes["GET /auth/me"] = () => ({ body: staff });
+    routes["GET /orders?status=PAID"] = () => ({ body: [] });
+    render(<StaffOrdersPage />);
+    const logout = await screen.findByRole("link", { name: "Đăng xuất" });
+    expect(logout).toHaveAttribute("href", "/");
+    fireEvent.click(logout);
+    expect(sessionStorage.getItem("brewlite_token")).toBeNull();
+    expect(sessionStorage.getItem("brewlite_user")).toBeNull();
+  });
+
   it("chưa đăng nhập thì hiện form; đăng nhập STAFF xong thấy đơn chờ pha", async () => {
     routes["POST /auth/login"] = () => ({ body: { accessToken: "staff-token" } });
     routes["GET /auth/me"] = () => ({ body: staff });

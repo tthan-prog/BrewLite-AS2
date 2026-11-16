@@ -23,8 +23,8 @@ type Product = {
 
 const SIZE_LABEL: Record<string, string> = { S: "Nhỏ", M: "Vừa", L: "Lớn" };
 
-const chip = (active: boolean) =>
-  `rounded-xl border px-4 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#84552D] disabled:cursor-not-allowed disabled:opacity-40 ${
+const chip = (active: boolean, padding = "px-4") =>
+  `rounded-xl border ${padding} py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#84552D] disabled:cursor-not-allowed disabled:opacity-40 ${
     active ? "border-[#30271F] bg-[#30271F] text-white" : "border-[#DED4C7] bg-white hover:border-[#98734D]"
   }`;
 
@@ -187,7 +187,7 @@ export default function ProductDetailPage() {
                 <legend className="mb-3 font-bold">Kích cỡ</legend>
                 <div className="grid grid-cols-3 gap-2">
                   {product.sizes.map((item) => (
-                    <button key={item.size} type="button" onClick={() => setSize(item.size)} aria-pressed={size === item.size} className={`${chip(size === item.size)} px-2`}>
+                    <button key={item.size} type="button" onClick={() => setSize(item.size)} aria-pressed={size === item.size} className={chip(size === item.size, "px-2")}>
                       {item.size} · {SIZE_LABEL[item.size] ?? item.size}
                       <span className="block text-xs opacity-70">{item.surcharge > 0 ? `+${formatVnd(item.surcharge)}` : "Giá gốc"}</span>
                     </button>
@@ -219,12 +219,12 @@ export default function ProductDetailPage() {
                 </div>
               </fieldset>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-5 xl:grid-cols-2">
                 <fieldset>
                   <legend className="mb-3 font-bold">Mức đường</legend>
                   <div className="grid grid-cols-5 gap-1.5">
                     {product.sugarLevels.map((level) => (
-                      <button key={level} type="button" onClick={() => setSugar(level)} aria-pressed={sugar === level} className={`${chip(sugar === level)} px-0`}>
+                      <button key={level} type="button" onClick={() => setSugar(level)} aria-pressed={sugar === level} className={`${chip(sugar === level, "px-0")} whitespace-nowrap text-xs sm:text-sm`}>
                         {level}%
                       </button>
                     ))}
@@ -234,7 +234,7 @@ export default function ProductDetailPage() {
                   <legend className="mb-3 font-bold">Mức đá</legend>
                   <div className="grid grid-cols-5 gap-1.5">
                     {product.iceLevels.map((level) => (
-                      <button key={level} type="button" onClick={() => setIce(level)} aria-pressed={ice === level} className={`${chip(ice === level)} px-0`}>
+                      <button key={level} type="button" onClick={() => setIce(level)} aria-pressed={ice === level} className={`${chip(ice === level, "px-0")} whitespace-nowrap text-xs sm:text-sm`}>
                         {level}%
                       </button>
                     ))}

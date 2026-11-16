@@ -31,6 +31,6 @@ describe("Trang chủ và PWA", () => {
   it("manifest PWA hợp lệ: tên, mở ở /menu, chế độ standalone, có biểu tượng", () => {
     const m = manifest();
     expect(m).toMatchObject({ short_name: "BrewLite", start_url: "/menu", display: "standalone", lang: "vi" });
-    expect(m.icons?.[0]).toMatchObject({ src: "/icon.svg" });
+    expect(m.icons?.map((i) => i.sizes)).toEqual(["192x192", "512x512", "any"]); // Chrome cần icon PNG 192 và 512 để cài
   });
 });

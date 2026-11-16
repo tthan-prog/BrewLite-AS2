@@ -139,7 +139,8 @@ export function StaffNav({ user, logout, current }: { user: StaffUser; logout: (
       </nav>
       <div className="flex items-center gap-3 text-sm">
         <span className="text-[#766B60]">{user.name}</span>
-        <button type="button" onClick={logout} className="font-semibold text-[#84552D] hover:underline">Đăng xuất</button>
+        {/* Đăng xuất xong về trang chủ của khách thay vì ở lại form đăng nhập nhân viên */}
+        <Link href="/" onClick={logout} className="font-semibold text-[#84552D] hover:underline">Đăng xuất</Link>
       </div>
     </header>
   );
