@@ -1,0 +1,114 @@
+\section{Quy trình phát triển và quản lý dự án}\label{ch:scrum}
+
+\subsection{Mô hình quy trình}
+Nhóm áp dụng Scrum trong khung tuần tự của đề:
+\begin{itemize}
+\item \textbf{Task 1--3:} làm trước, mỗi task một hoặc vài pull request.
+\item \textbf{Sprint 1:} hiện thực Task 4.
+\item \textbf{Sprint 2:} hiện thực Task 5.
+\end{itemize}
+
+Quy tắc tuần tự được kiểm soát bằng thứ tự merge: pull request của task sau chỉ được merge khi tạo phẩm của task trước đã có trên \code{main}. Lịch sử merge trên GitHub thể hiện đúng thứ tự này (bảng \ref{tab:moc}).
+
+Sau khi bàn giao \code{v1.0.0}, nhóm chạy thêm Sprint 3 để hoàn thiện sản phẩm theo phản hồi khi tự kiểm thử. Sprint 3 không thay đổi tạo phẩm đã nộp của Task 1--5, chỉ bổ sung chức năng, test và tài liệu (mục \ref{ch:sprint3}).
+
+\subsection{Vai trò và thành viên}
+\begin{table}[H]
+\centering
+\caption{Vai trò Scrum và trách nhiệm chính}\label{tab:vaitro}
+\begin{tabular}{@{}L{3.6cm}L{3.2cm}L{7cm}@{}}
+\toprule
+\textbf{Thành viên} & \textbf{Vai trò Scrum} & \textbf{Trách nhiệm chính trong AS2} \\ \midrule
+Nguyễn Lê Nhựt Thắng (A) & Scrum Master, Developer & Hiện thực chính (API, giao diện Sprint 3), CI/CD, triển khai production, tài liệu kiến trúc, release notes, tổ chức Sprint Review và Retrospective \\
+Hồ Thiên Ngân (B) & Developer & Prisma schema, migration, seed; class diagram và ERD \\
+Hà Thiên Long (C) & Product Owner, Developer & Product Backlog; giao diện đăng nhập, đăng ký, lịch sử đơn; hỗ trợ Task 1 \\
+Giản Thiên Lực (D) & Developer & Use case diagram, activity diagram; trang menu; giao diện giỏ hàng, thanh toán, đổi quà \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Nhóm họp Daily Scrum lúc 20:00 qua nhóm Zalo. Sprint Review và Retrospective ghi trong \code{docs/\allowbreak{}scrum/\allowbreak{}sprint-1-review-retro.\allowbreak{}md}, \code{sprint-2-review-retro.\allowbreak{}md}, \code{sprint-3-review-retro.\allowbreak{}md}.
+
+\subsection{Mốc thời gian}
+\begin{table}[H]
+\centering
+\caption{Các mốc chính theo lịch sử merge trên GitHub}\label{tab:moc}
+\begin{tabular}{@{}L{2.6cm}L{3.4cm}L{8cm}@{}}
+\toprule
+\textbf{Thời gian} & \textbf{Giai đoạn} & \textbf{Pull request đã merge} \\ \midrule
+14/11/2026 & Task 1 & \#2 SRS, bối cảnh; \#3 UC-01 và VNPay sandbox; \#4 sơ đồ use case \\
+14--15/11 & Task 2 & \#5 activity; \#7 sequence; \#6, \#13, \#18 class diagram và ERD \\
+15/11 sáng & Task 3 & \#8 kiến trúc, 8 ADR, deployment diagram \\
+15/11 & Sprint 1 (Task 4) & \#9 khởi tạo repository và CI; \#11 trang menu; \#15 schema, migration, seed; \#17 API sản phẩm; \#14 Product Backlog \\
+15--16/11 & Sprint 2 (Task 5) & \#42 API đơn hàng và thanh toán; \#43 CD; \#44 kho, đổi quà, tự hủy đơn; \#45--\#47 tài liệu triển khai; \#46 sửa CD; \#48 trang nhân viên; \#49, \#51 QR; \#50 VNPay; \#19, \#12 giao diện khách; \#52 release \code{v1.0.0} \\
+17/11 & Sprint 3 & \#53 hoàn thiện sản phẩm; \#54 release \code{v1.1.0}; \#55 sửa lỗi \code{v1.1.1}; \#56, \#57 tài liệu cuối \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Thời gian của cả dự án ngắn (14--17/11/2026), nên mỗi Sprint kéo dài khoảng một ngày. Đây là ràng buộc thực tế của nhóm. Hệ quả của ràng buộc này được nêu trong Retrospective và mục \ref{sec:hanche}.
+
+\subsection{Artefact Scrum}
+\begin{itemize}
+\item \textbf{Product Backlog} (\code{docs/\allowbreak{}scrum/\allowbreak{}product-backlog.\allowbreak{}md}): 25 user story US-01 đến US-25, mỗi story có mã yêu cầu liên quan, mức MoSCoW, story point (thang Fibonacci 1, 2, 3, 5, 8), tiêu chí chấp nhận, người làm và trạng thái kèm số PR.
+\item \textbf{Sprint Backlog:} GitHub Issue cùng mã user story, gắn Milestone \code{Sprint 1} hoặc \code{Sprint 2}.
+\item \textbf{Increment:} mỗi Sprint kết thúc bằng phiên bản chạy được trên \code{main}. Sprint 2 và 3 kết thúc bằng tag phát hành trên production.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Sprint Goal và kết quả}\label{tab:sprintgoal}
+\begin{tabular}{@{}L{1.6cm}L{6.2cm}L{6cm}@{}}
+\toprule
+\textbf{Sprint} & \textbf{Sprint Goal} & \textbf{Kết quả} \\ \midrule
+1 & Có nền tảng kỹ thuật (repository, CI, database có migration và seed) và MVP đầu tiên chạy được cho luồng xem menu & Đạt; 5/5 user story, 16/16 point \\
+2 & Hoàn thành luồng đặt và thanh toán end-to-end, tự động đóng gói và triển khai production qua HTTPS & Đạt; 16/17 user story Done khi đóng Sprint (US-20 xong phần integration test, phần E2E chuyển sang Sprint 3); phát hành \code{v1.0.0} \\
+3 & Sản phẩm chỉn chu và đúng thực tế: nhiều topping, số ly theo công thức, test E2E trên trình duyệt & Đạt; 3 user story mới và phần E2E của US-20; phát hành \code{v1.1.0}, \code{v1.1.1} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Quy ước làm việc}\label{sec:quyuoc}
+Quy ước ghi trong \code{docs/\allowbreak{}contributing.\allowbreak{}md}.
+
+\begin{itemize}
+\item \textbf{Nhánh:} không commit trực tiếp lên \code{main}. Mỗi việc làm trên một nhánh tạo từ \code{main} mới nhất, đặt tên theo loại việc: \code{feat/}, \code{fix/}, \code{docs/}, \code{chore/}, \code{test/}.
+\item \textbf{Pull request:}
+  \begin{itemize}
+  \item Mở vào \code{main}, liên kết Issue.
+  \item Chỉ merge khi CI xanh; dùng ``Create a merge commit''.
+  \item Ruleset \code{protect-main} bắt buộc check ``Install, Lint, Unit Test, Build'' xanh và chặn push thẳng.
+  \end{itemize}
+\item \textbf{Commit:} theo Conventional Commits, dạng \code{<loại>(<phạm vi>): <mô tả>}. Mỗi thành viên commit bằng tài khoản Git của mình.
+\end{itemize}
+
+\subsection{Definition of Done}\label{sec:dod}
+Một user story được coi là Done khi:
+\begin{enumerate}
+\item Đáp ứng tiêu chí chấp nhận trong SRS hoặc Issue.
+\item Có test tự động phù hợp (unit, integration hoặc E2E) và test chạy qua.
+\item CI xanh: Lint, Unit Test, test HTTP, Integration Test, Build và E2E (Playwright).
+\item Được ít nhất một thành viên khác review và approve.
+\item Tài liệu liên quan được cập nhật: README, sơ đồ, ma trận truy vết.
+\item Không có secret, \code{.env} hay file build trong commit.
+\item Đã merge vào \code{main} và Issue được đóng.
+\end{enumerate}
+
+\textbf{Mục 4 chưa được tuân thủ đầy đủ.} Retrospective cả ba Sprint đều ghi nhận nhiều pull request được merge khi chưa có approve của thành viên khác, vì ruleset đặt 0 approval để không chặn tiến độ. Nhóm ghi điểm này thành hành động cải tiến thay vì coi là đã đạt.
+
+\subsection{Phân công và đóng góp thực tế}
+Bảng \ref{tab:donggop} đếm commit không tính merge trên \code{main} tại \code{v1.1.1}. Số commit chỉ phản ánh một phần đóng góp: kích thước mỗi commit khác nhau, và phần hiện thực của Sprint 3 có công cụ AI (Claude) hỗ trợ, được ghi bằng dòng \code{Co-Authored-By} trong commit.
+
+\begin{table}[H]
+\centering
+\caption{Đóng góp theo commit trên \code{main} (không tính merge)}\label{tab:donggop}
+\begin{tabular}{@{}L{4cm}r L{8.4cm}@{}}
+\toprule
+\textbf{Thành viên} & \textbf{Commit} & \textbf{Phần chính trên repository} \\ \midrule
+Nguyễn Lê Nhựt Thắng & 25 & SRS, kiến trúc, sequence diagram, khởi tạo repository, CI/CD, toàn bộ API Task 5, trang nhân viên, Sprint 3, release và tài liệu triển khai \\
+Giản Thiên Lực & 12 & Use case, activity diagram; trang menu; giỏ hàng, thanh toán (Ví, Thẻ, QR, VNPay), đổi quà \\
+Hồ Thiên Ngân & 8 & Class diagram, ERD; Prisma schema, migration, seed \\
+Hà Thiên Long & 6 & Product Backlog; đăng nhập, đăng ký, lịch sử đơn và test trang lịch sử \\
+\bottomrule
+\end{tabular}
+\end{table}

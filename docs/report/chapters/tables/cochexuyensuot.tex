@@ -1,0 +1,17 @@
+{\small
+\begin{longtable}{@{}L{2.8cm}L{8.4cm}L{2.7cm}@{}}
+\caption{Các cơ chế xuyên suốt}\label{tab:xuyensuot}\\
+\toprule
+\textbf{Cơ chế} & \textbf{Cách làm} & \textbf{Yêu cầu} \\ \midrule \endfirsthead
+\toprule \textbf{Cơ chế} & \textbf{Cách làm} & \textbf{Yêu cầu} \\ \midrule \endhead
+\bottomrule \endfoot
+Transaction và tồn kho & \code{prisma.\allowbreak{}\$transaction}; trừ kho bằng \code{updateMany} có điều kiện \code{stock >= lượng cần}; số dòng cập nhật nhỏ hơn số nguyên liệu thì rollback & FR-12, UC-01 E4 \\
+Idempotency & Header \code{Idempotency-Key}; ràng buộc \code{UNIQUE(user\_\allowbreak{}id, idempotency\_\allowbreak{}key)} trên \code{payments}; gửi lại cùng key trả kết quả đã lưu & FR-09 \\
+Xác thực, phân quyền & JWT có hạn; mật khẩu và PIN băm bằng bcrypt; \code{RolesGuard} cho STAFF & FR-05, FR-06, NFR-02 \\
+Cấu hình & Biến môi trường, kiểm tra khi khởi động; \code{.env.example} trong repo, \code{.env} không commit & NFR-03 \\
+Logging & Logger của NestJS, mỗi request ghi method, path, status, thời gian; không ghi mật khẩu, PIN, token & NFR-09 \\
+Health check & \code{GET /health} trả \code{\{status: "ok", db: "up"\}} & NFR-09 \\
+Lỗi & Exception filter trả JSON thống nhất; frontend chuyển thành thông báo tiếng Việt & NFR-06 \\
+Migration & Prisma Migrate; seed tái tạo dữ liệu mẫu & NFR-10 \\
+\end{longtable}
+}

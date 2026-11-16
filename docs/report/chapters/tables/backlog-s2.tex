@@ -1,0 +1,26 @@
+{\footnotesize
+\begin{longtable}{@{}L{1.1cm}L{4.3cm}L{1.7cm}L{1.6cm}L{0.9cm}L{1.7cm}L{2.6cm}@{}}
+\caption{Product Backlog Sprint 2}\label{tab:backlogs2}\\
+\toprule
+\textbf{Mã} & \textbf{User story} & \textbf{Yêu cầu} & \textbf{MoSCoW} & \textbf{Point} & \textbf{Người làm} & \textbf{Trạng thái} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{User story} & \textbf{Yêu cầu} & \textbf{MoSCoW} & \textbf{Point} & \textbf{Người làm} & \textbf{Trạng thái} \\ \midrule \endhead
+\bottomrule \endfoot
+US-06 & Là khách hàng, tôi muốn chọn size, topping, đường, đá và thêm món vào giỏ để đặt nhiều món một lần & FR-03, FR-04 & Must & 5 & D & Done (giao diện PR \#12) \\
+US-07 & Là khách hàng, tôi muốn đăng ký và đăng nhập để đặt đơn và xem lại đơn của mình & FR-05, FR-06, NFR-02 & Must & 5 & A (API), C (giao diện) & Done (API PR \#42, giao diện PR \#19) \\
+US-08 & Là khách hàng, tôi muốn đặt đơn từ giỏ hàng để cửa hàng chuẩn bị đồ uống & FR-07, FR-16 & Must & 5 & A (API), D (giao diện) & Done (API PR \#42, giao diện PR \#12) \\
+US-09 & Là khách hàng, tôi muốn thanh toán bằng Ví hoặc Thẻ mô phỏng và không bị trừ tiền hai lần khi bấm lại & FR-08, FR-09 & Must & 8 & A (API), D (giao diện) & Done (API PR \#42, giao diện PR \#12) \\
+US-10 & Là quản lý cửa hàng, tôi muốn không bán vượt nguyên liệu khi nhiều khách thanh toán cùng lúc & FR-12 & Must & 5 & A & Done (PR \#42) \\
+US-11 & Là khách hàng, tôi muốn xem xác nhận, trạng thái và lịch sử đơn để theo dõi đơn của mình & FR-10, FR-11 & Must & 3 & A (API), C (giao diện) & Done (API PR \#42, giao diện PR \#19) \\
+US-12 & Là nhân viên, tôi muốn xem đơn theo trạng thái và chuyển trạng thái đơn để xử lý pha chế & FR-10, FR-15 & Should & 5 & A & Done (API PR \#42, trang nhân viên PR \#48) \\
+US-13 & Là khách hàng, tôi muốn dùng mã khuyến mãi để được giảm giá & FR-13 & Should & 3 & A & Done (API PR \#42, giao diện PR \#12) \\
+US-14 & Là khách hàng, tôi muốn được cộng điểm khi thanh toán để nhận ưu đãi & FR-14 & Should & 3 & A & Done (PR \#42) \\
+US-15 & Là nhân viên, tôi muốn xem tồn kho nguyên liệu và nhập thêm để không bị hết hàng & FR-17 & Should & 3 & A (API), B (dữ liệu) & Done (API PR \#44, trang kho PR \#48) \\
+US-16 & Là khách hàng, tôi muốn thanh toán bằng QR qua cổng mô phỏng bằng điện thoại & FR-18 & Should & 5 & A & Done (PR \#49, \#51; gắn vào trang thanh toán PR \#12) \\
+US-17 & Là khách hàng, tôi muốn đổi điểm lấy quà để dùng tại quầy & FR-19 & Could & 3 & D (giao diện), A (API) & Done (API PR \#44, giao diện PR \#12) \\
+US-18 & Là quản lý, tôi muốn đơn chưa thanh toán tự hủy sau thời gian quy định & FR-20 & Could & 2 & A & Done (PR \#44) \\
+US-19 & Là khách hàng, tôi muốn thanh toán qua VNPay sandbox & FR-21 & Could & 5 & A & Done (PR \#50, nút trong trang thanh toán PR \#12); đã thanh toán thử thành công trên production 16/11 \\
+US-20 & Là nhóm phát triển, tôi muốn có test tích hợp và end-to-end cho luồng chính để phát hiện lỗi trước khi phát hành & NFR-11 & Must & 5 & C & Done (integration test PR \#42, \#44, \#51; E2E Playwright PR \#53) \\
+US-21 & Là giảng viên, tôi muốn truy cập bản production qua HTTPS và hệ thống được triển khai tự động & NFR-03, NFR-07, NFR-08, NFR-09 & Must & 8 & A & Done (PR \#43, \#45, \#46; production v0.9.2 $\rightarrow$ v1.0.0) \\
+US-22 & Là giảng viên, tôi muốn có tài liệu bàn giao để chạy và kiểm tra hệ thống & -- & Must & 3 & A, C, D & Done (release notes v1.0.0, README, runbook) \\
+\end{longtable}
+}

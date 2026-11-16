@@ -1,0 +1,18 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Test HTTP xác thực, phân quyền, validate (\code{auth-guard.\allowbreak{}e2e-spec.\allowbreak{}ts})}\label{tab:autht}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+AUTH-T01 & POST /orders không có JWT trả 401 & Đạt \\
+AUTH-T02 & JWT ký bằng secret khác trả 401 & Đạt \\
+AUTH-T03 & CUSTOMER đổi trạng thái đơn nhận 403 & Đạt \\
+AUTH-T04 & CUSTOMER xem danh sách đơn của nhân viên nhận 403 & Đạt \\
+AUTH-T05 & STAFF đặt trạng thái không cho phép (PAID) nhận 400 & Đạt \\
+AUTH-T06 & đặt đơn với dữ liệu sai hoặc trường lạ trả 400 & Đạt \\
+AUTH-T07 & POST /payments thiếu Idempotency-Key trả 400 & Đạt \\
+AUTH-T08 & POST /payments bằng thẻ mà thiếu số thẻ trả 400 & Đạt \\
+AUTH-T09 & đăng ký với email sai hoặc mật khẩu ngắn trả 400 & Đạt \\
+\end{longtable}
+}

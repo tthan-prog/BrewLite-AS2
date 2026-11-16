@@ -1,0 +1,18 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Integration test thanh toán QR (\code{qr-payments.\allowbreak{}int-spec.\allowbreak{}ts})}\label{tab:intq}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+INT-Q01 & tạo mã QR: token ngẫu nhiên, link tới trang xác nhận, ảnh QR; tạo lại khi còn hạn thì trả cùng mã & Đạt \\
+INT-Q02 & trang điện thoại xem được số tiền và tài khoản thử, không lộ số dư; token sai trả 404 & Đạt \\
+INT-Q03 & sai PIN: 400, không trừ tiền, không đụng kho, cho nhập lại & Đạt \\
+INT-Q04 & đúng PIN, đủ số dư: đơn PAID, trừ đúng số tiền, trừ kho, cộng điểm; khách thấy trạng thái PAID & Đạt \\
+INT-Q05 & xác nhận lặp lại chỉ thành công một lần (tuần tự và đồng thời) & Đạt \\
+INT-Q06 & lần xác nhận đến sau trong lúc lần trước vừa ghi xong (kết quả được trả lại) vẫn nhận 409, không trừ tiền lần hai & Đạt \\
+INT-Q07 & thiếu số dư: không trừ tiền, hoàn kho, đơn PAYMENT\_FAILED; tạo mã mới và trả bằng tài khoản khác thì PAID & Đạt \\
+INT-Q08 & QR hết hạn: không trừ tiền, trạng thái EXPIRED & Đạt \\
+INT-Q09 & chỉ chủ đơn tạo được QR; chưa đăng nhập trả 401; đơn đã thanh toán trả 409 & Đạt \\
+\end{longtable}
+}

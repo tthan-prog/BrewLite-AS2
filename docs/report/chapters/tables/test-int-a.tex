@@ -1,0 +1,20 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Integration test xác thực và đơn hàng (\code{auth-orders.\allowbreak{}int-spec.\allowbreak{}ts})}\label{tab:inta}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+INT-A01 & đăng ký, mật khẩu được băm, đăng nhập nhận JWT, /auth/me trả đúng người & Đạt \\
+INT-A02 & email trùng trả 409, sai mật khẩu trả 401 & Đạt \\
+INT-A03 & tính giá ở máy chủ, áp mã giảm giá, chưa trừ kho & Đạt \\
+INT-A04 & mã hết hạn, chưa đủ đơn tối thiểu, hết lượt bị từ chối kèm lý do & Đạt \\
+INT-A05 & thiếu nguyên liệu trả 400, báo món thiếu và không tạo đơn & Đạt \\
+INT-A06 & sản phẩm hoặc topping không tồn tại trả 400 & Đạt \\
+INT-A07 & GET /orders/me chỉ trả đơn của người đăng nhập, mới nhất trước & Đạt \\
+INT-A08 & người khác xem đơn nhận 404, STAFF xem được & Đạt \\
+INT-A09 & STAFF lọc đơn theo trạng thái; CUSTOMER bị 403 & Đạt \\
+INT-A10 & chuyển sai trạng thái trả 400 và đơn giữ nguyên & Đạt \\
+INT-A11 & hủy đơn chưa thanh toán trả lại lượt dùng mã khuyến mãi, không đụng kho & Đạt \\
+\end{longtable}
+}

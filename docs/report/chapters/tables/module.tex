@@ -1,0 +1,17 @@
+{\small
+\begin{longtable}{@{}L{2.2cm}L{7cm}L{4.7cm}@{}}
+\caption{Các module của API và lớp domain tương ứng}\label{tab:module}\\
+\toprule
+\textbf{Module} & \textbf{Trách nhiệm} & \textbf{Lớp domain (class diagram)} \\ \midrule \endfirsthead
+\toprule \textbf{Module} & \textbf{Trách nhiệm} & \textbf{Lớp domain (class diagram)} \\ \midrule \endhead
+\bottomrule \endfoot
+\code{auth} & Đăng ký, đăng nhập, phát JWT, guard theo vai trò & User, Role \\
+\code{catalog} & Sản phẩm, topping, tính số ly còn đặt được theo nguyên liệu & Product, Topping \\
+\code{inventory} & Công thức, định lượng theo size/topping/đường/đá, trừ và hoàn kho, nhập kho & Ingredient, RecipeItem, ToppingRecipeItem, OrderIngredientUse \\
+\code{orders} & Tạo đơn, máy trạng thái, lịch sử, hủy đơn, tự hủy đơn quá hạn & Order, OrderItem, OrderStatus \\
+\code{payments} & Thanh toán Ví/Thẻ/QR, idempotency, adapter cổng thanh toán & Payment, PaymentIntent, PaymentAccount \\
+\code{promotions} & Kiểm tra và áp mã khuyến mãi & Promotion \\
+\code{loyalty} & Cộng và trừ điểm, đổi quà & LoyaltyTransaction, Reward, RewardRedemption \\
+\code{health} & \code{GET /health} kiểm tra API và kết nối database & -- \\
+\end{longtable}
+}

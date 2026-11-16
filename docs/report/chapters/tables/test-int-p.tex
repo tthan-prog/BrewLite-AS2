@@ -1,0 +1,19 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Integration test thanh toán Ví/Thẻ, idempotency, tồn kho đồng thời (\code{payments.\allowbreak{}int-spec.\allowbreak{}ts})}\label{tab:intp}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+INT-P01 & FR-08, FR-12, FR-14: thanh toán Ví thành công, trừ đúng kho, cộng điểm & Đạt \\
+INT-P02 & FR-09: gửi lại cùng Idempotency-Key trả cùng kết quả, chỉ một bản ghi Payment & Đạt \\
+INT-P03 & FR-09: cùng khóa nhưng nội dung khác trả 409; đơn đã PAID không thanh toán lại & Đạt \\
+INT-P04 & FR-08: thẻ bị từ chối $\rightarrow$ PAYMENT\_FAILED, hoàn kho; thử lại bằng khóa mới thì PAID & Đạt \\
+INT-P05 & không thanh toán được đơn của người khác (404) hoặc thiếu khóa (400) & Đạt \\
+INT-P06 & FR-12: kho vừa hết lúc thanh toán $\rightarrow$ không trừ tiền, không trừ kho, PAYMENT\_FAILED kèm lý do & Đạt \\
+INT-P07 & FR-12: N khách thanh toán đồng thời không bán vượt kho, tồn kho không âm & Đạt \\
+INT-P08 & FR-09: hai yêu cầu đồng thời cho cùng một đơn chỉ thanh toán một lần & Đạt \\
+INT-P09 & FR-09: bấm thanh toán hai lần liên tiếp cùng khóa chỉ tạo một Payment & Đạt \\
+INT-P10 & FR-10, FR-12, FR-14: nhân viên xử lý đơn; hủy đơn đã PAID hoàn kho và trừ lại điểm & Đạt \\
+\end{longtable}
+}

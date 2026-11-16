@@ -1,0 +1,15 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Integration test VNPay sandbox (\code{vnpay.\allowbreak{}int-spec.\allowbreak{}ts})}\label{tab:intv}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+INT-V01 & tạo URL thanh toán đã ký đúng: số tiền $\times$100, mã website, IP khách, chữ ký kiểm tra lại được & Đạt \\
+INT-V02 & Return URL hợp lệ, mã 00: đơn PAID, trừ kho, cộng điểm; gọi lại và IPN không tạo thêm thanh toán & Đạt \\
+INT-V03 & sai chữ ký: từ chối, đơn giữ nguyên PENDING, IPN trả 97 & Đạt \\
+INT-V04 & chữ ký đúng nhưng số tiền khác đơn: từ chối, đơn giữ nguyên, IPN trả 04 & Đạt \\
+INT-V05 & khách hủy ở VNPay (mã 24): PAYMENT\_FAILED kèm lý do, hoàn kho, cho thanh toán lại bằng giao dịch mới & Đạt \\
+INT-V06 & giao dịch không tồn tại: Return 404, IPN 01 & Đạt \\
+\end{longtable}
+}

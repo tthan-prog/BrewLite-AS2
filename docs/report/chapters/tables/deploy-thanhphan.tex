@@ -1,0 +1,14 @@
+{\small
+\begin{longtable}{@{}L{2.6cm}L{6.2cm}L{5.1cm}@{}}
+\caption{Thành phần production}\label{tab:prod}\\
+\toprule
+\textbf{Thành phần} & \textbf{Nơi chạy} & \textbf{URL / định danh} \\ \midrule \endfirsthead
+\toprule \textbf{Thành phần} & \textbf{Nơi chạy} & \textbf{URL / định danh} \\ \midrule \endhead
+\bottomrule \endfoot
+Web (Next.js) & Render Web Service \code{brewlite-as2-web}, image \code{ghcr.\allowbreak{}io/\allowbreak{}tthan-prog/\allowbreak{}brewlite-as2-web} & https://brewlite-as2-web.onrender.com \\
+API (NestJS) & Render Web Service \code{brewlite-as2-api}, image \code{ghcr.\allowbreak{}io/\allowbreak{}tthan-prog/\allowbreak{}brewlite-as2-api} & https://brewlite-as2-api-k8xj.onrender.com \\
+Health check & API & https://brewlite-as2-api-k8xj.onrender.com/health \\
+Database & Render PostgreSQL 16 \code{brewlite-as2-db} & Chỉ kết nối nội bộ \\
+Registry & GitHub Container Registry, package Public & \code{ghcr.\allowbreak{}io/\allowbreak{}tthan-prog/\allowbreak{}brewlite-as2-*} \\
+\end{longtable}
+}

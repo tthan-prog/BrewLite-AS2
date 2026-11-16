@@ -1,0 +1,16 @@
+{\small
+\begin{longtable}{@{}L{5.4cm}L{2.6cm}L{5.9cm}@{}}
+\caption{Truy vết các bước của UC-01 đến test}\label{tab:tvuc}\\
+\toprule
+\textbf{Bước của UC-01} & \textbf{Yêu cầu} & \textbf{Test} \\ \midrule \endfirsthead
+\toprule \textbf{Bước của UC-01} & \textbf{Yêu cầu} & \textbf{Test} \\ \midrule \endhead
+\bottomrule \endfoot
+Chọn món, tùy chọn, thêm vào giỏ & FR-03, FR-04 & E2E-T02; WEB \code{product/\allowbreak{}[id]/\allowbreak{}page.\allowbreak{}test} \\
+Chưa đăng nhập bị chuyển sang đăng nhập & FR-06 & E2E-T03; AUTH-T01 \\
+Tạo đơn, kiểm tra nguyên liệu & FR-07, FR-16 & INT-A03, A05; INT-R06 \\
+Thanh toán, idempotency & FR-08, FR-09 & INT-P01--P04, P08, P09; E2E-T02 \\
+Thanh toán thất bại, thử lại & FR-08 & INT-P04; E2E-T02 \\
+Trừ kho, cộng điểm & FR-12, FR-14 & INT-P01, P06, P07 \\
+Xác nhận, theo dõi đơn & FR-10, FR-11 & E2E-T02; WEB \code{orders/\allowbreak{}[id]/\allowbreak{}page.\allowbreak{}test} \\
+\end{longtable}
+}

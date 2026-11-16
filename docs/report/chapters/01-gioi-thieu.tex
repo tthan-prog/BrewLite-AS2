@@ -1,0 +1,87 @@
+\section{Giới thiệu}\label{ch:gioithieu}
+
+\subsection{Bối cảnh và vấn đề nghiệp vụ}
+Một quán cà phê nhỏ muốn khách đặt món và thanh toán không dùng tiền mặt ngay trên điện thoại, để bớt xếp hàng và tránh nhầm đơn. BrewLite là ứng dụng web mobile-first đáp ứng nhu cầu đó:
+
+\begin{itemize}
+\item \textbf{Khách hàng:} xem menu; chọn size, topping, mức đường và đá; đặt đơn; thanh toán qua cổng mô phỏng hoặc VNPay sandbox; theo dõi trạng thái đơn; tích điểm và đổi quà.
+\item \textbf{Nhân viên:} xử lý đơn theo trạng thái; quản lý nguyên liệu trên cùng hệ thống.
+\end{itemize}
+
+Bài tập lớn 2 dùng lại đề tài BrewLite của Bài tập lớn 1 nhưng yêu cầu một quy trình khác: đi đủ năm giai đoạn từ yêu cầu đến triển khai, giai đoạn sau chỉ được nghiệm thu khi tạo phẩm của giai đoạn trước đã có trên kho mã nguồn và có lịch sử thay đổi rõ ràng. Luồng nghiệp vụ tối thiểu đề bài đặt ra là:
+
+\begin{center}
+\textbf{Xem menu $\rightarrow$ Chọn tùy chọn $\rightarrow$ Giỏ hàng $\rightarrow$ Đặt đơn $\rightarrow$ Thanh toán $\rightarrow$ Theo dõi đơn}
+\end{center}
+
+\subsection{Mục tiêu}
+\begin{enumerate}
+\item Đặc tả được yêu cầu có mức ưu tiên và tiêu chí chấp nhận kiểm chứng được.
+\item Mô hình hóa hệ thống bằng UML và dùng mô hình đó làm đầu vào cho thiết kế.
+\item Chọn kiến trúc phù hợp, ghi lại lý do bằng ADR, vẽ deployment diagram đúng hạ tầng thật.
+\item Hiện thực MVP qua hai Sprint theo Scrum, có CI chặn merge khi lỗi.
+\item Thiết lập CD, triển khai production qua HTTPS, có smoke test và cách rollback.
+\item Truy vết được từ yêu cầu đến thiết kế, mã nguồn và test.
+\end{enumerate}
+
+\subsection{Phạm vi sản phẩm}
+\begin{table}[H]
+\centering
+\caption{Phạm vi sản phẩm theo MoSCoW}\label{tab:phamvi}
+\begin{tabular}{@{}L{2.4cm}L{11.4cm}@{}}
+\toprule
+\textbf{Mức} & \textbf{Nội dung} \\ \midrule
+Must (MVP) & Menu và chi tiết món (size S/M/L, topping, đường, đá); giỏ hàng; đăng ký, đăng nhập JWT với hai vai trò CUSTOMER và STAFF; tạo đơn; thanh toán Ví/Thẻ mô phỏng; xác nhận, theo dõi và lịch sử đơn; máy trạng thái đơn; thanh toán idempotent; không bán vượt nguyên liệu khi thanh toán đồng thời; triển khai qua CI/CD có health check và smoke test \\
+Should & Mã khuyến mãi; điểm thưởng; màn hình nhân viên xử lý đơn; tồn kho nguyên liệu theo công thức; thanh toán QR mô phỏng bằng điện thoại \\
+Could & Đổi điểm lấy quà; tự hủy đơn chưa thanh toán; VNPay sandbox \\
+Won't & Giao diện quản trị và báo cáo doanh thu (FR-22); cổng thanh toán thật, MoMo (FR-23); ứng dụng native; giao hàng; nhiều chi nhánh \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Công nghệ sử dụng}
+Đề bài bắt buộc Next.js, NestJS và PostgreSQL. Các công nghệ còn lại do nhóm chọn và ghi lại trong ADR (mục \ref{sec:adr}).
+
+\begin{table}[H]
+\centering
+\caption{Công nghệ và công cụ}\label{tab:congnghe}
+\begin{tabular}{@{}L{3.4cm}L{5.2cm}L{5.2cm}@{}}
+\toprule
+\textbf{Thành phần} & \textbf{Công nghệ} & \textbf{Ghi chú} \\ \midrule
+Frontend & Next.js 16 (App Router), React 19, Node.js 22, TypeScript, Tailwind CSS 4 & Mobile-first, manifest PWA \\
+Backend & NestJS 12, TypeScript & Module theo domain, \code{ValidationPipe} \\
+Dữ liệu & PostgreSQL 16, Prisma 6 & Migration và seed tái tạo được \\
+Xác thực & JWT, bcryptjs & \code{JwtAuthGuard}, \code{RolesGuard} \\
+Thanh toán & Cổng mô phỏng trong API; VNPay sandbox & Interface \code{PaymentGateway} \\
+Kiểm thử & Vitest 4, Supertest, Playwright 1.56 & Unit, HTTP, integration, E2E \\
+Đóng gói & Docker, Docker Compose & Mỗi ứng dụng một Dockerfile \\
+CI/CD & GitHub Actions, GHCR & CI 2 job; CD theo tag \code{v*} \\
+Hạ tầng & Render (Singapore, gói Free) & Web, API, PostgreSQL \\
+Quản lý & GitHub Issues, Milestone, Pull Request, ruleset & Scrum, Definition of Done \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Kết quả chính}
+\begin{itemize}
+\item Production: web \url{https://brewlite-as2-web.onrender.com}, API \url{https://brewlite-as2-api-k8xj.onrender.com}, health check \url{https://brewlite-as2-api-k8xj.onrender.com/health}.
+\item Phiên bản:
+  \begin{itemize}
+  \item \code{v0.9.0}--\code{v0.9.3} (15--16/11/2026): dựng pipeline CD và triển khai dần.
+  \item \code{v1.0.0} (16/11/2026): bản bàn giao Sprint 2.
+  \item \code{v1.1.0} (17/11/2026): Sprint 3.
+  \item \code{v1.1.1} (17/11/2026): sửa lỗi sau kiểm thử production.
+  \end{itemize}
+\item 32 pull request đã merge vào \code{main} (từ PR \#2 đến PR \#57; số PR đánh chung với Issue của GitHub). Mọi thay đổi vào \code{main} đều qua pull request và CI.
+\end{itemize}
+
+\subsection{Cấu trúc báo cáo}
+\begin{itemize}
+\item \textbf{Mục \ref{ch:scrum}:} cách nhóm áp dụng Scrum.
+\item \textbf{Mục \ref{ch:yeucau} đến \ref{ch:sprint2}:} lần lượt Task 1 đến Task 5 của đề.
+\item \textbf{Mục \ref{ch:sprint3}:} Sprint 3 và bản sửa lỗi.
+\item \textbf{Mục \ref{ch:kiemthu}:} chiến lược kiểm thử và các test case.
+\item \textbf{Mục \ref{ch:truyvet}:} truy vết từ yêu cầu đến test.
+\item \textbf{Mục \ref{ch:ketluan}:} đánh giá, hạn chế và hướng phát triển.
+\item \textbf{Phụ lục:} hướng dẫn chạy hệ thống và bằng chứng kiểm thử trên production.
+\end{itemize}

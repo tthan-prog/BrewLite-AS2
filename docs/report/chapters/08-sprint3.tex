@@ -1,0 +1,140 @@
+\section{Sprint 3 -- Hoàn thiện sản phẩm và bản sửa lỗi}\label{ch:sprint3}
+
+Sau khi bàn giao \code{v1.0.0}, nhóm tự kiểm thử trên production và thấy một số điểm chưa đạt yêu cầu ``giống trang bán hàng thật'' của giảng viên:
+\begin{itemize}
+\item Giao diện chỉ cho chọn một topping, trong khi API cho phép nhiều.
+\item Khách không biết trước còn đặt được bao nhiêu ly với lựa chọn của mình.
+\item Nhân viên không thấy công thức từng món và số ly còn làm được.
+\item US-20 chưa có test E2E trên trình duyệt.
+\end{itemize}
+
+Sprint 3 xử lý các điểm này mà không thay đổi tạo phẩm đã nộp của Task 1--5. Phần FR-03 được làm rõ trong SRS, kèm mục ``Lịch sử thay đổi''.
+
+\textbf{Sprint Goal:} sản phẩm chỉn chu và đúng thực tế: nhiều topping, số ly theo công thức cho khách và nhân viên, test E2E trên trình duyệt.
+
+\input{chapters/tables/backlog-s3}
+
+\subsection{Nhiều topping và số ly làm được (US-23)}
+Trang chi tiết món cho chọn tối đa 5 topping, giá cộng đủ từng topping.
+
+Số ly tối đa của mỗi dòng giỏ hàng được API mới \code{POST /\allowbreak{}products/\allowbreak{}availability} tính theo:
+\begin{itemize}
+\item size, mức đường, mức đá, topping;
+\item \emph{các dòng khác trong giỏ}: hai dòng dùng chung nguyên liệu thì tranh nhau phần còn lại.
+\end{itemize}
+
+Kết quả giới hạn 50 ly mỗi dòng và không trả số tồn kho thật. Khi còn dưới 50 ly, giao diện hiện ``Còn thêm được tối đa N ly''. Khi vượt, giao diện không cho thêm hoặc thanh toán.
+
+API này dùng chung hàm tính với kiểm tra lúc \code{POST /orders}. Test INT-R06 khẳng định hai bên cho cùng kết quả: availability báo không đủ thì đặt đơn cũng bị từ chối, báo đủ thì đặt được.
+
+Các tình huống số lượng được lấy từ Bài tập lớn 1 làm tiêu chí và viết thành integration test (INT-R01--R05, bảng \ref{tab:intr}):
+\begin{itemize}
+\item size L không đủ dù size S còn đủ;
+\item topping hết nguyên liệu: ly có topping báo hết, ly không topping vẫn đặt được;
+\item hai dòng tranh cùng nguyên liệu;
+\item giới hạn 50 ly mỗi dòng.
+\end{itemize}
+
+\haianh{t5-32-chi-tiet-mon-nhieu-topping.jpg}{t5-33-gio-hang-23-ly-3-topping.jpg}{Chi tiết món: size, nhiều topping, mức đường, đá, số lượng}{Giỏ hàng: 23 ly Cà phê sữa đá size L với 3 topping, 62.000 đồng/ly}{Chọn nhiều topping và giỏ hàng}
+
+\subsection{Công thức và số ly cho nhân viên (US-24)}
+API \code{GET /\allowbreak{}ingredients/\allowbreak{}recipes} (chỉ STAFF) trả cho từng món:
+\begin{itemize}
+\item lượng nguyên liệu cho 1 ly theo size S/M/L;
+\item số ly S/M/L làm được với tồn kho hiện tại;
+\item nguyên liệu giới hạn.
+\end{itemize}
+
+Trang \code{/\allowbreak{}staff/\allowbreak{}recipes} hiển thị bảng công thức và cho nhập kho ngay tại chỗ. Nhân viên được xem số thật, nên số ly không bị giới hạn ở 50. Trang kho \code{/\allowbreak{}staff/\allowbreak{}ingredients} có thêm cột ``Dùng cho'': mỗi nguyên liệu dùng cho món nào, còn bao nhiêu ly.
+
+\textbf{Kiểm thử trên production} (hình \ref{fig:recipebefore}): nhập thêm 200 g đá viên. Tồn kho từ 13.960 g lên 14.160 g, số ly Cà phê sữa đá cập nhật ngay từ 116/93/77 lên 118/94/78.
+
+Tính lại theo công thức (đá viên là nguyên liệu giới hạn, 120 g cho 1 ly size S):
+\begin{itemize}
+\item Size S: $14.160 / 120 = 118$.
+\item Size M (150 g/ly): $\lfloor 14.160 / 150 \rfloor = 94$.
+\item Size L (180 g/ly): $\lfloor 14.160 / 180 \rfloor = 78$.
+\end{itemize}
+
+\haianh{t5-59-cong-thuc-so-ly-truoc-nhap.jpg}{t5-60-cong-thuc-so-ly-sau-nhap-200g-da.jpg}{Trước khi nhập: Cà phê sữa đá 116/93/77 ly, giới hạn bởi đá viên}{Sau khi nhập 200 g đá viên: 118/94/78 ly}{Trang công thức và số ly trước và sau khi nhập kho\label{fig:recipebefore}\label{fig:recipeafter}}
+
+\subsection{Giao diện, theo dõi đơn và PWA (US-25)}
+\begin{itemize}
+\item Trang chủ mới.
+\item Hình minh họa đồ uống bằng SVG tự vẽ, thay cho ảnh món bị lỗi.
+\item Trang theo dõi đơn \code{/orders/[id]}: thanh tiến trình 5 bước (Đã đặt, Đã thanh toán, Đang pha chế, Sẵn sàng nhận, Hoàn tất), tự cập nhật.
+\item Manifest PWA.
+\item Liên kết ``Quầy nhân viên'' cho tài khoản STAFF.
+\item Không cuộn ngang ở màn hình 375 px.
+\end{itemize}
+
+\anh{t5-56-khach-theo-doi-don-2-hoan-tat.jpg}{0.9\linewidth}{Trang theo dõi đơn \#2 của khách: tiến trình ở bước Hoàn tất, thanh toán VNPay sandbox thành công}
+
+\subsection{Test E2E Playwright trong CI (US-20)}
+Thư mục \code{tests/e2e} có 7 kịch bản (8 test) chạy trên trình duyệt thật. Cả API, web và PostgreSQL đều thật, database đã migrate và seed (mục \ref{sec:e2e}).
+
+CI có thêm job thứ hai ``E2E (Playwright)'', thực hiện lần lượt:
+\begin{enumerate}
+\item Khởi động PostgreSQL riêng.
+\item Migrate và seed.
+\item Build.
+\item Chạy API và web.
+\item Chạy Playwright trên Chromium.
+\end{enumerate}
+
+Khi lỗi, báo cáo và log được lưu thành artifact. Job chạy trên \code{ubuntu-24.04} vì Playwright 1.56 chưa hỗ trợ Ubuntu 26.04 (runner \code{ubuntu-latest} hiện tại). Đây là một trong hai lỗi cấu hình phát hiện ngay trên CI của PR \#53. Lỗi còn lại là gọi sai tên script seed (\code{seed} thay vì \code{db:seed}).
+
+\haianh{t5-27-ci-pr53-2-job-e2e-playwright.jpg}{t5-28-cd-v1.1.0-success.jpg}{CI của PR \#53: hai job đều thành công}{CD tag \code{v1.1.0}: CI 2 job $\rightarrow$ GHCR $\rightarrow$ Render và smoke test}{CI hai job và CD \code{v1.1.0}}
+
+\subsection{Phát hành \code{v1.1.0}}
+Tag \code{v1.1.0} (commit \code{2eb672f}) chạy CD gồm cả job E2E, và xanh. Production trả \code{"version":"v1.\allowbreak{}1.\allowbreak{}0"}. Bản này không có migration mới và không đổi biến môi trường.
+
+
+\subsection{Kiểm thử thủ công trên production và bản sửa lỗi \code{v1.1.1}}
+Ngày 17/11/2026, nhóm kiểm thử thủ công toàn bộ luồng trên production \code{v1.1.0} và chụp 41 ảnh bằng chứng (Phụ lục \ref{app:bangchung}). Lần kiểm thử này phát hiện 3 lỗi:
+
+\begin{longtable}{@{}L{3.6cm}L{4.4cm}L{5.8cm}@{}}
+\caption{Lỗi phát hiện khi kiểm thử production và cách sửa ở \code{v1.1.1}}\label{tab:loi111}\\
+\toprule
+\textbf{Lỗi} & \textbf{Nguyên nhân} & \textbf{Cách sửa và kiểm chứng} \\ \midrule \endfirsthead
+\toprule \textbf{Lỗi} & \textbf{Nguyên nhân} & \textbf{Cách sửa và kiểm chứng} \\ \midrule \endhead
+\bottomrule \endfoot
+Nhân viên bấm ``Đăng xuất'' thì ở lại form đăng nhập nhân viên, không về trang web & Nút chỉ xóa phiên và đổi trạng thái của trang \code{/staff} & Nút là liên kết về \code{/}, xóa token và thông tin người dùng trước khi chuyển trang. Test \code{staff/\allowbreak{}staff.\allowbreak{}test}; ảnh 66, 67 \\
+Chữ ``100\%'' ở nút mức đường, mức đá bị cắt trên màn hình rộng & Lớp \code{px-4} mặc định đè lên \code{px-0} & Hàm tạo lớp nút nhận khoảng đệm riêng; nút không xuống dòng; hai nhóm nằm cạnh nhau từ màn hình \code{xl}. Kiểm tra ở 1920 px và 1024 px \\
+Chrome báo không tải được biểu tượng ứng dụng trong manifest & Manifest chỉ có biểu tượng SVG; image web không chép thư mục \code{public} & Thêm \code{icon-192.png}, \code{icon-512.png}; Dockerfile chép \code{public}. Test \code{page.test}; ảnh 63 (trước), 65 (sau) \\
+\end{longtable}
+
+\textbf{Vì sao E2E không bắt được lỗi biểu tượng.} E2E-T06b chỉ kiểm tra biểu tượng đầu tiên trong manifest trả về được qua HTTP. Test chạy bằng \code{npm run start}, không chạy trên image Docker. Nó không kiểm tra Chrome có dùng được biểu tượng để cài ứng dụng hay không.
+
+Hai lỗi giao diện còn lại nằm ngoài các kịch bản E2E hiện có. Nhóm ghi các điểm này vào Retrospective Sprint 3.
+
+PR \#55 sửa cả ba lỗi. Tag \code{v1.1.1} (commit \code{6229753}) chạy CD xanh trong 10 phút 56 giây. Release notes: \code{docs/\allowbreak{}release/\allowbreak{}release-notes-v1.\allowbreak{}1.\allowbreak{}1.\allowbreak{}md}.
+
+\anh{t5-64-cd-v1.1.1-success.jpg}{0.9\linewidth}{CD tag \code{v1.1.1}: CI 2 job, build và push GHCR 7 phút 8 giây, deploy Render và smoke test 1 phút 22 giây}
+
+\subsection{Sprint Review và Retrospective Sprint 3}
+\textbf{Kết quả:} đạt Sprint Goal, phát hành \code{v1.1.0} và \code{v1.1.1} cùng ngày 17/11/2026.
+
+\textbf{Điều làm tốt:}
+\begin{itemize}
+\item Lấy tình huống số lượng của Bài tập lớn 1 làm tiêu chí, viết test ở cả mức unit và integration trước khi làm giao diện.
+\item API số ly và kiểm tra lúc đặt đơn dùng chung một hàm tính.
+\item Job E2E bắt lỗi cấu hình ngay trong PR.
+\end{itemize}
+
+\textbf{Điều chưa tốt:}
+\begin{itemize}
+\item Toàn bộ Sprint 3 do một người hiện thực; các thành viên khác chưa tham gia review mã.
+\item Hai lần CI đỏ vì cấu hình.
+\item Test số lượng của Bài tập lớn 1 lẽ ra nên chuyển sang từ Sprint 2.
+\item Ba lỗi giao diện của \code{v1.1.0} chỉ lộ ra khi thử tay trên production.
+\end{itemize}
+
+\textbf{Hành động:}
+\begin{itemize}
+\item Mỗi PR có ít nhất một thành viên khác review và approve.
+\item Cố định phiên bản hệ điều hành của runner cho job phụ thuộc trình duyệt.
+\item Chạy thử job CI mới trên nhánh nháp trước khi gắn vào PR chính.
+\item Thêm E2E cho đăng xuất nhân viên và cho manifest có biểu tượng PNG 192/512.
+\item Xem giao diện ở 375 px và 1920 px trước khi phát hành.
+\end{itemize}

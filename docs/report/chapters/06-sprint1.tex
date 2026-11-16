@@ -1,0 +1,146 @@
+\section{Task 4 -- Triển khai Sprint 1}\label{ch:sprint1}
+
+\textbf{Sprint Goal:} có nền tảng kỹ thuật (repository, CI, database có migration và seed) và MVP đầu tiên chạy được cho luồng xem menu.
+
+Sprint 1 diễn ra ngày 15/11/2026. Năm user story được làm (bảng \ref{tab:backlogs1}).
+
+\input{chapters/tables/backlog-s1}
+
+\subsection{Task 4.1 -- Thiết lập repository}
+Repository \code{tthan-prog/\allowbreak{}BrewLite-AS2} là repository mới, độc lập hoàn toàn với Bài tập lớn 1 (ràng buộc R5). PR \#9 khởi tạo monorepo theo ADR 001:
+
+\noindent\textit{Cấu trúc thư mục chính của repository}
+\begin{Verbatim}
+apps/
+  api/            NestJS API, Prisma schema, migration, seed, Dockerfile
+  web/            Next.js (mobile-first), Dockerfile
+docs/
+  requirements/   Task 1: bối cảnh, SRS, use case
+  diagrams/       Task 2: activity, sequence, class, ERD
+  architecture/   Task 3: kiến trúc, ADR, deployment diagram
+  api/            hợp đồng API
+  scrum/          Product Backlog, Sprint Review và Retrospective
+  release/        release notes
+  deploy/         runbook triển khai
+  traceability-matrix.md, deployment.md, contributing.md
+tests/e2e/        test E2E Playwright (Sprint 3)
+.github/workflows/  ci.yml, cd.yml
+docker-compose.yml, .env.example, README.md, CHANGELOG.md
+\end{Verbatim}
+
+Các tệp chung ở thư mục gốc:
+\begin{itemize}
+\item \code{README.md}: hướng dẫn cài đặt, chạy bằng Docker Compose hoặc từng phần, chạy test, build, deploy, rollback.
+\item \code{.env.example}: liệt kê biến môi trường với giá trị mẫu, không có giá trị thật.
+\item \code{docs/\allowbreak{}contributing.\allowbreak{}md}: chiến lược nhánh, quy ước pull request, commit và Definition of Done (mục \ref{sec:quyuoc}, \ref{sec:dod}).
+\end{itemize}
+
+\subsection{Task 4.2 -- Quản lý tài liệu}
+Toàn bộ tài liệu nằm trong \code{docs/} và đi qua pull request như mã nguồn. Product Backlog được viết theo user story, có mã yêu cầu, MoSCoW, story point và tiêu chí chấp nhận (PR \#14, Hà Thiên Long đưa lên).
+
+Mỗi user story của Sprint 1 có một GitHub Issue cùng mã, gắn Milestone \code{Sprint 1}. Cuối Sprint, cả 5 Issue đều Closed (hình \ref{fig:issues}).
+
+\anh{t4-16-issues-milestone-sprint1-5-closed.jpg}{0.95\linewidth}{GitHub Issues lọc theo Milestone Sprint 1: 5 Issue US-01 đến US-05 đã đóng\label{fig:issues}}
+
+\subsection{Task 4.3 -- MVP Sprint 1}
+
+\subsubsection{Database, migration và seed (US-03)}
+Hồ Thiên Ngân hiện thực Prisma schema theo ERD (PR \#15):
+\begin{itemize}
+\item 17 model, migration đầu tiên \code{20261115085530\_\allowbreak{}init}.
+\item Script \code{prisma/\allowbreak{}seed.\allowbreak{}ts} chạy lặp lại được, tạo: 2 tài khoản, 10 nguyên liệu, 6 sản phẩm, 3 topping, 3 mã khuyến mãi, 2 tài khoản thanh toán thử, 2 phần thưởng.
+\end{itemize}
+
+Hình \ref{fig:seed} là kết quả \code{prisma migrate reset} trên PostgreSQL local, chụp trên máy của Ngân.
+
+\anh{t4-08-pr15-prisma-migrate-reset-seed.jpg}{0.85\linewidth}{\code{prisma migrate reset}: áp migration \code{init}, sinh Prisma Client và chạy seed (PR \#15)\label{fig:seed}}
+
+\subsubsection{API sản phẩm (US-01, US-02)}
+PR \#17 thêm \code{GET /products} và \code{GET /\allowbreak{}products/\allowbreak{}:id}.
+
+Danh sách món trả \code{maxQuantity}: số ly còn đặt được với lựa chọn mặc định, tính từ công thức và tồn kho nguyên liệu. API không trả số tồn kho thật.
+
+Chi tiết món trả:
+\begin{itemize}
+\item size kèm phụ phí;
+\item topping kèm tình trạng còn hay hết;
+\item các mức đường và đá.
+\end{itemize}
+
+Món không tồn tại trả 404, id không phải số trả 400. \code{GET /health} trả \code{status: ok} và \code{db: up} sau khi chạy \code{SELECT 1}.
+
+\haianh{t4-11-health-db-up.jpg}{t4-12-get-products.jpg}{\code{GET /health}: API kết nối được PostgreSQL}{\code{GET /products}: 6 món từ seed, có \code{available}, \code{maxQuantity}, không lộ tồn kho}{Kiểm tra API sản phẩm trên máy local}
+
+\subsubsection{Trang menu (US-01)}
+Giản Thiên Lực làm trang \code{/menu} (PR \#11):
+\begin{itemize}
+\item lấy dữ liệu từ API thật;
+\item có ba trạng thái: đang tải, danh sách rỗng, lỗi (FR-02);
+\item có component test;
+\item dùng được ở màn hình 360--414 px (NFR-05).
+\end{itemize}
+
+\anh{t4-14-menu-6-mon-tu-api.jpg}{0.95\linewidth}{Trang \code{/menu} ở Sprint 1 hiển thị 6 món lấy từ API}
+
+\subsection{Task 4.4 -- Continuous Integration}
+Workflow \code{.\allowbreak{}github/\allowbreak{}workflows/\allowbreak{}ci.\allowbreak{}yml} chạy cho mọi pull request vào \code{main} và mỗi lần push lên \code{main}. Ở Sprint 1, job gồm các bước:
+\begin{center}
+Checkout $\rightarrow$ Setup Node.js $\rightarrow$ Install (\code{npm ci}) $\rightarrow$ Lint $\rightarrow$ Unit Test $\rightarrow$ Build
+\end{center}
+
+Ruleset \code{protect-main} áp lên nhánh \code{main} (4 luật, danh sách bypass trống). Các luật này chặn push thẳng lên \code{main}, buộc mọi thay đổi đi qua pull request, và bắt buộc check ``CI / Install, Lint, Unit Test, Build'' xanh mới được merge.
+
+\anh{t4-03-ruleset-protect-main-active.jpg}{0.9\linewidth}{Ruleset \code{protect-main} đang hoạt động trên nhánh \code{main}}
+
+Đề yêu cầu bằng chứng CI cả thành công lẫn thất bại:
+\begin{itemize}
+\item \textbf{PR \#9 xanh:} CI chạy hết các bước trong 44 giây (hình \ref{fig:ci9}).
+\item \textbf{PR \#10 đỏ:} nhánh \code{test/\allowbreak{}ci-fail-demo} cố ý sửa một assertion trong \code{health.\allowbreak{}controller.\allowbreak{}spec.\allowbreak{}ts}. CI thất bại ở bước Unit Test, và nút Merge bị khóa do check bắt buộc (hình \ref{fig:ci10}, \ref{fig:ci10log}).
+\end{itemize}
+
+PR \#10 không được merge, đúng mục đích minh chứng.
+
+\haianh{t4-01-pr9-ci-xanh-all-checks-passed.jpg}{t4-06-pr10-ci-do-merge-bi-khoa.jpg}{PR \#9: CI xanh, ``All checks have passed''}{PR \#10: CI đỏ, nút merge bị khóa}{CI thành công (PR \#9) và thất bại chặn merge (PR \#10)\label{fig:ci9}\label{fig:ci10}}
+\anh{t4-07-pr10-log-unit-test-loi.jpg}{0.9\linewidth}{Log của PR \#10: bước Unit Test thất bại tại \code{health.\allowbreak{}controller.\allowbreak{}spec.\allowbreak{}ts:16}\label{fig:ci10log}}
+
+\subsection{Sprint Review và Retrospective Sprint 1}
+\textbf{Kết quả:} đạt Sprint Goal, 5/5 user story, 16/16 story point. Demo gồm:
+\begin{itemize}
+\item API chạy local với PostgreSQL;
+\item \code{/products} trả 6 món;
+\item trang \code{/menu} lấy dữ liệu thật;
+\item CI xanh ở PR \#9 và đỏ ở PR \#10.
+\end{itemize}
+
+\textbf{Điều làm tốt:}
+\begin{itemize}
+\item Làm đúng thứ tự Task 1 $\rightarrow$ 4.
+\item Mọi thay đổi qua pull request và CI.
+\item Mỗi người commit phần của mình bằng tài khoản riêng.
+\end{itemize}
+
+\textbf{Điều chưa tốt:}
+\begin{itemize}
+\item \textbf{Tạo phẩm phải sửa nhiều lần:}
+  \begin{itemize}
+  \item ảnh sơ đồ là PNG nhưng đặt đuôi \code{.svg};
+  \item \code{erd.puml} lỗi cú pháp;
+  \item trang menu dùng class Tailwind khi chưa cài Tailwind.
+  \end{itemize}
+\item \textbf{Lỗi môi trường:}
+  \begin{itemize}
+  \item Jest không chạy với NestJS 12, nên chuyển sang Vitest;
+  \item Windows Smart App Control chặn binary của SWC, nên bỏ SWC và dùng \code{@Inject} tường minh.
+  \end{itemize}
+\item \textbf{Quy trình:} nhiều PR được merge khi chưa có approve.
+\end{itemize}
+
+\textbf{Hành động cho Sprint 2:}
+\begin{itemize}
+\item chạy lint, test, build trên máy trước khi push;
+\item mở PR nhỏ;
+\item có người review trước khi merge;
+\item thống nhất hợp đồng API trước khi làm giao diện.
+\end{itemize}
+
+Phản hồi của Product Owner chưa được điền trong biên bản và đang chờ bổ sung.

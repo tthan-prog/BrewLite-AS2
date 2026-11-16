@@ -1,0 +1,14 @@
+{\small
+\begin{longtable}{@{}L{2.2cm}L{2.6cm}L{4.6cm}L{2.4cm}L{2.1cm}@{}}
+\caption{Các container của hệ thống}\label{tab:container}\\
+\toprule
+\textbf{Container} & \textbf{Công nghệ} & \textbf{Trách nhiệm} & \textbf{Mã nguồn} & \textbf{Yêu cầu chính} \\ \midrule \endfirsthead
+\toprule \textbf{Container} & \textbf{Công nghệ} & \textbf{Trách nhiệm} & \textbf{Mã nguồn} & \textbf{Yêu cầu chính} \\ \midrule \endhead
+\bottomrule \endfoot
+Web app & Next.js (App Router), React, TypeScript & Giao diện mobile-first: menu, giỏ hàng, đặt đơn, thanh toán, lịch sử, màn hình nhân viên. Giỏ hàng lưu ở trình duyệt & \code{apps/web} & FR-01..04, FR-11, FR-15, NFR-05, NFR-06 \\
+API & NestJS, TypeScript, Prisma & Toàn bộ nghiệp vụ: xác thực, đơn hàng, thanh toán, tồn kho, khuyến mãi, điểm thưởng. REST/JSON & \code{apps/api} & FR-05..FR-21, NFR-02, NFR-04 \\
+Database & PostgreSQL 16 & Lưu dữ liệu theo ERD; transaction cho đặt đơn và thanh toán & \code{apps/\allowbreak{}api/\allowbreak{}prisma} (schema, migration, seed) & FR-12, NFR-10 \\
+Cổng thanh toán mô phỏng & Module trong API (\code{MockPaymentGateway}) & Xử lý Ví, Thẻ, QR với tài khoản thử nghiệm; điều khiển được kết quả để kiểm thử & \code{apps/\allowbreak{}api/\allowbreak{}src/\allowbreak{}payments} & FR-08, FR-18 \\
+VNPay sandbox & Dịch vụ bên ngoài, HTTPS & Thanh toán thử nghiệm qua redirect và Return URL & Adapter \code{VnpayGateway} trong \code{apps/\allowbreak{}api/\allowbreak{}src/\allowbreak{}payments} & FR-21 (Could) \\
+\end{longtable}
+}

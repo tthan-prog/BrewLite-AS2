@@ -1,0 +1,20 @@
+{\scriptsize
+\begin{longtable}{@{}L{2.4cm}L{1.4cm}L{2cm}L{3.8cm}L{4.3cm}@{}}
+\caption{Ma trận truy vết yêu cầu phi chức năng}\label{tab:tvnfr}\\
+\toprule
+\textbf{Mã yêu cầu} & \textbf{User story} & \textbf{Thiết kế} & \textbf{Hiện thực} & \textbf{Kiểm chứng} \\ \midrule \endfirsthead
+\toprule \textbf{Mã yêu cầu} & \textbf{User story} & \textbf{Thiết kế} & \textbf{Hiện thực} & \textbf{Kiểm chứng} \\ \midrule \endhead
+\bottomrule \endfoot
+NFR-01 Hiệu năng \code{GET /products} & US-01 & C4-01 & Một truy vấn có include, dữ liệu seed & Đo thủ công khi chạy Docker Compose (Sprint 1); chưa có test tự động \\
+NFR-02 Băm mật khẩu, PIN; JWT có hạn; phân quyền & US-07 & ADR-006, Sequence-01 & bcrypt, \code{JWT\_\allowbreak{}EXPIRES\_\allowbreak{}IN}, \code{RolesGuard} & UT \code{auth.\allowbreak{}service.\allowbreak{}spec}; AUTH-T01--T05; INT-A01; INT-R07; INT-Q03 \\
+NFR-03 Secret không nằm trong repo/log & US-21 & Deploy-01, ADR-007 & \code{.env.example} không có giá trị thật; GitHub Secrets, biến Render & Rà soát repo; \code{docs/\allowbreak{}deployment.\allowbreak{}md}; database production chặn kết nối Internet \\
+NFR-04 Validate đầu vào hai phía & US-07, US-08 & ADR-002 & \code{ValidationPipe} (whitelist, forbidNonWhitelisted), DTO; kiểm tra form ở web & AUTH-T06, T08, T09; INT-R05; WEB \code{login/\allowbreak{}page.\allowbreak{}test}, \code{product/\allowbreak{}[id]/\allowbreak{}page.\allowbreak{}test} \\
+NFR-05 Mobile-first, PWA & US-01, US-25 & C4-01 & Tailwind; \code{app/\allowbreak{}manifest.\allowbreak{}ts}, \code{app/icon.svg}, \code{public/\allowbreak{}icon-192.\allowbreak{}png}, \code{public/\allowbreak{}icon-512.\allowbreak{}png} & E2E-T06 (375px không cuộn ngang, manifest); WEB \code{page.test} (kích thước biểu tượng); bằng chứng task5 ảnh 62, 65 \\
+NFR-06 Thông báo lỗi tiếng Việt & US-25 & ADR-008 & Thông báo trong service, \code{lib/api.ts} & Các test INT, WEB kiểm tra nội dung thông báo \\
+NFR-07 \code{docker compose up} & US-21 & Deploy-01 (local) & \code{docker-compose.\allowbreak{}yml}, Dockerfile & Bằng chứng task5 ảnh 04 \\
+NFR-08 CI/CD, rollback & US-04, US-21 & Deploy-01, ADR-007 & \code{.\allowbreak{}github/\allowbreak{}workflows/\allowbreak{}ci.\allowbreak{}yml} (2 job), \code{cd.yml} (CI $\rightarrow$ GHCR $\rightarrow$ Render $\rightarrow$ smoke test, rollback bằng \code{workflow\_\allowbreak{}dispatch}) & Lần chạy CI/CD trên GitHub Actions; bằng chứng task5 ảnh 02--03, 05, 14--15, 24, 27--28, 64 \\
+NFR-09 \code{GET /health}, log & US-21 & ADR-008 & \code{health.\allowbreak{}controller.\allowbreak{}ts} (version, db) & UT \code{health.\allowbreak{}controller.\allowbreak{}spec}; API-T01, T02; smoke test CD \\
+NFR-10 Migration, seed tái tạo được & US-03 & ERD-01, ADR-003 & \code{prisma/\allowbreak{}migrations}, \code{prisma/\allowbreak{}seed.\allowbreak{}ts} & CI migrate mỗi lần chạy; job E2E migrate và seed database mới \\
+NFR-11 Lint, test tự động & US-04, US-20 & -- & ESLint, Vitest, Playwright & CI job "Install, Lint, Unit Test, Build" (bắt buộc) và "E2E (Playwright)" \\
+\end{longtable}
+}

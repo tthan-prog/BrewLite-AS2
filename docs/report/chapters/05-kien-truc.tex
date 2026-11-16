@@ -1,0 +1,174 @@
+\section{Task 3 -- Thiết kế kiến trúc}\label{ch:kientruc}
+
+Tạo phẩm của Task 3 nằm trong \code{docs/\allowbreak{}architecture/\allowbreak{}}:
+\begin{itemize}
+\item \code{architecture.\allowbreak{}md}: mô tả kiến trúc;
+\item \code{container-diagram.\allowbreak{}puml}: sơ đồ C4 mức container;
+\item \code{deployment-diagram.\allowbreak{}puml}: deployment diagram;
+\item 8 ADR trong \code{adr/}.
+\end{itemize}
+
+Task 3 được merge qua PR \#8 sáng 15/11/2026, ngay trước khi khởi tạo mã nguồn ở Task 4 (PR \#9).
+
+\subsection{Task 3.1 -- Phương pháp và kiến trúc tổng thể}
+Nhóm dùng \textbf{kiến trúc phân lớp} kết hợp \textbf{chia module theo domain} ở backend, còn gọi là modular monolith, và trình bày theo hai mức của mô hình C4:
+\begin{itemize}
+\item \textbf{Mức Container:} trình duyệt, ứng dụng Next.js, API NestJS, PostgreSQL, cổng thanh toán.
+\item \textbf{Mức Component:} các module NestJS bên trong API.
+\end{itemize}
+
+Đầu vào của thiết kế là SRS, UC-01 và các sơ đồ của Task 2. Đặc biệt, class diagram quyết định ranh giới module.
+
+\hinh{container-diagram.pdf}{\linewidth}{Sơ đồ C4 mức container (\code{docs/\allowbreak{}architecture/\allowbreak{}container-diagram.\allowbreak{}puml})}{fig:container}
+
+\input{chapters/tables/container}
+
+Luồng gọi:
+\begin{center}
+Trình duyệt $\rightarrow$ Web app (HTTPS) $\rightarrow$ API (HTTPS, JSON, JWT trong header \code{Authorization}) $\rightarrow$ PostgreSQL (kết nối nội bộ)
+\end{center}
+
+Web app không truy cập database trực tiếp. Giỏ hàng lưu ở trình duyệt, nhưng giá cuối và kiểm tra nguyên liệu luôn do API thực hiện.
+
+\subsubsection{Các lớp và module của API}
+Mỗi module NestJS có ba lớp:
+\begin{enumerate}
+\item \textbf{Controller:} nhận HTTP request, kiểm tra JWT và vai trò bằng guard, validate DTO bằng \code{ValidationPipe} với \code{whitelist} và \code{forbidNonWhitelisted}.
+\item \textbf{Service:} nghiệp vụ, transaction, máy trạng thái đơn.
+\item \textbf{Truy cập dữ liệu:} Prisma Client qua \code{PrismaService} dùng chung.
+\end{enumerate}
+
+Controller chỉ gọi service của module mình. Service gọi module khác qua interface công khai, không truy cập trực tiếp bảng của module khác ngoài transaction dùng chung.
+
+\input{chapters/tables/module}
+
+\textbf{Đối chiếu thiết kế với mã nguồn.} Khi hiện thực, tên và ranh giới module thay đổi nhẹ so với bảng \ref{tab:module}. Thư mục \code{apps/api/src} có các module sau:
+\begin{itemize}
+\item \code{auth}, \code{products} (thay cho \code{catalog});
+\item \code{ingredients} (API kho cho nhân viên), \code{inventory} (các hàm tính nguyên liệu, số ly, trừ kho);
+\item \code{orders}, \code{payments} (gồm \code{vnpay});
+\item \code{loyalty}, \code{rewards}, \code{health}.
+\end{itemize}
+
+Phần khuyến mãi không tách module riêng mà nằm trong \code{orders/\allowbreak{}pricing.\allowbreak{}ts}, vì chỉ dùng khi tính giá đơn. Các thay đổi này không ảnh hưởng quy tắc phụ thuộc. Nhóm ghi lại ở đây để người đọc mã nguồn không bị nhầm.
+
+\subsection{Các cơ chế xuyên suốt}
+\input{chapters/tables/cochexuyensuot}
+
+\subsection{Lý do chọn, ưu điểm, hạn chế và trade-off}
+\textbf{Lý do chọn.} Đề bắt buộc Next.js, NestJS và PostgreSQL. Kiến trúc phân lớp với module theo domain là cách tổ chức mặc định của NestJS, phù hợp với nhóm 4 người trong thời gian ngắn.
+
+\textbf{Ưu điểm:}
+\begin{itemize}
+\item Một API, một database: dễ dùng transaction cho đặt đơn và thanh toán, dễ chạy bằng Docker Compose.
+\item Module theo domain khớp class diagram, dễ chia việc và dễ truy vết yêu cầu $\rightarrow$ module $\rightarrow$ test.
+\item Cổng thanh toán qua interface: thêm VNPay sandbox mà không sửa nghiệp vụ đơn hàng.
+\end{itemize}
+
+\textbf{Hạn chế:}
+\begin{itemize}
+\item Monolith: mọi module scale cùng nhau; một lỗi nghiêm trọng có thể làm dừng cả API.
+\item Frontend và backend là hai dịch vụ, phải cấu hình CORS và URL API theo môi trường.
+\end{itemize}
+
+\input{chapters/tables/tradeoff}
+
+\subsection{Quyết định kiến trúc (ADR)}\label{sec:adr}
+Mỗi ADR có bốn phần: bối cảnh, quyết định, hệ quả và phương án đã cân nhắc. Bảng \ref{tab:adr} tóm tắt tám ADR. Các mục sau trình bày chi tiết ba ADR ảnh hưởng nhiều nhất đến nghiệp vụ và triển khai.
+
+\begin{longtable}{@{}L{1.1cm}L{4.2cm}L{4.4cm}L{4.1cm}@{}}
+\caption{Tóm tắt các ADR}\label{tab:adr}\\
+\toprule
+\textbf{ADR} & \textbf{Quyết định} & \textbf{Hệ quả chính} & \textbf{Phương án bị loại} \\ \midrule \endfirsthead
+\toprule \textbf{ADR} & \textbf{Quyết định} & \textbf{Hệ quả chính} & \textbf{Phương án bị loại} \\ \midrule \endhead
+\bottomrule \endfoot
+001 & Monorepo \code{apps/web}, \code{apps/api}, \code{docs}, \code{tests} với npm workspaces & Một PR thay đổi được API, giao diện và tài liệu; CI chung & Hai repository riêng \\
+002 & Backend NestJS phân lớp, module theo domain (modular monolith) & Transaction xuyên module trong một database; scale cùng nhau & Microservices (cần saga) \\
+003 & PostgreSQL với Prisma ORM và Prisma Migrate & Kiểu sinh tự động; \code{\$transaction}, \code{updateMany} có điều kiện; migration commit vào repo & TypeORM; SQL thuần \\
+004 & Interface \code{PaymentGateway}: cổng mô phỏng và VNPay sandbox & Nghiệp vụ không phụ thuộc cổng; test dùng cổng mô phỏng & Gọi VNPay trực tiếp trong service đơn \\
+005 & Trừ kho có điều kiện trong transaction trước khi gọi cổng; idempotency trên bảng \code{payments} & Kho không âm, không bán vượt; giữ transaction trong lúc gọi cổng mô phỏng & \code{SELECT .\allowbreak{}.\allowbreak{}.\allowbreak{} FOR UPDATE}; bảng idempotency riêng \\
+006 & JWT có hạn, bcrypt, \code{RolesGuard}; đơn người khác trả 404 & API stateless; không thu hồi JWT trước hạn & Session cookie trên server \\
+007 & Docker, GHCR, Render; CI/CD bằng GitHub Actions & Image đã test là image được triển khai; Render Free ngủ khi không có truy cập & Render tự build; VPS tự quản \\
+008 & Cấu hình qua biến môi trường, log ra stdout, \code{GET /health} & Một image chạy mọi môi trường & File cấu hình theo môi trường trong repo \\
+\end{longtable}
+
+\subsubsection{ADR 004 -- Cổng thanh toán qua interface}
+\textbf{Bối cảnh.} Ví, Thẻ, QR dùng cổng mô phỏng (FR-08, FR-18), cần điều khiển được kết quả để kiểm thử. VNPay sandbox là yêu cầu Could (FR-21). Cổng thật nằm ngoài phạm vi.
+
+\textbf{Quyết định.} Định nghĩa interface \code{PaymentGateway} với hai cài đặt:
+\begin{itemize}
+\item \code{MockPaymentGateway}, chạy trong API:
+  \begin{itemize}
+  \item Ví và Thẻ trả thành công hoặc thất bại theo dữ liệu thử.
+  \item QR dùng \code{PaymentIntent} (token, hạn dùng) và \code{PaymentAccount} thử nghiệm có PIN băm và số dư.
+  \end{itemize}
+\item \code{VnpayGateway}: tạo URL thanh toán sandbox; ở Return URL kiểm tra chữ ký HMAC-SHA512 và số tiền.
+\end{itemize}
+Thông tin VNPay chỉ nằm trong biến môi trường. Cổng được gọi \emph{sau khi} đã trừ kho có điều kiện.
+
+\textbf{Hệ quả.} Nghiệp vụ đơn hàng không phụ thuộc cổng cụ thể. Bỏ VNPay vẫn không ảnh hưởng MVP. Hạn chế: cổng mô phỏng không phản ánh hết độ trễ và lỗi mạng của cổng thật.
+
+\subsubsection{ADR 005 -- Tồn kho đồng thời và idempotency}
+\textbf{Bối cảnh.} Nhiều khách có thể thanh toán cùng lúc cho cùng nguyên liệu. Không được bán vượt tồn kho, không được trừ tiền khi đã hết nguyên liệu (UC-01 E4), và gửi lại yêu cầu thanh toán không được tạo thêm thanh toán (FR-09).
+
+\textbf{Quyết định:}
+\begin{enumerate}
+\item \textbf{Tạo đơn:} chỉ kiểm tra đủ nguyên liệu và ghi nhu cầu vào \code{OrderIngredientUse}, chưa trừ kho.
+\item \textbf{Thanh toán}, trong một transaction:
+  \begin{enumerate}
+  \item Trừ kho bằng \code{UPDATE ingredients SET stock = stock - :qty WHERE id = :id AND stock >= :qty} cho từng nguyên liệu.
+  \item Nếu có nguyên liệu không cập nhật được: rollback, không gọi cổng, đơn PAYMENT\_FAILED kèm lý do.
+  \item Nếu đủ: gọi cổng thanh toán.
+    \begin{itemize}
+    \item Thành công: ghi \code{Payment}, chuyển PAID, cộng điểm, commit.
+    \item Thất bại: rollback (kho hoàn lại), ghi \code{Payment} FAILED, đơn PAYMENT\_FAILED.
+    \end{itemize}
+  \end{enumerate}
+\item \textbf{Idempotency:}
+  \begin{itemize}
+  \item Client gửi header \code{Idempotency-Key}.
+  \item Bảng \code{payments} có \code{UNIQUE(user\_\allowbreak{}id, idempotency\_\allowbreak{}key)} và \code{request\_hash}.
+  \item Gặp lại khóa với cùng nội dung: trả kết quả đã lưu kèm header \code{Idempotent-Replayed: true}.
+  \item Cùng khóa nhưng khác nội dung: trả 409.
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Hệ quả.} Tồn kho không âm và số đơn PAID không vượt quá nguyên liệu. Điều này được kiểm chứng bằng test gửi đồng thời nhiều yêu cầu (INT-P07, INT-P08). Với VNPay (redirect, bất đồng bộ), kho được trừ khi xử lý Return URL hoặc IPN hợp lệ, theo cùng điều kiện.
+
+\subsubsection{ADR 007 -- Triển khai bằng Docker, GHCR và Render}
+\textbf{Bối cảnh.} Đề yêu cầu:
+\begin{itemize}
+\item production truy cập qua HTTPS;
+\item có container registry;
+\item pipeline CD gồm build image, push registry, deploy, smoke test;
+\item có cách rollback.
+\end{itemize}
+Nhóm không có máy chủ riêng.
+
+\textbf{Quyết định:}
+\begin{itemize}
+\item \textbf{Local:} \code{docker compose up} chạy \code{db}, \code{api}, \code{web}.
+\item \textbf{CI:} chạy trên mỗi PR và mỗi lần push lên \code{main}.
+\item \textbf{CD:} chạy khi push tag \code{v*}, gồm CI $\rightarrow$ build image \code{api}, \code{web} $\rightarrow$ push GHCR $\rightarrow$ deploy hook Render $\rightarrow$ smoke test.
+\item \textbf{Production:} hai Web Service trên Render và một Render PostgreSQL chỉ nhận kết nối nội bộ.
+\item \textbf{Secret:} chỉ nằm trong biến môi trường của Render và GitHub Secrets.
+\item \textbf{Rollback:} triển khai lại image của tag cũ trên GHCR. Migration chỉ thêm, không xóa cột trong cùng phiên bản, để rollback image an toàn.
+\end{itemize}
+
+\textbf{Hệ quả.} Image đã test là image được triển khai, và truy vết được phiên bản qua tag. Hạn chế: gói Free của Render ngủ khi không có truy cập, lần gọi đầu chậm.
+
+\subsection{Task 3.2 -- Deployment diagram}
+Deployment diagram (hình \ref{fig:deployment}) thể hiện đúng hạ tầng thật của bản production:
+\begin{itemize}
+\item GitHub repository và GitHub Actions (CI 2 job, CD theo tag);
+\item GitHub Container Registry chứa image \code{brewlite-as2-api}, \code{brewlite-as2-web};
+\item Render (Singapore) gồm Web Service web, Web Service API và Render PostgreSQL 16 chỉ kết nối nội bộ;
+\item VNPay sandbox bên ngoài;
+\item thiết bị người dùng (điện thoại, máy tính) chạy trình duyệt hoặc PWA, truy cập qua HTTPS cổng 443 vào lớp edge (TLS) của Render.
+\end{itemize}
+
+Môi trường local bằng Docker Compose được thể hiện riêng.
+
+\hinh{deployment-diagram.pdf}{0.75\linewidth}{Deployment diagram (\code{docs/\allowbreak{}architecture/\allowbreak{}deployment-diagram.\allowbreak{}puml})}{fig:deployment}
+
+Thông tin chi tiết của production (tên dịch vụ, biến môi trường, cách bảo mật database) ở mục \ref{sec:production}.

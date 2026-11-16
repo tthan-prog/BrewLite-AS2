@@ -1,0 +1,148 @@
+\documentclass[a4paper]{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage{vntex}
+\else
+  % XeLaTeX / LuaLaTeX (vi du Overleaf chon compiler khac): dung fontspec
+  \usepackage{fontspec}
+  \setmainfont{TeX Gyre Termes}
+  \setsansfont{TeX Gyre Heros}
+  \setmonofont{TeX Gyre Cursor}
+\fi
+%\usepackage[english,vietnam]{babel}
+%\usepackage[utf8]{inputenc}
+
+%\usepackage[utf8]{inputenc}
+%\usepackage[francais]{babel}
+\usepackage{a4wide,amssymb,epsfig,latexsym,multicol,array,hhline,fancyhdr}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{lastpage}
+\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\usepackage{enumerate}
+\usepackage{color}
+\usepackage{graphicx}							% Standard graphics package
+\usepackage{array}
+\usepackage{tabularx, caption}
+\usepackage{multirow}
+\usepackage[framemethod=tikz]{mdframed}% For highlighting paragraph backgrounds
+\usepackage{multicol}
+\usepackage{rotating}
+\usepackage{graphics}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{epsfig}
+\usepackage{tikz}
+\usepackage{listings}
+\usetikzlibrary{arrows,snakes,backgrounds}
+\usepackage{hyperref}
+\hypersetup{urlcolor=blue,linkcolor=black,citecolor=black,colorlinks=true} 
+%\usepackage{pstcol} 								% PSTricks with the standard color package
+
+\newtheorem{theorem}{{\bf Định lý}}
+\newtheorem{property}{{\bf Tính chất}}
+\newtheorem{proposition}{{\bf Mệnh đề}}
+\newtheorem{corollary}[proposition]{{\bf Hệ quả}}
+\newtheorem{lemma}[proposition]{{\bf Bổ đề}}
+
+\everymath{\color{blue}}
+%\usepackage{fancyhdr}
+\setlength{\headheight}{40pt}
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+\fancyhead[L]{
+ \begin{tabular}{rl}
+    \begin{picture}(25,15)(0,0)
+    \put(0,-8){\includegraphics[width=8mm, height=8mm]{logoITSGUsmall.png}}
+    %\put(0,-8){\epsfig{width=10mm,figure=hcmut.eps}}
+   \end{picture}&
+	%\includegraphics[width=8mm, height=8mm]{hcmut.png} & %
+	\begin{tabular}{l}
+		\textbf{\bf \ttfamily Trường Đại học Sài Gòn}\\
+		\textbf{\bf \ttfamily Khoa Công Nghệ Thông Tin}
+	\end{tabular} 	
+ \end{tabular}
+}
+\fancyhead[R]{
+	\begin{tabular}{l}
+		\tiny \bf \\
+		\tiny \bf 
+	\end{tabular}  }
+\fancyfoot{} % clear all footer fields
+\fancyfoot[L]{\scriptsize \ttfamily Bài tập lớn 2 (cuối kì) môn Công nghệ phần mềm - Năm học 2026-2027}
+\fancyfoot[R]{\scriptsize \ttfamily Trang {\thepage}/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+
+%%%
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{2}
+\makeatletter
+\newcounter {subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection .\@alph\c@subsubsubsection}
+\newcommand\subsubsubsection{\@startsection{subsubsubsection}{4}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\newcommand*\l@subsubsubsection{\@dottedtocline{3}{10.0em}{4.1em}}
+\newcommand*{\subsubsubsectionmark}[1]{}
+\makeatother
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+	language=bash,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{gray},
+	keywordstyle=\color{blue},
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	breaklines=true,
+	breakatwhitespace=true,
+	tabsize=3,
+	numbers=left,
+	stepnumber=1,
+	numbersep=1pt,    
+	firstnumber=1,
+	numberfirstline=true
+}
+
+\newcommand{\fillme}[1]{{\color{red}[#1]}}
+\newcommand{\hinhx}[3]{\begin{center}\includegraphics[width=#2,height=0.66\textheight,keepaspectratio]{#1}\\[2pt]{\small\textit{#3}}\end{center}}
+\newcommand{\hinh}[4]{\begin{figure}[htbp]\centering\includegraphics[width=#2,height=0.6\textheight,keepaspectratio]{#1}\caption{#3}\label{#4}\end{figure}}
+\newcommand{\hinhngang}[3]{\begin{sidewaysfigure}[p]\centering\includegraphics[width=0.97\textheight,height=0.78\textwidth,keepaspectratio]{#1}\caption{#2}\label{#3}\end{sidewaysfigure}}
+\newcommand{\hinhcao}[3]{\begin{figure}[htbp]\centering\includegraphics[height=0.78\textheight,width=\linewidth,keepaspectratio]{#1}\caption{#2}\label{#3}\end{figure}}
+\newcommand{\nguon}[1]{\par\vspace{-4pt}{\centering\footnotesize\textit{Nguồn: #1}\par}\medskip}
+\usepackage{xurl}
+\usepackage{pdflscape}
+\usepackage{float}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\LTpre}{6pt}\setlength{\LTpost}{6pt}
+\setlength{\tabcolsep}{4pt}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{\dimexpr #1*93/100\relax}}
+\usepackage[htt]{hyphenat}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\anh}[3]{\begin{figure}[H]\centering\includegraphics[width=#2,height=0.25\textheight,keepaspectratio]{#1}\caption{#3}\end{figure}}
+\newcommand{\haianh}[5]{\begin{figure}[H]\centering\begin{minipage}[t]{0.49\linewidth}\centering\includegraphics[width=\linewidth,height=0.23\textheight,keepaspectratio]{#1}\\[1pt]{\footnotesize #3}\end{minipage}\hfill\begin{minipage}[t]{0.49\linewidth}\centering\includegraphics[width=\linewidth,height=0.23\textheight,keepaspectratio]{#2}\\[1pt]{\footnotesize #4}\end{minipage}\caption{#5}\end{figure}}
+\newcommand{\anhdt}[3]{\begin{figure}[H]\centering\includegraphics[height=0.36\textheight,keepaspectratio]{#1}\caption{#3}\end{figure}}
+\newcommand{\haianhdt}[4]{\begin{figure}[H]\centering\begin{minipage}{0.45\linewidth}\centering\includegraphics[height=0.38\textheight,keepaspectratio]{#1}\end{minipage}\hfill\begin{minipage}{0.45\linewidth}\centering\includegraphics[height=0.38\textheight,keepaspectratio]{#2}\end{minipage}\caption{#3}\label{#4}\end{figure}}
+\captionsetup{font=small}
+\graphicspath{{figures/}{uml/}}
+\everymath{}
+\usepackage{fancyvrb}
+\fvset{fontsize=\small,frame=lines,framesep=2mm,numbers=none}
+\usepackage{enumitem}
+\setlist{itemsep=1pt,parsep=0pt,topsep=3pt}
+\setlength{\parskip}{3pt}
+\setlength{\emergencystretch}{2em}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}

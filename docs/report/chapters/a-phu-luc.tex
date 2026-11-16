@@ -1,0 +1,84 @@
+\section{Hướng dẫn chạy hệ thống}\label{app:huongdan}
+Hướng dẫn đầy đủ nằm trong \code{README.md}, \code{tests/\allowbreak{}e2e/\allowbreak{}README.\allowbreak{}md} và \code{docs/\allowbreak{}deploy/\allowbreak{}runbook.\allowbreak{}md}. Phụ lục này tóm tắt các lệnh chính.
+
+\textbf{Yêu cầu:} Node.js 22 (theo \code{.nvmrc}), npm 10 trở lên, Docker và Docker Compose.
+
+\noindent\textit{Chạy toàn bộ hệ thống bằng Docker Compose (NFR-07)}
+\begin{Verbatim}
+cp .env.example .env
+docker compose up --build
+# Web: http://localhost:3000
+# API: http://localhost:3001, health check: http://localhost:3001/health
+\end{Verbatim}
+
+\noindent\textit{Chạy từng phần khi phát triển}
+\begin{Verbatim}
+npm ci                          # tự chạy "prisma generate" cho apps/api
+cp .env.example .env
+cp .env.example apps/api/.env
+docker compose up -d db         # chỉ chạy PostgreSQL
+npm run db:migrate -w apps/api  # áp migration
+npm run db:seed -w apps/api     # nạp dữ liệu mẫu
+npm run dev:api                 # API ở cổng 3001
+npm run dev:web                 # Web ở cổng 3000
+\end{Verbatim}
+
+\noindent\textit{Chạy test}
+\begin{Verbatim}
+npm run lint
+npm test -w apps/api            # unit test API
+npm run test:e2e -w apps/api    # test HTTP API (Prisma giả)
+npm run test:int -w apps/api    # integration test, cần DATABASE_URL đã migrate
+npm test -w apps/web            # unit test giao diện
+cd tests/e2e && npm ci && npx playwright install chromium && npx playwright test
+\end{Verbatim}
+
+\noindent\textit{Phát hành và rollback}
+\begin{Verbatim}
+git checkout main && git pull
+git tag -a v1.1.1 -m "BrewLite AS2 v1.1.1"
+git push origin v1.1.1          # chạy pipeline CD
+# Rollback: GitHub -> Actions -> CD -> Run workflow, nhập tag cũ (ví dụ v1.1.0)
+\end{Verbatim}
+
+\textbf{Tài khoản và dữ liệu thử} (dữ liệu seed, chỉ dùng để kiểm thử):
+\begin{itemize}
+\item \textbf{Khách hàng:} \code{customer@brewlite.\allowbreak{}test} / \code{Customer@123}.
+\item \textbf{Nhân viên:} \code{staff@brewlite.\allowbreak{}test} / \code{Staff@123}.
+\item \textbf{Thẻ mô phỏng:} \code{4242 4242 4242 4242} (thành công), \code{4000 0000 0000 0002} (bị từ chối).
+\item \textbf{Tài khoản QR thử:} \code{TEST-0001}, \code{TEST-0002}, PIN \code{123456}.
+\item \textbf{Mã khuyến mãi:} \code{GIAM10}, \code{GIAM20K}, \code{HETHAN} (đã hết hạn).
+\end{itemize}
+
+\clearpage
+\section{Bằng chứng kiểm thử trên production}\label{app:bangchung}
+Các ảnh dưới đây chụp ngày 17/11/2026 trên \url{https://brewlite-as2-web.onrender.com}. Số ở đầu chú thích là số ảnh trong thư mục bằng chứng \code{AS2-bang-chung/\allowbreak{}task5} của nhóm. Mô tả đầy đủ từng ảnh ở \code{README.md} của thư mục đó. Số đơn trong ảnh là số thật trên production.
+
+\subsection{Phát hành và phiên bản}
+\anh{t5-29-production-health-v1.1.0.jpg}{0.75\linewidth}{(29) \code{GET /health} trên production trả \code{version: v1.\allowbreak{}1.\allowbreak{}0}, \code{db: up}}
+
+\subsection{Luồng khách hàng}
+\haianh{t5-30-trang-chu.jpg}{t5-31-thuc-don.jpg}{(30) Trang chủ}{(31) Thực đơn: tìm kiếm, lọc danh mục}{Trang chủ và thực đơn}
+\haianh{t5-34-chua-dang-nhap-chuyen-trang-login.jpg}{t5-35-checkout-vi-ma-giam10.jpg}{(34) Chưa đăng nhập: chuyển sang \code{/\allowbreak{}login?next=/\allowbreak{}checkout}}{(35) Thanh toán: mã \code{giam10}, chọn Ví điện tử}{Chặn thanh toán khi chưa đăng nhập; trang thanh toán}
+\haianh{t5-36-vi-thanh-cong-don-12.jpg}{t5-37-theo-doi-don-12.jpg}{(36) Ví thành công, đơn \#12, cộng 128 điểm}{(37) Theo dõi đơn \#12: giảm 142.600 đồng theo GIAM10}{Thanh toán Ví thành công và trang theo dõi đơn}
+\haianh{t5-38-the-bi-tu-choi.jpg}{t5-39-the-thanh-cong-don-13.jpg}{(38) Thẻ \code{4000...0002}: ``Thẻ bị ngân hàng từ chối''}{(39) Thử lại bằng thẻ hợp lệ: đơn \#13 thành công}{Thanh toán thẻ thất bại rồi thử lại thành công}
+
+\subsection{Thanh toán QR}
+\haianh{t5-40-qr-checkout-hien-ma.jpg}{t5-42-qr-checkout-tu-chuyen-thanh-cong-don-19.jpg}{(40) Trang thanh toán hiện mã QR}{(42) Tự chuyển sang ``Thanh toán thành công'' cho đơn \#19}{Thanh toán QR trên máy tính}
+\haianhdt{t5-41-qr-dien-thoai-xac-nhan-don-19.jpg}{t5-43-qr-dien-thoai-form-don-14.jpg}{(41) Điện thoại xác nhận đơn \#19 thành công; (43) cổng QR thử nghiệm cho đơn \#14: chọn tài khoản, nhập PIN, mã có hạn}{fig:qr1}
+\haianhdt{t5-44-qr-dien-thoai-thieu-so-du-don-14.jpg}{t5-46-qr-dien-thoai-thanh-cong-don-7.jpg}{(44) Đơn \#14 thất bại vì số dư không đủ, không trừ tiền; (46) đơn \#7 thanh toán QR thành công (chụp tối 16/11/2026)}{fig:qr2}
+
+\subsection{VNPay, lịch sử và đổi quà}
+\haianh{t5-47-vnpay-the-ncb-don-16.jpg}{t5-48-vnpay-return-thanh-cong-don-16.jpg}{(47) Cổng VNPay sandbox, đơn \#16, 522.000 VND}{(48) Về web: thành công đơn \#16, cộng 52 điểm}{Thanh toán VNPay sandbox đơn \#16}
+\haianh{t5-49-lich-su-don.jpg}{t5-50-doi-qua.jpg}{(49) Lịch sử đơn: đã thanh toán, thất bại, đã hủy}{(50) Đổi điểm lấy quà, nhận mã quà}{Lịch sử đơn và đổi quà}
+
+\subsection{Quầy nhân viên}
+\haianh{t5-51-menu-nhan-vien-nut-quay-nhan-vien.jpg}{t5-52-staff-cho-pha.jpg}{(51) Header có nút ``Quầy nhân viên''}{(52) Đơn chờ pha: ``Bắt đầu pha'', ``Hủy đơn''}{Nhân viên: liên kết quầy và đơn chờ pha}
+\haianh{t5-53-staff-dang-pha-don-2.jpg}{t5-54-staff-san-sang-don-2.jpg}{(53) Đơn \#2: Đang pha}{(54) Đơn \#2: Sẵn sàng}{Nhân viên chuyển trạng thái đơn \#2}
+\haianh{t5-55-staff-hoan-tat-don-2.jpg}{t5-57-staff-da-huy-don-11-qua-han.jpg}{(55) Đơn \#2: Hoàn tất}{(57) Đơn \#11 tự hủy vì quá hạn thanh toán}{Đơn hoàn tất và đơn tự hủy}
+\haianh{t5-58-staff-tat-ca-don.jpg}{t5-61-kho-nguyen-lieu-cot-dung-cho.jpg}{(58) Tất cả đơn: đơn \#4 thanh toán lỗi chỉ còn ``Hủy đơn''}{(61) Kho nguyên liệu: cột ``Dùng cho (số ly size S)''}{Danh sách đơn và kho nguyên liệu}
+
+\subsection{Điện thoại, PWA và bản sửa lỗi \code{v1.1.1}}
+\anhdt{t5-62-dien-thoai-thuc-don.jpg}{}{(62) Giao diện điện thoại: header, thực đơn, thẻ món}
+\haianh{t5-63-manifest-v1.1.0-loi-icon.jpg}{t5-65-manifest-v1.1.1-icon-png.jpg}{(63) \code{v1.1.0}: Chrome báo không tải được biểu tượng}{(65) \code{v1.1.1}: biểu tượng PNG 192 và 512}{Biểu tượng PWA trước và sau bản sửa lỗi}
+\haianh{t5-66-staff-truoc-dang-xuat.jpg}{t5-67-dang-xuat-ve-trang-chu.jpg}{(66) Nhân viên bấm ``Đăng xuất''}{(67) \code{v1.1.1}: về trang chủ, header hiện ``Đăng nhập''}{Đăng xuất nhân viên sau bản sửa lỗi}

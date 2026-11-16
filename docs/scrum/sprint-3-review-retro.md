@@ -43,7 +43,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (m�
 - Toàn bộ Sprint 3 do một người hiện thực; các thành viên khác chưa tham gia review mã.
 - Hai lần CI đỏ vì cấu hình (tên script, hệ điều hành của runner) do chưa chạy thử job E2E trên GitHub trước khi mở PR.
 - Test số lượng của AS1 lẽ ra nên được chuyển sang ngay từ Sprint 2.
-- Ba lỗi giao diện của `v1.1.0` chỉ lộ ra khi thử tay trên production: E2E chưa có kịch bản đăng xuất nhân viên, chưa kiểm biểu tượng manifest tải được, và chưa xem giao diện ở màn hình rộng.
+- Ba lỗi giao diện của `v1.1.0` chỉ lộ ra khi thử tay trên production: E2E chưa có kịch bản đăng xuất nhân viên; E2E-T06b chỉ kiểm tra biểu tượng đầu tiên trả về được qua HTTP (chạy bằng `npm run start`, không trên image Docker), chưa kiểm tra Chrome dùng được biểu tượng để cài ứng dụng; và chưa xem giao diện ở màn hình rộng.
 - [cần nhóm bổ sung]
 
 ### Hành động
@@ -53,5 +53,5 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (m�
 | Mỗi PR có ít nhất một thành viên khác review và approve | Cả nhóm |
 | Cố định phiên bản hệ điều hành của runner cho job phụ thuộc trình duyệt | A |
 | Khi thêm job CI mới, chạy thử trên nhánh nháp trước khi gắn vào PR chính | A |
-| Thêm E2E đăng xuất nhân viên và kiểm tra biểu tượng manifest trả 200; xem giao diện ở 375 px và 1920 px trước khi phát hành | A |
+| Thêm E2E đăng xuất nhân viên và kiểm tra manifest có biểu tượng PNG 192 và 512; xem giao diện ở 375 px và 1920 px trước khi phát hành | A |
 | [cần nhóm bổ sung] | |

@@ -1,0 +1,18 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Integration test số ly làm được và công thức (\code{recipes-availability.\allowbreak{}int-spec.\allowbreak{}ts})}\label{tab:intr}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+INT-R01 & size lớn dùng nhiều nguyên liệu hơn: cà phê 60g $\rightarrow$ S 3 ly, M 2 ly, L 2 ly; size L không đủ dù size S còn đủ & Đạt \\
+INT-R02 & hai dòng cùng món tranh nhau nguyên liệu: kho đủ 5 ly, dòng 1 đặt 3 ly thì dòng 2 còn tối đa 2 ly & Đạt \\
+INT-R03 & topping trừ nguyên liệu riêng: trân châu 80g chỉ đủ 2 ly có topping; hết trân châu thì ly có topping báo hết, ly không topping vẫn đặt được & Đạt \\
+INT-R04 & giới hạn 50 ly mỗi dòng dù nguyên liệu còn nhiều; không trả số tồn kho & Đạt \\
+INT-R05 & dữ liệu sai: giỏ rỗng, số lượng 0, món hoặc topping không tồn tại, quá 5 topping $\rightarrow$ 400 & Đạt \\
+INT-R06 & khớp với lúc đặt đơn: availability báo không đủ thì POST /orders cũng từ chối; báo đủ thì đặt được & Đạt \\
+INT-R07 & chỉ STAFF xem được: CUSTOMER 403, chưa đăng nhập 401 & Đạt \\
+INT-R08 & công thức theo size (làm tròn lên), số ly S/M/L theo tồn kho thật, nguyên liệu giới hạn và số phần topping & Đạt \\
+INT-R09 & số ly cập nhật theo kho: thanh toán thì giảm, nhập thêm nguyên liệu thì tăng ngay & Đạt \\
+\end{longtable}
+}

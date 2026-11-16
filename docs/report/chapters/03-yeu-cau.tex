@@ -1,0 +1,142 @@
+\section{Task 1 -- Khai thác và đặc tả yêu cầu}\label{ch:yeucau}
+
+Tạo phẩm của Task 1 nằm trong \code{docs/\allowbreak{}requirements/\allowbreak{}}:
+\begin{itemize}
+\item \code{context-and-scope.\allowbreak{}md}: bối cảnh, stakeholder, phạm vi.
+\item \code{srs.md}: đặc tả yêu cầu.
+\item \code{use-case-checkout.\allowbreak{}md}: đặc tả UC-01.
+\item Hai sơ đồ use case dạng PlantUML kèm ảnh kết xuất.
+\end{itemize}
+
+Task 1 được merge qua PR \#2, \#3 và \#4 ngày 14/11/2026, trước mọi tạo phẩm của Task 2.
+
+\subsection{Task 1.1 -- Bối cảnh, stakeholder và phạm vi}
+
+\subsubsection{Vấn đề nghiệp vụ}
+Quán cà phê cần một kênh đặt món và thanh toán không tiền mặt để giảm xếp hàng và nhầm đơn. Có ba điểm nghiệp vụ khó, quyết định thiết kế của toàn hệ thống:
+
+\begin{enumerate}
+\item \textbf{Không bán vượt nguyên liệu.} Mỗi món được pha từ nhiều nguyên liệu theo công thức, và lượng dùng thay đổi theo size, mức đường, mức đá, topping.
+\item \textbf{Không trừ tiền hai lần} khi khách bấm thanh toán lại hoặc mạng chập chờn.
+\item \textbf{Đơn hàng đi đúng vòng đời}, từ lúc đặt đến lúc giao.
+\end{enumerate}
+
+\subsubsection{Stakeholder}
+Đề bài nêu sáu nhóm stakeholder. Bảng \ref{tab:stakeholder} ghi mục tiêu của từng nhóm và yêu cầu chịu ảnh hưởng.
+
+\input{chapters/tables/stakeholder}
+
+\subsubsection{Phạm vi}
+Phạm vi được chia theo MoSCoW (bảng \ref{tab:phamvi} ở mục \ref{ch:gioithieu}).
+\begin{itemize}
+\item \textbf{MVP:} chỉ gồm các chức năng cần cho luồng nghiệp vụ tối thiểu của đề.
+\item \textbf{Chức năng bổ sung:} mã khuyến mãi, điểm thưởng, kho nguyên liệu theo công thức, thanh toán QR, đổi quà, tự hủy đơn, VNPay sandbox. Các chức năng này phục vụ yêu cầu của giảng viên là sản phẩm phải giống một trang bán hàng thật, có logic hoàn chỉnh. Chúng được làm sau MVP, theo thứ tự ưu tiên.
+\item \textbf{Không làm (Won't):} được ghi rõ để tránh mở rộng phạm vi trong lúc làm.
+\end{itemize}
+
+\subsubsection{Giả định, ràng buộc và rủi ro}
+Những điểm đề bài chưa nêu rõ được nhóm chốt thành giả định (bảng \ref{tab:giadinh}). Quan trọng nhất là các giả định về giá, hệ số nguyên liệu theo size, điểm thưởng và thời điểm trừ kho.
+
+\input{chapters/tables/giadinh}
+\input{chapters/tables/rangbuoc}
+\input{chapters/tables/ruiro}
+
+Ở cuối dự án, rủi ro RK1 và RK2 đã được xử lý đúng theo cách giảm thiểu đã đề ra:
+\begin{itemize}
+\item MVP và pipeline CD có trước, chức năng bổ sung làm sau.
+\item Production được dựng từ \code{v0.9.0}, trước khi giao diện khách hoàn chỉnh.
+\end{itemize}
+
+Rủi ro RK3 được kiểm chứng bằng các test đồng thời (mục \ref{ch:kiemthu}). Rủi ro RK5 vẫn xảy ra một phần: giao diện xong chậm hơn API, như Retrospective Sprint 2 đã ghi.
+
+\subsection{Task 1.2 -- Yêu cầu chức năng và phi chức năng}
+SRS gồm:
+\begin{itemize}
+\item 23 yêu cầu chức năng: 12 Must, 6 Should, 3 Could, 2 Won't.
+\item 11 yêu cầu phi chức năng.
+\end{itemize}
+
+Mỗi yêu cầu có mã, mức ưu tiên MoSCoW và tiêu chí chấp nhận kiểm chứng được, phần lớn ở dạng mã HTTP, trạng thái dữ liệu hoặc số liệu đo được. Tiêu chí chấp nhận là căn cứ để viết test ở Task 4, 5 (xem ma trận truy vết, mục \ref{ch:truyvet}).
+
+\input{chapters/tables/fr-mvp}
+\input{chapters/tables/fr-bosung}
+
+Các yêu cầu phi chức năng tập trung vào bốn nhóm:
+\begin{itemize}
+\item \textbf{Bảo mật:} NFR-02 đến NFR-04.
+\item \textbf{Khả dụng:} NFR-05, NFR-06.
+\item \textbf{Triển khai, vận hành:} NFR-07 đến NFR-09.
+\item \textbf{Độ tin cậy, bảo trì:} NFR-10, NFR-11.
+\end{itemize}
+
+NFR-08 yêu cầu có ít nhất một lần pipeline phát hiện lỗi. Yêu cầu này được kiểm chứng bằng PR \#10 cố ý làm test lỗi (mục \ref{ch:sprint1}) và lần CD \code{v0.9.1} bị đỏ (mục \ref{ch:sprint2}).
+
+\input{chapters/tables/nfr}
+
+\subsubsection*{Lịch sử thay đổi yêu cầu}
+Ngày 17/11/2026, FR-03 được ghi rõ ``chọn một hoặc nhiều topping, tối đa 5 mỗi ly''. Lý do: giao diện \code{v1.0.0} chỉ cho chọn một topping, trong khi API và nghiệp vụ cho phép nhiều. Thay đổi được ghi trong mục ``Lịch sử thay đổi'' của \code{srs.md} kèm số PR (\#56).
+
+\subsection{Use case tổng quát}
+Hệ thống có ba actor:
+\begin{itemize}
+\item \textbf{Khách hàng:} xem menu, xem chi tiết, quản lý giỏ hàng, đăng ký, đăng nhập, đặt đơn, thanh toán, xem lịch sử, đổi quà.
+\item \textbf{Nhân viên:} xử lý đơn (cập nhật trạng thái), hủy đơn, quản lý nguyên liệu.
+\item \textbf{Cổng thanh toán (mô phỏng):} tham gia use case thanh toán.
+\end{itemize}
+
+\hinh{usecase-overview.pdf}{0.95\linewidth}{Sơ đồ use case tổng quát (\code{docs/\allowbreak{}requirements/\allowbreak{}usecase-overview.\allowbreak{}puml})}{fig:ucoverview}
+
+\subsection{Task 1.3 -- Đặc tả use case trọng tâm UC-01}
+Nhóm chọn \textbf{UC-01 ``Đặt và thanh toán đơn hàng''} làm use case trọng tâm. Đây là luồng tạo ra doanh thu. Sai ở luồng này gây mất tiền, trừ tiền hai lần hoặc bán vượt nguyên liệu, nên mọi cơ chế khó của hệ thống (transaction, idempotency, máy trạng thái) đều nằm trên luồng này.
+
+\hinh{usecase-checkout.pdf}{0.9\linewidth}{Sơ đồ use case cho phạm vi UC-01 (\code{docs/\allowbreak{}requirements/\allowbreak{}usecase-checkout.\allowbreak{}puml})}{fig:uccheckout}
+
+\input{chapters/tables/uc-thongtin}
+
+\textbf{Tiền điều kiện:}
+\begin{itemize}
+\item Khách đã đăng nhập và có JWT hợp lệ.
+\item Giỏ hàng có ít nhất một món.
+\end{itemize}
+
+\textbf{Hậu điều kiện:}
+\begin{itemize}
+\item \textbf{Thành công:}
+  \begin{itemize}
+  \item Đơn ở trạng thái PAID; nguyên liệu đã bị trừ; có bản ghi \code{Payment}; điểm thưởng đã được cộng.
+  \item Khách thấy trang xác nhận đơn.
+  \end{itemize}
+\item \textbf{Thanh toán thất bại:} đơn ở PAYMENT\_FAILED, giỏ hàng được giữ; khách có thể thử lại hoặc hủy đơn.
+\item \textbf{Thiếu nguyên liệu khi đặt:} không tạo đơn, tồn kho không đổi.
+\end{itemize}
+
+\textbf{Luồng chính:}
+\begin{enumerate}
+\item Khách mở giỏ hàng và bấm ``Đặt đơn''.
+\item Giao diện gửi \code{POST /orders} kèm JWT.
+\item API kiểm tra JWT và dữ liệu đầu vào.
+\item API mở một transaction và thực hiện:
+  \begin{itemize}
+  \item cộng dồn nhu cầu nguyên liệu của cả đơn theo công thức, size, topping, mức đường và đá;
+  \item kiểm tra đủ nguyên liệu và ghi lại nhu cầu (chưa trừ kho);
+  \item tạo \code{Order} (PENDING) và các \code{OrderItem}, áp khuyến mãi nếu có;
+  \item commit.
+  \end{itemize}
+\item API trả mã đơn; giao diện chuyển sang màn hình thanh toán.
+\item Khách chọn Ví hoặc Thẻ và xác nhận.
+\item Giao diện gửi \code{POST /\allowbreak{}payments} kèm \code{Idempotency-Key}.
+\item API mở một transaction và trừ nguyên liệu bằng cập nhật có điều kiện (\code{stock >= lượng cần}).
+\item API gọi cổng thanh toán mô phỏng. Cổng trả thành công. Trong cùng transaction, API:
+  \begin{itemize}
+  \item ghi \code{Payment};
+  \item chuyển đơn sang PAID;
+  \item cộng điểm thưởng;
+  \item commit.
+  \end{itemize}
+\item API trả kết quả; giao diện hiện trang xác nhận đơn.
+\end{enumerate}
+
+\input{chapters/tables/uc-thaythe}
+\input{chapters/tables/uc-ngoaile}
+
+Luồng ngoại lệ E4 là điểm quan trọng nhất của thiết kế. Hai khách cùng thanh toán khi kho chỉ còn đủ cho một đơn. Kho bị trừ bằng cập nhật có điều kiện \emph{trước} khi gọi cổng thanh toán. Vì vậy người đến sau không bị trừ tiền, đơn chuyển PAYMENT\_FAILED kèm lý do. Cơ chế này được ghi ở ADR 005 và kiểm chứng bằng integration test INT-P06, INT-P07.

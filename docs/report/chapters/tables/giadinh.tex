@@ -1,0 +1,18 @@
+{\small
+\begin{longtable}{@{}L{1cm}L{12.9cm}@{}}
+\caption{Giả định}\label{tab:giadinh}\\
+\toprule
+\textbf{\#} & \textbf{Giả định} \\ \midrule \endfirsthead
+\toprule \textbf{\#} & \textbf{Giả định} \\ \midrule \endhead
+\bottomrule \endfoot
+G1 & Thanh toán là mô phỏng. Kết quả thành công hay thất bại điều khiển được để kiểm thử. Tài khoản thanh toán thử nghiệm và số dư là dữ liệu seed, không phải tiền thật \\
+G2 & Một cửa hàng, một loại tiền (VND) \\
+G3 & Phụ phí size: S +0, M +5.000, L +10.000 đồng \\
+G4 & Lượng nguyên liệu theo size: S 100\%, M 125\%, L 150\% công thức, làm tròn lên \\
+G5 & Điểm thưởng: 1 điểm cho mỗi 10.000 đồng của đơn đã thanh toán; hủy đơn đã thanh toán thì trừ lại điểm \\
+G6 & Tạo đơn chỉ kiểm tra đủ nguyên liệu. Nguyên liệu bị trừ khi thanh toán thành công. Hủy đơn chỉ hoàn phần đã trừ \\
+G7 & Đơn mới ở trạng thái PENDING; thanh toán chuyển đơn sang PAID hoặc PAYMENT\_FAILED \\
+G8 & STAFF gồm cả nhân viên và quản lý; không có vai trò ADMIN riêng \\
+G9 & Với các điểm đề bài chưa nêu rõ, nhóm tự chọn cách làm và báo giảng viên xác nhận \\
+\end{longtable}
+}
