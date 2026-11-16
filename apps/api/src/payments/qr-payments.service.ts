@@ -146,7 +146,7 @@ export class QrPaymentsService {
     const order = await this.prisma.order.findUnique({ where: { id: intent.orderId } });
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
 
-    const { result } = await this.payments.settle({
+    const { result, replayed } = await this.payments.settle({
       userId: order.userId,
       orderId: intent.orderId,
       method: PaymentMethod.QR,
@@ -171,6 +171,13 @@ export class QrPaymentsService {
         await this.markFailed(tx, intent.id);
       },
     });
+
+    // Hai lần xác nhận đồng thời: lần đến sau đọc mã QR khi còn PENDING nhưng settle trả lại kết quả đã ghi
+    // (không trừ tiền lần nữa). Trả lỗi giống hệt khi xác nhận tuần tự để chỉ một lần nhận "thành công".
+    if (replayed) {
+      if (result.status === 'SUCCESS') throw new ConflictException('Mã QR này đã được thanh toán');
+      throw new BadRequestException('Mã QR không còn dùng được, vui lòng tạo mã mới');
+    }
 
     // Thanh toán thất bại (thiếu số dư, hết nguyên liệu): mã QR này hết hiệu lực, khách tạo mã mới
     if (result.status === 'FAILED') await this.markFailed(this.prisma, intent.id);

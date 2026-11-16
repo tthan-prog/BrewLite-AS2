@@ -9,6 +9,9 @@ Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic 
 - Thanh toán QR mô phỏng: `POST /payments/qr`, trang xác nhận trên điện thoại `/pay/qr/[token]`, thành phần `QrPaymentPanel` (US-16, PR #49).
 - VNPay sandbox: `POST /payments/vnpay`, Return URL và IPN kiểm tra chữ ký HMAC-SHA512 và số tiền, trang `/checkout/vnpay-return`, thành phần `VnpayButton` (US-19).
 
+### Sửa
+- Xác nhận QR đồng thời: lần đến sau nhận kết quả được trả lại từ idempotency nay trả 409 "Mã QR này đã được thanh toán" như khi xác nhận tuần tự (trước đó có thể trả 200 hai lần, dù chỉ trừ tiền một lần); làm test CI `qr-payments.int-spec` hết chập chờn.
+
 Đang chờ merge giao diện khách hàng (PR #12, #19). Chi tiết: [docs/release/release-notes-v1.0.0.md](docs/release/release-notes-v1.0.0.md).
 
 ## [v0.9.2] – 16/11/2026
