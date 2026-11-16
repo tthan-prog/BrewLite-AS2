@@ -1,6 +1,6 @@
 # Ma trận truy vết – BrewLite (Assignment 2)
 
-Truy vết từ yêu cầu (`docs/requirements/srs.md`) đến user story (`docs/scrum/product-backlog.md`), use-case, thiết kế, mã nguồn/API và test. Cập nhật đến **v1.1.0** (17/11/2026).
+Truy vết từ yêu cầu (`docs/requirements/srs.md`) đến user story (`docs/scrum/product-backlog.md`), use-case, thiết kế, mã nguồn/API và test. Cập nhật đến **v1.1.1** (17/11/2026).
 
 ## 1. Ký hiệu
 
@@ -54,7 +54,7 @@ Số thứ tự trong mã test là thứ tự `it(...)` trong tệp. Integration
 | FR-12 Trừ kho có điều kiện, hoàn kho khi hủy | US-10 | Sequence-01 (transaction); ADR-005 | `inventory/stock.ts` (`UPDATE … WHERE stock >= q`) | INT-P01, P06, P07, P10; INT-Q07 |
 | FR-13 Mã khuyến mãi | US-13 | Class-01 (Promotion) | `orders/pricing.ts`; ô mã ở checkout | UT `pricing.spec`; INT-A03, A04, A11 |
 | FR-14 Điểm thưởng | US-14 | Class-01 (LoyaltyTransaction) | `loyalty/loyalty.ts` | INT-P01, P10; INT-Q04; INT-V02 |
-| FR-15 Nhân viên xử lý đơn | US-12 | Class-01 | `GET /orders?status=`, `PATCH /orders/:id/status`; `apps/web/app/staff` | INT-A08–A10; AUTH-T03, T04; WEB `staff/staff.test` |
+| FR-15 Nhân viên xử lý đơn | US-12 | Class-01 | `GET /orders?status=`, `PATCH /orders/:id/status`; `apps/web/app/staff` (đăng xuất về trang chủ từ v1.1.1) | INT-A08–A10; AUTH-T03, T04; WEB `staff/staff.test` |
 | FR-16 Định lượng theo công thức, size, topping | US-02, US-08, US-23, US-24 | ERD-01 (RecipeItem, ToppingRecipeItem) | `inventory/recipe-calculator.ts`, `availability.ts`; `POST /products/availability`; `GET /ingredients/recipes` | UT `recipe-calculator.spec`, `availability.spec`; INT-R01–R03, R08, R09 |
 | FR-17 Kho nguyên liệu, nhập thêm | US-15, US-24 | ERD-01 (Ingredient) | `GET /ingredients`, `PATCH /ingredients/:id/restock`, `GET /ingredients/recipes`; `apps/web/app/staff/ingredients`, `staff/recipes` | UT `ingredient-status.spec`; INT-S01–S03; INT-R07, R09; WEB `staff/staff.test`; E2E-T05 |
 | FR-18 Thanh toán QR mô phỏng | US-16 | ADR-004 | `POST /payments/qr`, `/payments/qr/:token…`; `apps/web/app/pay/qr/[token]`, `components/qr-payment-panel.tsx` | INT-Q01–Q09; WEB `pay/qr/[token]/page.test`, `qr-payment-panel.test`; E2E-T04 |
@@ -71,10 +71,10 @@ Số thứ tự trong mã test là thứ tự `it(...)` trong tệp. Integration
 | NFR-02 Băm mật khẩu, PIN; JWT có hạn; phân quyền | US-07 | ADR-006, Sequence-01 | bcrypt, `JWT_EXPIRES_IN`, `RolesGuard` | UT `auth.service.spec`; AUTH-T01–T05; INT-A01; INT-R07; INT-Q03 |
 | NFR-03 Secret không nằm trong repo/log | US-21 | Deploy-01, ADR-007 | `.env.example` không có giá trị thật; GitHub Secrets, biến Render | Rà soát repo; `docs/deployment.md`; database production chặn kết nối Internet |
 | NFR-04 Validate đầu vào hai phía | US-07, US-08 | ADR-002 | `ValidationPipe` (whitelist, forbidNonWhitelisted), DTO; kiểm tra form ở web | AUTH-T06, T08, T09; INT-R05; WEB `login/page.test`, `product/[id]/page.test` |
-| NFR-05 Mobile-first, PWA | US-01, US-25 | C4-01 | Tailwind; `app/manifest.ts`, `app/icon.svg` | E2E-T06 (375px không cuộn ngang, manifest); WEB `page.test` |
+| NFR-05 Mobile-first, PWA | US-01, US-25 | C4-01 | Tailwind; `app/manifest.ts`, `app/icon.svg`, `public/icon-192.png`, `public/icon-512.png` | E2E-T06 (375px không cuộn ngang, manifest); WEB `page.test` (kích thước biểu tượng); bằng chứng task5 ảnh 62, 65 |
 | NFR-06 Thông báo lỗi tiếng Việt | US-25 | ADR-008 | Thông báo trong service, `lib/api.ts` | Các test INT, WEB kiểm tra nội dung thông báo |
 | NFR-07 `docker compose up` | US-21 | Deploy-01 (local) | `docker-compose.yml`, Dockerfile | Bằng chứng task5 ảnh 04 |
-| NFR-08 CI/CD, rollback | US-04, US-21 | Deploy-01, ADR-007 | `.github/workflows/ci.yml` (2 job), `cd.yml` (CI → GHCR → Render → smoke test, rollback bằng `workflow_dispatch`) | Lần chạy CI/CD trên GitHub Actions; bằng chứng task5 ảnh 02–03, 05, 14–15, 24 |
+| NFR-08 CI/CD, rollback | US-04, US-21 | Deploy-01, ADR-007 | `.github/workflows/ci.yml` (2 job), `cd.yml` (CI → GHCR → Render → smoke test, rollback bằng `workflow_dispatch`) | Lần chạy CI/CD trên GitHub Actions; bằng chứng task5 ảnh 02–03, 05, 14–15, 24, 27–28, 64 |
 | NFR-09 `GET /health`, log | US-21 | ADR-008 | `health.controller.ts` (version, db) | UT `health.controller.spec`; API-T01, T02; smoke test CD |
 | NFR-10 Migration, seed tái tạo được | US-03 | ERD-01, ADR-003 | `prisma/migrations`, `prisma/seed.ts` | CI migrate mỗi lần chạy; job E2E migrate và seed database mới |
 | NFR-11 Lint, test tự động | US-04, US-20 | – | ESLint, Vitest, Playwright | CI job "Install, Lint, Unit Test, Build" (bắt buộc) và "E2E (Playwright)" |

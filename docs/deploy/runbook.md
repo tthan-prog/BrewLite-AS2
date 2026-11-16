@@ -98,19 +98,19 @@ Không đưa `VNPAY_HASH_SECRET` vào repository hay ảnh chụp màn hình.
 
 ```bash
 git checkout main && git pull
-git tag -a v1.0.0 -m "BrewLite AS2 v1.0.0"
-git push origin v1.0.0
+git tag -a v1.1.1 -m "BrewLite AS2 v1.1.1"
+git push origin v1.1.1
 ```
 
 Theo dõi ở tab **Actions → CD**. Thành công khi job **Deploy Render và smoke test** xanh. Kiểm tra tay:
 
 ```bash
-curl https://<api>/health      # {"status":"ok","db":"up","version":"v1.0.0",...}
+curl https://<api>/health      # {"status":"ok","db":"up","version":"v1.1.1",...}
 ```
 
 ## Rollback
 
-**Cách 1, qua pipeline (ưu tiên):** Actions → **CD** → **Run workflow** → nhập tag đã chạy ổn trước đó (ví dụ `v1.0.0`) → **Run**. Pipeline kiểm tra image tag đó có trên GHCR, gọi deploy hook với đúng image, rồi chạy cùng smoke test.
+**Cách 1, qua pipeline (ưu tiên):** Actions → **CD** → **Run workflow** → nhập tag đã chạy ổn trước đó (ví dụ `v1.1.0`) → **Run**. Pipeline kiểm tra image tag đó có trên GHCR, gọi deploy hook với đúng image, rồi chạy cùng smoke test.
 
 **Cách 2, trên Render:** dịch vụ → **Events** → chọn lần deploy trước → **Rollback**.
 
