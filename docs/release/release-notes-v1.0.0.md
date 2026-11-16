@@ -1,9 +1,7 @@
 # Release notes – BrewLite AS2 v1.0.0
 
-> **Bản nháp.** Phát hành khi giao diện khách hàng (PR #12 của Giản Thiên Lực, PR #19 của Hà Thiên Long) đã merge và pipeline CD của tag `v1.0.0` xanh. Các mục đánh dấu ⏳ cập nhật lúc đó.
-
-- **Ngày phát hành:** ⏳
-- **Tag:** `v1.0.0` ⏳
+- **Ngày phát hành:** 16/11/2026
+- **Tag:** `v1.0.0` (main sau khi merge PR #12, #19, #51)
 - **Repository:** https://github.com/tthan-prog/BrewLite-AS2
 
 ## Truy cập production
@@ -29,31 +27,31 @@ Thẻ thử: `4242 4242 4242 4242` (thành công), `4000 0000 0000 0002` (bị t
 
 | User story | Nội dung | API | Giao diện |
 |---|---|---|---|
-| US-01, US-02 | Menu, chi tiết món với size, topping, đường, đá; số ly tối đa theo nguyên liệu | PR #17 | PR #11, PR #12 ⏳ |
-| US-06 | Giỏ hàng, tổng tiền, tối đa 50 ly mỗi dòng | – | PR #12 ⏳ |
-| US-07 | Đăng ký, đăng nhập JWT, chặn đặt đơn khi chưa đăng nhập | PR #42 | PR #19 ⏳ |
-| US-08, US-13 | Tạo đơn, kiểm tra đủ nguyên liệu cho cả đơn, mã khuyến mãi | PR #42 | PR #12 ⏳ |
-| US-09 | Thanh toán Ví/Thẻ mô phỏng, `Idempotency-Key`, thử lại khi thất bại | PR #42 | PR #12 ⏳ |
+| US-01, US-02 | Menu, chi tiết món với size, topping, đường, đá; số ly tối đa theo nguyên liệu | PR #17 | PR #11, PR #12 |
+| US-06 | Giỏ hàng, tổng tiền, tối đa 50 ly mỗi dòng | – | PR #12 |
+| US-07 | Đăng ký, đăng nhập JWT, chặn đặt đơn khi chưa đăng nhập | PR #42 | PR #19 |
+| US-08, US-13 | Tạo đơn, kiểm tra đủ nguyên liệu cho cả đơn, mã khuyến mãi | PR #42 | PR #12 |
+| US-09 | Thanh toán Ví/Thẻ mô phỏng, `Idempotency-Key`, thử lại khi thất bại | PR #42 | PR #12 |
 | US-10 | Không bán vượt nguyên liệu khi thanh toán đồng thời | PR #42 | – |
-| US-11 | Xác nhận, trạng thái, lịch sử đơn | PR #42 | PR #19 ⏳ |
+| US-11 | Xác nhận, trạng thái, lịch sử đơn | PR #42 | PR #19 |
 | US-12, US-15 | Nhân viên đổi trạng thái đơn, xem và nhập kho | PR #42, #44 | PR #48 (`/staff`, `/staff/ingredients`) |
-| US-16 | Thanh toán QR mô phỏng: mã QR có hạn, xác nhận trên điện thoại bằng tài khoản thử và PIN | PR ⏳ | `/pay/qr/[token]`, `QrPaymentPanel` (gắn vào trang thanh toán ⏳) |
-| US-14, US-17 | Cộng điểm khi thanh toán, đổi điểm lấy mã quà | PR #42, #44 | PR #12 ⏳ |
+| US-16 | Thanh toán QR mô phỏng: mã QR có hạn, xác nhận trên điện thoại bằng tài khoản thử và PIN | PR #49, #51 | `/pay/qr/[token]`, `QrPaymentPanel` trong trang thanh toán (PR #12) |
+| US-14, US-17 | Cộng điểm khi thanh toán, đổi điểm lấy mã quà | PR #42, #44 | PR #12 (`/rewards`) |
 | US-18 | Đơn chưa thanh toán tự hủy sau 15 phút | PR #44 | – |
-| US-19 | VNPay sandbox: URL thanh toán đã ký, kiểm tra chữ ký HMAC-SHA512 và số tiền ở Return URL/IPN | PR ⏳ | `/checkout/vnpay-return`, `VnpayButton` |
+| US-19 | VNPay sandbox: URL thanh toán đã ký, kiểm tra chữ ký HMAC-SHA512 và số tiền ở Return URL/IPN | PR #50 | `/checkout/vnpay-return`, `VnpayButton` trong trang thanh toán (PR #12) |
 | US-21 | CI/CD: GHCR, Render, smoke test, rollback | PR #43, #46 | – |
 
-VNPay sandbox chỉ bật khi production có `VNPAY_TMN_CODE` và `VNPAY_HASH_SECRET` (runbook mục 5) ⏳.
+VNPay sandbox bật khi production có `VNPAY_TMN_CODE` và `VNPAY_HASH_SECRET` (runbook mục 5). Production đã bật từ v0.9.3; ngày 16/11/2026 đã thanh toán thử thành công 2 đơn bằng thẻ test NCB, giao dịch hiện trong Merchant Admin sandbox của VNPay. Thẻ test VNPay: NCB `9704198526191432198`, tên `NGUYEN VAN A`, ngày phát hành `07/15`, OTP `123456`.
 
 ## Kiểm thử
 
 | Loại | Số test | Lệnh |
 |---|---|---|
 | Unit API | 55 | `npm test -w apps/api` |
-| Unit web | 27 (cộng thêm test của PR #12 khi merge) | `npm test -w apps/web` |
+| Unit web | 55 | `npm test -w apps/web` |
 | E2E API (Prisma giả) | 16 | `npm run test:e2e -w apps/api` |
-| Integration API (PostgreSQL thật) | 43 | `npm run test:int -w apps/api` |
-| End-to-end giao diện | ⏳ (US-20) | – |
+| Integration API (PostgreSQL thật) | 44 | `npm run test:int -w apps/api` |
+| End-to-end giao diện tự động | Chưa có (US-20, xem Hạn chế) | – |
 
 Test tích hợp gồm: thanh toán idempotent, 8 khách thanh toán đồng thời khi kho chỉ đủ 5 ly, kho hết đúng lúc thanh toán, hoàn kho khi hủy đơn đã thanh toán, đổi quà đồng thời không làm âm điểm, tự hủy đơn quá hạn. CI chạy toàn bộ với PostgreSQL trong service container.
 
@@ -71,3 +69,5 @@ Chi tiết: [docs/deployment.md](../deployment.md), [docs/deploy/runbook.md](../
 - Gói Free của Render ngủ khi không có truy cập; database Free có thời hạn sử dụng theo chính sách của Render.
 - Cổng Ví/Thẻ là mô phỏng, không có tiền thật (FR-23 nằm ngoài phạm vi).
 - JWT không thu hồi được trước khi hết hạn (ADR 006); thời hạn mặc định 1 ngày.
+- Chưa có test end-to-end giao diện tự động (US-20). Luồng chính được kiểm tra thủ công trên production cho bản này; test tích hợp API với PostgreSQL thật chạy trong CI.
+- VNPay chỉ dùng môi trường sandbox; thông tin sandbox nằm trong biến môi trường Render, không có trong repository.
