@@ -21,7 +21,7 @@ Test **thay đổi dữ liệu** (tạo tài khoản, đơn, nhập kho): dùng 
 docker compose up -d db
 docker compose exec db createdb -U brewlite brewlite_e2e
 export DATABASE_URL="postgresql://brewlite:brewlite@localhost:5432/brewlite_e2e?schema=public"
-cd apps/api && npx prisma migrate deploy && npm run seed && cd ../..
+cd apps/api && npx prisma migrate deploy && npm run db:seed && cd ../..
 
 # 2. Build và chạy API (cổng 3001) và web (cổng 3000)
 NEXT_PUBLIC_API_URL=http://localhost:3001 npm run build

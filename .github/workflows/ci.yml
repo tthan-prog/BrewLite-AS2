@@ -112,7 +112,7 @@ jobs:
         working-directory: apps/api
         run: |
           npx prisma migrate deploy
-          npm run seed
+          npm run db:seed
 
       - name: Build
         run: npm run build
