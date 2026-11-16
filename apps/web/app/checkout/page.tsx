@@ -443,12 +443,20 @@ export default function CheckoutPage() {
               Điểm nhận được: {result.pointsEarned}
             </p>
           )}
-          <Link
-            href="/menu"
-            className="mt-6 inline-block rounded-xl bg-[#30271F] px-6 py-3 text-white"
-          >
-            Quay lại thực đơn
-          </Link>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link
+              href={`/orders/${result.orderId}`}
+              className="inline-block rounded-xl bg-[#30271F] px-6 py-3 text-white"
+            >
+              Theo dõi đơn
+            </Link>
+            <Link
+              href="/menu"
+              className="inline-block rounded-xl border border-[#DED4C7] px-6 py-3"
+            >
+              Quay lại thực đơn
+            </Link>
+          </div>
         </section>
       </main>
     );

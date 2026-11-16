@@ -14,6 +14,30 @@
 
 `message` có thể là chuỗi hoặc mảng chuỗi (lỗi kiểm tra dữ liệu). Hàm `apiRequest` trong `apps/web/lib/api.ts` đã xử lý cả hai dạng.
 
+## Sản phẩm và số ly làm được (FR-01, FR-03, FR-04, FR-16)
+
+`GET /products` và `GET /products/:id` (công khai) trả menu và chi tiết món. `maxQuantity` trong danh sách tính cho 1 ly size S, 100% đường và đá, không topping.
+
+### `POST /products/availability` → `200` (công khai)
+
+Số ly tối đa từng dòng theo size, mức đường, đá, topping **và các dòng khác trong giỏ** (hai dòng dùng chung nguyên liệu thì tranh nhau phần còn lại). Body cùng định dạng `items` của `POST /orders`:
+
+```json
+{ "items": [
+  { "productId": 6, "quantity": 3, "size": "L", "sugar": 50, "ice": 100, "toppingIds": [1, 2] },
+  { "productId": 6, "quantity": 2 }
+] }
+```
+
+```json
+{ "ok": false, "lines": [
+  { "productId": 6, "requested": 3, "maxQuantity": 2, "ok": false, "message": "\"Trà sữa trân châu\" với lựa chọn này chỉ còn làm được tối đa 2 ly" },
+  { "productId": 6, "requested": 2, "maxQuantity": 3, "ok": true, "message": null }
+] }
+```
+
+`maxQuantity` tối đa 50 (giới hạn mỗi dòng), không trả số tồn kho thật. Món chưa có công thức hoặc hết nguyên liệu topping: `maxQuantity` 0. Kết quả khớp với kiểm tra lúc `POST /orders`. Món hoặc topping không tồn tại, số lượng ngoài 1–50, quá 5 topping trả `400`. Trang chi tiết món và giỏ hàng gọi API này để giới hạn số lượng.
+
 ## Xác thực (FR-05, FR-06)
 
 ### `POST /auth/register` → `201`
@@ -271,6 +295,27 @@ Xử lý giống Return URL, trả `{ "RspCode", "Message" }` theo tài liệu V
 ```
 
 Số nguyên dương, tối đa 1.000.000 mỗi lần; cộng dồn vào tồn kho. Trả nguyên liệu sau khi nhập (cùng dạng như trên). Số lượng không dương trả `400`, id không tồn tại trả `404`. CUSTOMER gọi nhận `403`.
+
+### `GET /ingredients/recipes` → `200`
+
+Công thức từng món theo size và số ly làm được với tồn kho hiện tại (100% đường và đá, không topping). Nhân viên được xem tồn kho thật nên số ly **không** giới hạn ở 50. Số ly thay đổi ngay khi nhập kho hoặc có đơn được thanh toán (đơn chưa thanh toán không giữ nguyên liệu).
+
+```json
+{
+  "products": [{
+    "id": 1, "name": "Cà phê sữa đá", "category": "Cà phê", "imageUrl": "/images/ca-phe-sua-da.jpg", "basePrice": 29000,
+    "ingredients": [{ "id": 1, "name": "Cà phê rang xay", "unit": "g", "stock": 5000, "flag": "OK",
+                      "perCup": { "S": 18, "M": 23, "L": 27 }, "sugarScaled": false, "iceScaled": false }],
+    "cups": { "S": 200, "M": 157, "L": 133 },
+    "limiting": { "S": "Sữa đặc", "M": "Sữa đặc", "L": "Sữa đặc" }
+  }],
+  "toppings": [{ "id": 1, "name": "Trân châu đen", "price": 7000,
+                 "ingredients": [{ "id": 8, "name": "Trân châu", "unit": "g", "stock": 4000, "flag": "OK", "perServing": 40 }],
+                 "servings": 100, "limiting": "Trân châu" }]
+}
+```
+
+`perCup`: lượng cho 1 ly (size M ×1,25, L ×1,5, làm tròn lên). `limiting`: nguyên liệu làm số ly ít nhất. `servings` là `null` nếu topping không dùng nguyên liệu trong kho. Trang `/staff/recipes` dùng API này; trang `/staff/ingredients` dùng để hiện "Dùng cho" từng nguyên liệu.
 
 ## Đổi quà (FR-19)
 

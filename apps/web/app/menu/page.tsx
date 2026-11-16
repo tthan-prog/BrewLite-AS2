@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { API_URL } from "../../lib/config";
+import { DrinkArt } from "../../components/drink-art";
 import { useEffect, useState } from "react";
 
 type Product = {
@@ -191,8 +192,11 @@ export default function MenuPage() {
                 key={product.id}
                 className="overflow-hidden rounded-2xl border border-[#E8DFD3] bg-white shadow-sm transition hover:shadow-md"
               >
-                <div className="flex h-36 items-center justify-center bg-[#EFE6DA]">
-                  <span className="text-5xl" aria-hidden="true">☕</span>
+                <div className="relative">
+                  <DrinkArt name={product.name} category={product.category} className={`h-40 w-full ${product.available ? "" : "grayscale"}`} />
+                  {!product.available && (
+                    <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-red-700">Tạm hết</span>
+                  )}
                 </div>
 
                 <div className="p-5">

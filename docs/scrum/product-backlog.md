@@ -13,6 +13,7 @@
 |---|---|---|
 | Sprint 1 | Task 4 | Có nền tảng kỹ thuật (repository, CI, database có migration và seed) và MVP đầu tiên chạy được cho luồng xem menu |
 | Sprint 2 | Task 5 | Hoàn thành luồng đặt và thanh toán end-to-end, tự động đóng gói và triển khai bản production truy cập được qua HTTPS |
+| Sprint 3 | Hoàn thiện sau v1.0.0 | Sản phẩm chỉn chu và đúng thực tế: nhiều topping, số ly theo công thức cho khách và nhân viên, test E2E trên trình duyệt (v1.1.0) |
 
 Thứ tự ưu tiên trong mỗi Sprint: Must trước, sau đó Should, cuối cùng Could. Hạng mục Won't (FR-22, FR-23) không đưa vào backlog.
 
@@ -48,9 +49,17 @@ Story point theo thang Fibonacci (1, 2, 3, 5, 8). Trạng thái: **Done** (đã 
 | US-17 | Là khách hàng, tôi muốn đổi điểm lấy quà để dùng tại quầy | FR-19 | Could | 3 | Đủ điểm thì trừ điểm và trả mã quà; không đủ thì từ chối | D (giao diện), A (API) | Done (API PR #44, giao diện PR #12) |
 | US-18 | Là quản lý, tôi muốn đơn chưa thanh toán tự hủy sau thời gian quy định | FR-20 | Could | 2 | Đơn PENDING quá hạn chuyển CANCELLED và trả lượt dùng mã khuyến mãi | A | Done (PR #44) |
 | US-19 | Là khách hàng, tôi muốn thanh toán qua VNPay sandbox | FR-21 | Could | 5 | Return URL hợp lệ (đúng chữ ký HMAC, đúng số tiền) thì đơn PAID; sai thì từ chối | A | Done (PR #50, nút trong trang thanh toán PR #12); đã thanh toán thử thành công trên production 16/11 |
-| US-20 | Là nhóm phát triển, tôi muốn có test tích hợp và end-to-end cho luồng chính để phát hiện lỗi trước khi phát hành | NFR-11 | Must | 5 | Có integration test API tạo đơn và thanh toán; ít nhất một E2E từ menu đến xác nhận đơn | C | In progress – integration test API (PR #42, #44); E2E chưa có |
+| US-20 | Là nhóm phát triển, tôi muốn có test tích hợp và end-to-end cho luồng chính để phát hiện lỗi trước khi phát hành | NFR-11 | Must | 5 | Có integration test API tạo đơn và thanh toán; ít nhất một E2E từ menu đến xác nhận đơn | C | Done (integration test PR #42, #44, #51; E2E Playwright Sprint 3) |
 | US-21 | Là giảng viên, tôi muốn truy cập bản production qua HTTPS và hệ thống được triển khai tự động | NFR-03, NFR-07, NFR-08, NFR-09 | Must | 8 | Pipeline CD: lint, test, build image, push registry, deploy, smoke test `/health`, có cách rollback; database production không public; secret không nằm trong repository | A | Done (PR #43, #45, #46; production v0.9.2 → v1.0.0) |
 | US-22 | Là giảng viên, tôi muốn có tài liệu bàn giao để chạy và kiểm tra hệ thống | – | Must | 3 | Release `v1.0.0` có release notes; README hướng dẫn chạy local, test, build, deploy, rollback; ma trận truy vết; Sprint Review và Retrospective; video demo | A, C, D | Done (release notes v1.0.0, README, runbook) |
+
+### Sprint 3
+
+| Mã | User story | Yêu cầu | MoSCoW | Point | Tiêu chí chấp nhận chính | Người làm | Trạng thái |
+|---|---|---|---|---|---|---|---|
+| US-23 | Là khách hàng, tôi muốn chọn nhiều topping cho một ly và biết trước còn đặt được bao nhiêu ly | FR-03, FR-04, FR-16 | Should | 5 | Chọn tối đa 5 topping, giá cộng đủ; số ly tối đa theo size, đường, đá, topping và cả giỏ hàng; vượt thì không cho thêm hoặc thanh toán; khớp kiểm tra lúc đặt đơn | A | In progress (PR Sprint 3) |
+| US-24 | Là nhân viên, tôi muốn xem công thức từng món theo size và số ly còn làm được để chủ động nhập kho | FR-16, FR-17 | Should | 5 | Chỉ STAFF xem; lượng nguyên liệu S/M/L, số ly S/M/L theo tồn kho, nguyên liệu giới hạn; nhập kho thì số ly cập nhật ngay | A | In progress (PR Sprint 3) |
+| US-25 | Là khách hàng, tôi muốn giao diện rõ ràng trên điện thoại: trang chủ, ảnh món, theo dõi từng đơn, cài như ứng dụng | NFR-05, NFR-06, FR-10, FR-11 | Should | 3 | Trang chủ; hình món; `/orders/[id]` có tiến trình và tự cập nhật; manifest PWA; không cuộn ngang ở 375px | A | In progress (PR Sprint 3) |
 
 ## 3. Cập nhật backlog
 

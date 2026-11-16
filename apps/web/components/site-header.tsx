@@ -21,18 +21,31 @@ function cartQuantity(): number {
   }
 }
 
+/** Vai trò lưu lúc đăng nhập (sessionStorage "brewlite_user"); chỉ dùng để hiện link, quyền thật do API kiểm tra. */
+function readRole(): string | null {
+  try {
+    const user: unknown = JSON.parse(sessionStorage.getItem("brewlite_user") ?? "null");
+    return user && typeof user === "object" && "role" in user ? String((user as { role: unknown }).role) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const [loggedIn, setLoggedIn] = useState(false);
   const [quantity, setQuantity] = useState(0);
+  const [isStaff, setIsStaff] = useState(false);
 
   useEffect(() => {
     let frame = 0;
     const refresh = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        setLoggedIn(Boolean(sessionStorage.getItem(TOKEN_KEY)));
+        const token = sessionStorage.getItem(TOKEN_KEY);
+        setLoggedIn(Boolean(token));
+        setIsStaff(Boolean(token) && readRole() === "STAFF");
         setQuantity(cartQuantity());
       });
     };
@@ -69,15 +82,18 @@ export function SiteHeader() {
     return null;
   }
 
-  const linkStyle = "rounded-lg px-2 py-2 text-sm font-medium hover:bg-[#594437] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+  const linkStyle = "shrink-0 rounded-lg px-2 py-2 text-sm font-medium hover:bg-[#594437] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
   return (
     <nav aria-label="Điều hướng chính" className="bg-[#30271F] px-4 py-3 text-white">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2">
-        <Link href="/" className="mr-auto text-lg font-bold">BrewLite<span className="text-[#D7AB76]">.</span></Link>
+      <div className="mx-auto flex max-w-6xl items-center gap-x-1 overflow-x-auto whitespace-nowrap sm:gap-x-4">
+        <Link href="/" className="mr-auto shrink-0 pr-2 text-lg font-bold">BrewLite<span className="text-[#D7AB76]">.</span></Link>
         <Link href="/menu" className={linkStyle}>Thực đơn</Link>
         <Link href="/cart" className={linkStyle}>Giỏ hàng ({quantity})</Link>
         <Link href="/orders/history" className={linkStyle}>Lịch sử đơn</Link>
         <Link href="/rewards" className={linkStyle}>Đổi quà</Link>
+        {isStaff && (
+          <Link href="/staff" className={`${linkStyle} bg-[#D7AB76] text-[#30271F] hover:bg-[#E6C49A]`}>Quầy nhân viên</Link>
+        )}
         {loggedIn ? (
           <button type="button" onClick={logout} className={linkStyle}>Đăng xuất</button>
         ) : (

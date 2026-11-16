@@ -37,4 +37,16 @@ describe("Điều hướng BrewLite", () => {
     expect(navigate.push).toHaveBeenCalledWith("/menu");
     await waitFor(() => expect(screen.getByRole("link", { name: "Đăng nhập" })).toBeInTheDocument());
   });
+
+  it("nhân viên thấy link Quầy nhân viên; khách thì không", async () => {
+    sessionStorage.setItem("brewlite_token", "staff-token");
+    sessionStorage.setItem("brewlite_user", JSON.stringify({ id: 2, role: "STAFF" }));
+    render(<SiteHeader />);
+    expect(await screen.findByRole("link", { name: "Quầy nhân viên" })).toHaveAttribute("href", "/staff");
+    cleanup();
+    sessionStorage.setItem("brewlite_user", JSON.stringify({ id: 1, role: "CUSTOMER" }));
+    render(<SiteHeader />);
+    await screen.findByRole("button", { name: "Đăng xuất" });
+    expect(screen.queryByRole("link", { name: "Quầy nhân viên" })).not.toBeInTheDocument();
+  });
 });

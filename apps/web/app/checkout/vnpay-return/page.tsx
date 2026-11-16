@@ -66,7 +66,11 @@ export default function VnpayReturnPage() {
           </div>
         )}
         <div className="mt-8 flex justify-center gap-3">
-          <Link href="/orders/history" className="rounded-xl bg-[#30271F] px-5 py-3 text-sm font-semibold text-white">Lịch sử đơn</Link>
+          {state.kind === "done" ? (
+            <Link href={`/orders/${state.result.orderId}`} className="rounded-xl bg-[#30271F] px-5 py-3 text-sm font-semibold text-white">Theo dõi đơn</Link>
+          ) : (
+            <Link href="/orders/history" className="rounded-xl bg-[#30271F] px-5 py-3 text-sm font-semibold text-white">Lịch sử đơn</Link>
+          )}
           <Link href="/menu" className="rounded-xl border border-[#DED4C7] px-5 py-3 text-sm font-semibold">Thực đơn</Link>
         </div>
       </div>
