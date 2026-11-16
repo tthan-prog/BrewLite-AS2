@@ -17,7 +17,7 @@ Tất cả dịch vụ Render ở region Singapore, gói Free, trong workspace r
 ## Pipeline
 
 ```
-push tag v* ─► CI (lint, unit, e2e, integration với PostgreSQL, build)
+push tag v* ─► CI (lint, unit, test HTTP, integration với PostgreSQL, build; job E2E Playwright)
             ─► build image API, Web ─► push GHCR (<tag>, sha-<commit>, latest)
             ─► đánh thức dịch vụ ─► deploy hook Render (imgURL = image <tag>)
             ─► smoke test: /health version = <tag> và db up, /products, trang / và /menu

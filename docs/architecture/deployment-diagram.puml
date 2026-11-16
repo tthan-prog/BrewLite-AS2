@@ -17,7 +17,7 @@ rectangle "Local (máy lập trình viên)" as Local {
 rectangle "CI/CD (GitHub)" as CI {
   node "GitHub repository\ntthan-prog/BrewLite-AS2" as Repo
   node "GitHub Actions runner" as Runner {
-    artifact "ci.yml\nInstall → Lint → Unit test → Build" as CiWf
+    artifact "ci.yml (mỗi PR)\nLint → Unit, HTTP, Integration test (PostgreSQL)\n→ Build; job E2E Playwright" as CiWf
     artifact "cd.yml\nTest → Build image → Push → Deploy → Smoke test" as CdWf
   }
   database "GitHub Container Registry (GHCR)\nghcr.io/tthan-prog/brewlite-as2-api:<tag>\nghcr.io/tthan-prog/brewlite-as2-web:<tag>" as GHCR

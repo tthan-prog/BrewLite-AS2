@@ -137,9 +137,10 @@ Xem [docs/contributing.md](docs/contributing.md): chiến lược nhánh, pull r
 - Sơ đồ: [docs/diagrams](docs/diagrams)
 - Kiến trúc và ADR: [docs/architecture](docs/architecture)
 - API: [docs/api/api-contract.md](docs/api/api-contract.md)
+- Ma trận truy vết (yêu cầu → user story → thiết kế → code → test): [docs/traceability-matrix.md](docs/traceability-matrix.md)
 - Triển khai production: [docs/deployment.md](docs/deployment.md), runbook: [docs/deploy/runbook.md](docs/deploy/runbook.md)
-- Scrum: [Product Backlog](docs/scrum/product-backlog.md), [Sprint 1 Review và Retro](docs/scrum/sprint-1-review-retro.md), [Sprint 2 Review và Retro](docs/scrum/sprint-2-review-retro.md)
-- Phiên bản: [CHANGELOG.md](CHANGELOG.md), [release notes v1.0.0](docs/release/release-notes-v1.0.0.md)
+- Scrum: [Product Backlog](docs/scrum/product-backlog.md), [Sprint 1 Review và Retro](docs/scrum/sprint-1-review-retro.md), [Sprint 2 Review và Retro](docs/scrum/sprint-2-review-retro.md), [Sprint 3 Review và Retro](docs/scrum/sprint-3-review-retro.md)
+- Phiên bản: [CHANGELOG.md](CHANGELOG.md), [release notes v1.0.0](docs/release/release-notes-v1.0.0.md), [release notes v1.1.0](docs/release/release-notes-v1.1.0.md)
 
 ## Production
 

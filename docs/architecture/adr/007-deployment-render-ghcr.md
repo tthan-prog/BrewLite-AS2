@@ -10,7 +10,7 @@
 ## Quyết định
 
 - **Local:** `docker compose up` chạy `db` (PostgreSQL, cổng 5432), `api` (cổng 3001), `web` (cổng 3000).
-- **CI** (GitHub Actions, mỗi PR và push lên `main`): Install → Lint → Unit test → Build.
+- **CI** (GitHub Actions, mỗi PR và push lên `main`): Install → Lint → Unit test → Build. Bổ sung ở Task 5: test HTTP, integration test với PostgreSQL (service container); Sprint 3: job thứ hai "E2E (Playwright)" chạy trên API, web và database đã seed, cố định `ubuntu-24.04`.
 - **CD** (push tag `v*` lên `main`):
   1. Lint và test.
   2. Build image `api` và `web`, gắn tag theo phiên bản và commit SHA.
