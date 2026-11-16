@@ -73,7 +73,8 @@ jobs:
   # Sprint 3 (US-20): E2E trên trình duyệt thật với API, web và PostgreSQL thật (đã migrate và seed).
   e2e:
     name: E2E (Playwright)
-    runs-on: ubuntu-latest
+    # Playwright 1.56 chưa hỗ trợ Ubuntu 26.04 (ubuntu-latest hiện tại) nên cố định 24.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
       postgres:
