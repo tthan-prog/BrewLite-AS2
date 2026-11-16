@@ -65,4 +65,4 @@ Mức ưu tiên theo MoSCoW: Must (bắt buộc cho MVP), Should (nên có), Cou
 
 | Ngày | Thay đổi | Lý do | PR |
 |---|---|---|---|
-| 17/11/2026 | FR-03 ghi rõ chọn nhiều topping, tối đa 5 mỗi ly | Giao diện v1.0.0 chỉ cho chọn 1 topping trong khi API và nghiệp vụ cho phép nhiều; Sprint 3 (US-23) sửa và làm rõ tiêu chí | PR tài liệu Sprint 3 |
+| 17/11/2026 | FR-03 ghi rõ chọn nhiều topping, tối đa 5 mỗi ly | Giao diện v1.0.0 chỉ cho chọn 1 topping trong khi API và nghiệp vụ cho phép nhiều; Sprint 3 (US-23) sửa và làm rõ tiêu chí | #56 |

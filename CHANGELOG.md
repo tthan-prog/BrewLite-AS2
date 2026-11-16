@@ -4,6 +4,8 @@ Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic 
 
 ## [v1.1.1] – 17/11/2026
 
+Bản sửa lỗi sau kiểm thử production (PR #55). Chi tiết: [docs/release/release-notes-v1.1.1.md](docs/release/release-notes-v1.1.1.md).
+
 ### Sửa
 - Nhân viên bấm "Đăng xuất" thì về trang chủ thay vì ở lại form đăng nhập nhân viên.
 - Nút mức đường và đá trên trang chi tiết món bị cắt chữ "100%" ở màn hình rộng.

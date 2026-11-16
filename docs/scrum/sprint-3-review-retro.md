@@ -3,7 +3,7 @@
 - **Thời gian:** 16/11/2026 – 17/11/2026
 - **Sprint Goal:** sản phẩm chỉn chu và đúng thực tế sau bản bàn giao: nhiều topping, số ly theo công thức cho khách và nhân viên, test E2E trên trình duyệt.
 - **Người dự:** Nguyễn Lê Nhựt Thắng (A, Scrum Master), Hồ Thiên Ngân (B), Hà Thiên Long (C, Product Owner), Giản Thiên Lực (D)
-- **Kết quả:** đạt Sprint Goal. Phát hành `v1.1.0` ngày 17/11/2026.
+- **Kết quả:** đạt Sprint Goal. Phát hành `v1.1.0` ngày 17/11/2026; kiểm thử thủ công trên production phát hiện 3 lỗi giao diện, sửa và phát hành `v1.1.1` cùng ngày.
 
 ## Sprint Review
 
@@ -16,12 +16,15 @@
 
 Sửa lỗi trong Sprint: xác nhận QR đồng thời có thể trả "thành công" hai lần (chỉ trừ tiền một lần) làm test CI chập chờn, sửa ở PR #51; hai lỗi cấu hình job E2E (tên script seed, phiên bản Ubuntu) phát hiện ngay trên CI và sửa trong PR #53.
 
+Sau khi phát hành `v1.1.0`, kiểm thử thủ công trên production phát hiện 3 lỗi: nhân viên đăng xuất không về trang chủ, chữ "100%" ở nút mức đường/đá bị cắt, Chrome không tải được biểu tượng PWA. Sửa ở PR #55, phát hành `v1.1.1` ([release notes](../release/release-notes-v1.1.1.md)).
+
 ### Demo
 
 - Production `v1.1.0`: chọn món nhiều topping, giỏ hàng chặn vượt nguyên liệu, theo dõi đơn `/orders/[id]`; nhân viên xem `/staff/recipes`, nhập kho và thấy số ly tăng.
-- CI: 2 job xanh trên PR #53; CD tag `v1.1.0` xanh.
+- CI: 2 job xanh trên PR #53; CD tag `v1.1.0` và `v1.1.1` xanh.
+- Kiểm thử thủ công trên production: luồng khách với cả 4 cách thanh toán (kể cả thất bại), quầy nhân viên, công thức và nhập kho, điện thoại, kiểm tra lại 3 lỗi sau `v1.1.1`.
 
-Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm (ảnh từ 27).
+Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (mô tả trong README của thư mục).
 
 ### Phản hồi của Product Owner
 
@@ -40,6 +43,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm (ảnh từ 27).
 - Toàn bộ Sprint 3 do một người hiện thực; các thành viên khác chưa tham gia review mã.
 - Hai lần CI đỏ vì cấu hình (tên script, hệ điều hành của runner) do chưa chạy thử job E2E trên GitHub trước khi mở PR.
 - Test số lượng của AS1 lẽ ra nên được chuyển sang ngay từ Sprint 2.
+- Ba lỗi giao diện của `v1.1.0` chỉ lộ ra khi thử tay trên production: E2E chưa có kịch bản đăng xuất nhân viên, chưa kiểm biểu tượng manifest tải được, và chưa xem giao diện ở màn hình rộng.
 - [cần nhóm bổ sung]
 
 ### Hành động
@@ -49,4 +53,5 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm (ảnh từ 27).
 | Mỗi PR có ít nhất một thành viên khác review và approve | Cả nhóm |
 | Cố định phiên bản hệ điều hành của runner cho job phụ thuộc trình duyệt | A |
 | Khi thêm job CI mới, chạy thử trên nhánh nháp trước khi gắn vào PR chính | A |
+| Thêm E2E đăng xuất nhân viên và kiểm tra biểu tượng manifest trả 200; xem giao diện ở 375 px và 1920 px trước khi phát hành | A |
 | [cần nhóm bổ sung] | |

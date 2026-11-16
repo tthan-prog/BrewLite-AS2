@@ -13,7 +13,7 @@
 |---|---|---|
 | Sprint 1 | Task 4 | Có nền tảng kỹ thuật (repository, CI, database có migration và seed) và MVP đầu tiên chạy được cho luồng xem menu |
 | Sprint 2 | Task 5 | Hoàn thành luồng đặt và thanh toán end-to-end, tự động đóng gói và triển khai bản production truy cập được qua HTTPS |
-| Sprint 3 | Hoàn thiện sau v1.0.0 | Sản phẩm chỉn chu và đúng thực tế: nhiều topping, số ly theo công thức cho khách và nhân viên, test E2E trên trình duyệt (v1.1.0) |
+| Sprint 3 | Hoàn thiện sau v1.0.0 | Sản phẩm chỉn chu và đúng thực tế: nhiều topping, số ly theo công thức cho khách và nhân viên, test E2E trên trình duyệt (v1.1.0; bản sửa lỗi v1.1.1) |
 
 Thứ tự ưu tiên trong mỗi Sprint: Must trước, sau đó Should, cuối cùng Could. Hạng mục Won't (FR-22, FR-23) không đưa vào backlog.
 
