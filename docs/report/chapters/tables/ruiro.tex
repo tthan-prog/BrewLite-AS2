@@ -1,0 +1,15 @@
+{\small
+\begin{longtable}{@{}L{1cm}L{4.2cm}L{1.7cm}L{1.7cm}L{5.3cm}@{}}
+\caption{Rủi ro ban đầu và cách giảm thiểu}\label{tab:ruiro}\\
+\toprule
+\textbf{\#} & \textbf{Rủi ro} & \textbf{Khả năng} & \textbf{Ảnh hưởng} & \textbf{Giảm thiểu} \\ \midrule \endfirsthead
+\toprule \textbf{\#} & \textbf{Rủi ro} & \textbf{Khả năng} & \textbf{Ảnh hưởng} & \textbf{Giảm thiểu} \\ \midrule \endhead
+\bottomrule \endfoot
+RK1 & Thời gian còn rất ngắn, không kịp đủ chức năng bổ sung & Cao & Cao & Làm xong MVP (Must) trước; chức năng Should và Could làm sau, theo thứ tự ưu tiên \\
+RK2 & Không kịp triển khai production & Trung bình & Cao & Dựng pipeline CD và deploy thử ngay khi có MVP đầu tiên \\
+RK3 & Đặt hoặc thanh toán đồng thời làm âm tồn kho, trừ tiền hai lần & Trung bình & Cao & Cập nhật có điều kiện trong transaction, Idempotency-Key, có test đồng thời \\
+RK4 & Sơ đồ, SRS và mã nguồn mâu thuẫn nhau & Trung bình & Trung bình & Duy trì \code{docs/\allowbreak{}traceability-matrix.\allowbreak{}md} từ Task 2 \\
+RK5 & Thành viên chậm tiến độ, PR chờ review lâu & Trung bình & Trung bình & Bảng phân công nội bộ có hạn từng PR; mỗi PR có người review cố định \\
+RK6 & Bị đánh giá dùng lại sản phẩm của Assignment 1 & Thấp & Cao & Repository mới, lịch sử commit đi theo đúng thứ tự Task 1 đến Task 5 \\
+\end{longtable}
+}

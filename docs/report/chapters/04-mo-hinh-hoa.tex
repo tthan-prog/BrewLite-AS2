@@ -1,0 +1,152 @@
+\section{Task 2 -- Mô hình hóa hệ thống}\label{ch:mohinh}
+
+Các sơ đồ nằm trong \code{docs/\allowbreak{}diagrams/\allowbreak{}}. Mỗi sơ đồ có hai tệp:
+\begin{itemize}
+\item tệp nguồn PlantUML (\code{.puml}), sửa được và xem được lịch sử thay đổi trên Git;
+\item ảnh kết xuất để xem trực tiếp trên GitHub.
+\end{itemize}
+
+Mỗi sơ đồ được đối chiếu với UC-01 và SRS. Khi sơ đồ và yêu cầu mâu thuẫn, nhóm sửa qua pull request có ghi lý do. Ví dụ: PR \#13 bỏ thuộc tính \code{Product.stock} khỏi class diagram và ERD, vì tồn kho tính theo nguyên liệu chứ không theo món.
+
+\subsection{Task 2.1 -- Activity diagram}
+Activity diagram (hình \ref{fig:activity}) mô tả luồng đặt và thanh toán theo bốn làn (swimlane):
+\begin{itemize}
+\item Khách hàng;
+\item Giao diện Next.js;
+\item NestJS API;
+\item Cổng thanh toán (mô phỏng, VNPay sandbox).
+\end{itemize}
+
+Sơ đồ có đủ ba nhánh rẽ mà đề yêu cầu:
+\begin{enumerate}
+\item \textbf{Chưa đăng nhập:} giao diện giữ giỏ hàng, chuyển sang đăng nhập. Đăng nhập hợp lệ thì API cấp JWT và quay lại giỏ hàng. Không hợp lệ thì báo lỗi và cho đăng nhập lại.
+\item \textbf{Hết hàng:} API kiểm tra nguyên liệu cho cả đơn. Thiếu thì báo món hết hàng và cho khách sửa giỏ hàng, không tạo đơn. Đủ thì tạo đơn PENDING, chưa trừ nguyên liệu.
+\item \textbf{Thanh toán thất bại:} có hai nguyên nhân.
+  \begin{itemize}
+  \item Kho vừa hết khi trừ có điều kiện: rollback, đơn chuyển PAYMENT\_FAILED, không gọi cổng thanh toán.
+  \item Cổng từ chối: rollback, đơn PAYMENT\_FAILED, cho thử lại.
+  \end{itemize}
+\end{enumerate}
+
+Sơ đồ cũng thể hiện bước kiểm tra \code{Idempotency-Key}: yêu cầu đã xử lý thì trả lại kết quả đã lưu.
+
+\hinhcao{activity-order-flow.pdf}{Activity diagram -- luồng đặt và thanh toán (\code{docs/\allowbreak{}diagrams/\allowbreak{}activity-order-flow.\allowbreak{}puml})}{fig:activity}
+
+\subsection{Task 2.2 -- Sequence diagram}
+Sequence diagram (hình \ref{fig:sequence}) chi tiết hóa UC-01 với năm đối tượng tham gia:
+\begin{itemize}
+\item Khách hàng;
+\item Next.js UI;
+\item NestJS API;
+\item PostgreSQL;
+\item Payment Service (mô phỏng).
+\end{itemize}
+
+Sơ đồ chia hai phần: Đặt đơn và Thanh toán. Đủ các yếu tố đề bài yêu cầu:
+
+\begin{itemize}
+\item \textbf{Kiểm tra JWT:} \code{JwtAuthGuard}. Nhánh \code{alt} trả 401 khi thiếu hoặc hết hạn token, giao diện chuyển sang đăng nhập và giữ giỏ hàng.
+\item \textbf{Validate dữ liệu:} \code{ValidationPipe}, trả 400 kèm thông báo khi sai.
+\item \textbf{Transaction:}
+  \begin{itemize}
+  \item Khi đặt đơn: \code{BEGIN} $\rightarrow$ đọc công thức, tồn kho $\rightarrow$ cộng dồn nhu cầu $\rightarrow$ \code{INSERT Order}, \code{OrderItem}, \code{OrderIngredientUse} $\rightarrow$ \code{COMMIT}.
+  \item Khi thanh toán: \code{UPDATE Ingredient .\allowbreak{}.\allowbreak{}.\allowbreak{} WHERE stock >= cần}, ghi \code{Payment}, đổi trạng thái đơn, cộng điểm, \code{COMMIT}.
+  \end{itemize}
+\item \textbf{Nhánh thành công và thất bại} (\code{alt}):
+  \begin{itemize}
+  \item kho vừa hết (không gọi Payment Service);
+  \item thanh toán thành công;
+  \item thanh toán thất bại (rollback phần kho vừa trừ).
+  \end{itemize}
+\item \textbf{Gửi lại yêu cầu:} API tìm \code{Payment} theo \code{(userId, idempotencyKey)}. Đã có thì trả kết quả cũ, không gọi cổng, không tạo \code{Payment} mới.
+\end{itemize}
+
+\hinhcao{sequence-checkout.pdf}{Sequence diagram -- UC-01 Đặt và thanh toán đơn hàng (\code{docs/\allowbreak{}diagrams/\allowbreak{}sequence-checkout.\allowbreak{}puml})}{fig:sequence}
+
+\subsection{Task 2.3 -- Class diagram miền và ERD}
+Class diagram miền (hình \ref{fig:class}) gồm các lớp chính của bài toán và quan hệ giữa chúng:
+\begin{itemize}
+\item \textbf{Người dùng:} \code{User} với \code{Role} (CUSTOMER, STAFF).
+\item \textbf{Sản phẩm:} \code{Product}, \code{Topping}.
+\item \textbf{Đơn hàng:} \code{Order}, \code{OrderItem} với \code{OrderStatus}.
+\item \textbf{Thanh toán:} \code{Payment}, \code{PaymentIntent}, \code{PaymentAccount}.
+\item \textbf{Kho:} \code{Ingredient}, \code{RecipeItem}, \code{ToppingRecipeItem}, \code{OrderIngredientUse}.
+\item \textbf{Khuyến mãi, điểm thưởng:} \code{Promotion}, \code{LoyaltyTransaction}, \code{Reward}, \code{RewardRedemption}.
+\end{itemize}
+
+Sơ đồ là đầu vào trực tiếp của hai phần:
+\begin{itemize}
+\item \textbf{Prisma schema:} 17 model, 8 enum.
+\item \textbf{Cách chia module của API:} mỗi module sở hữu một nhóm lớp (bảng \ref{tab:module}).
+\end{itemize}
+
+\hinh{class-domain.png}{\linewidth}{Class diagram miền (\code{docs/\allowbreak{}diagrams/\allowbreak{}class-domain.\allowbreak{}puml})}{fig:class}
+
+ERD (hình \ref{fig:erd}) cụ thể hóa class diagram thành bảng, khóa và ràng buộc. Các ràng buộc đáng chú ý:
+\begin{itemize}
+\item \code{payments} có ràng buộc duy nhất \code{(user\_\allowbreak{}id, idempotency\_\allowbreak{}key)} để chống tạo hai thanh toán cho cùng một lần bấm (FR-09).
+\item \code{order\_\allowbreak{}ingredient\_\allowbreak{}uses} ghi nhu cầu nguyên liệu của từng đơn kèm cờ \code{consumed}. Hủy đơn chỉ hoàn đúng phần đã trừ (FR-12).
+\item \code{recipe\_items} và \code{topping\_\allowbreak{}recipe\_\allowbreak{}items} lưu công thức cho size S. Size M, L nhân hệ số 125\%, 150\% khi tính (giả định G4).
+\end{itemize}
+
+\hinh{erd.png}{\linewidth}{ERD (\code{docs/\allowbreak{}diagrams/\allowbreak{}erd.\allowbreak{}puml})}{fig:erd}
+
+\subsection{Máy trạng thái của đơn hàng}
+Máy trạng thái (FR-10) là phần nghiệp vụ được nhiều thành phần dùng chung:
+\begin{itemize}
+\item API thanh toán;
+\item API nhân viên;
+\item tác vụ tự hủy đơn;
+\item trang theo dõi đơn của khách.
+\end{itemize}
+
+Bảng \ref{tab:state} là bảng chuyển trạng thái hợp lệ, cài đặt trong \code{apps/\allowbreak{}api/\allowbreak{}src/\allowbreak{}orders/\allowbreak{}order-status.\allowbreak{}ts}. Mọi chuyển trạng thái khác trả 400 và đơn giữ nguyên.
+
+\begin{table}[H]
+\centering
+\caption{Chuyển trạng thái hợp lệ của đơn hàng}\label{tab:state}
+\begin{tabular}{@{}L{3.4cm}L{5cm}L{5.4cm}@{}}
+\toprule
+\textbf{Từ} & \textbf{Được chuyển sang} & \textbf{Ai thực hiện} \\ \midrule
+PENDING & PAID, PAYMENT\_FAILED, CANCELLED & Luồng thanh toán (PAID, PAYMENT\_FAILED); nhân viên hoặc tác vụ tự hủy (CANCELLED) \\
+PAYMENT\_FAILED & PAID, CANCELLED & Thanh toán lại; nhân viên hủy \\
+PAID & PREPARING, CANCELLED & Nhân viên \\
+PREPARING & READY & Nhân viên \\
+READY & COMPLETED & Nhân viên \\
+COMPLETED, CANCELLED & (không chuyển tiếp) & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Nhân viên chỉ được đặt PREPARING, READY, COMPLETED và CANCELLED. PAID và PAYMENT\_FAILED chỉ luồng thanh toán đặt được. Test AUTH-T05 kiểm tra nhân viên đặt PAID thì nhận 400.
+
+Hủy đơn có xử lý khác nhau theo trạng thái:
+\begin{itemize}
+\item \textbf{Đơn đã PAID:} hoàn đúng lượng nguyên liệu đã trừ và trừ lại điểm đã cộng.
+\item \textbf{Đơn chưa thanh toán:} chỉ trả lại lượt dùng mã khuyến mãi, không đụng tới kho.
+\end{itemize}
+
+\subsection{Quy tắc tính toán rút ra từ mô hình}
+Class diagram và giả định G3--G6 dẫn đến các quy tắc tính toán. Mỗi quy tắc nằm trong một hàm thuần riêng và có unit test riêng.
+
+\begin{itemize}
+\item \textbf{Giá một ly}
+  \begin{itemize}
+  \item Công thức: $\text{unitPrice} = \text{giá món} + \text{phụ phí size} + \sum \text{giá topping}$.
+  \item Phụ phí size: S +0, M +5.000, L +10.000 đồng.
+  \item Giá cuối luôn do máy chủ tính; client gửi giá thì nhận 400 (\code{pricing.ts}).
+  \end{itemize}
+\item \textbf{Nguyên liệu cho một ly}
+  \begin{itemize}
+  \item Bắt đầu từ công thức size S, nhân hệ số size (S 100\%, M 125\%, L 150\%), làm tròn lên.
+  \item Đường và đá nhân theo mức khách chọn (0--100\%).
+  \item Mỗi topping cộng định lượng riêng (\code{recipe-calculator.\allowbreak{}ts}).
+  \end{itemize}
+\item \textbf{Số ly làm được}
+  \begin{itemize}
+  \item Với mỗi nguyên liệu, lấy $\lfloor \text{tồn kho} / \text{lượng cần cho 1 ly} \rfloor$; số ly là giá trị nhỏ nhất qua các nguyên liệu.
+  \item Nhiều dòng trong giỏ dùng chung nguyên liệu: số ly của một dòng được tính sau khi trừ nhu cầu của các dòng khác.
+  \item Phía khách giới hạn ở 50 ly mỗi dòng để không lộ tồn kho (\code{availability.\allowbreak{}ts}).
+  \end{itemize}
+\item \textbf{Điểm thưởng:} 1 điểm cho mỗi 10.000 đồng của đơn đã thanh toán, trừ lại khi hủy đơn đã thanh toán (\code{loyalty.ts}).
+\end{itemize}

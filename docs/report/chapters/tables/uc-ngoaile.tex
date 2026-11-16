@@ -1,0 +1,16 @@
+{\small
+\begin{longtable}{@{}L{0.9cm}L{4.4cm}L{8.6cm}@{}}
+\caption{Luồng ngoại lệ của UC-01}\label{tab:ucex}\\
+\toprule
+\textbf{\#} & \textbf{Điều kiện} & \textbf{Xử lý} \\ \midrule \endfirsthead
+\toprule \textbf{\#} & \textbf{Điều kiện} & \textbf{Xử lý} \\ \midrule \endhead
+\bottomrule \endfoot
+E1 & Chưa đăng nhập hoặc JWT hết hạn (bước 2--3) & API trả 401; giao diện chuyển sang đăng nhập rồi quay lại giỏ hàng; giỏ hàng được giữ \\
+E2 & Dữ liệu không hợp lệ (bước 3) & API trả 400 với thông báo rõ ràng \\
+E3 & Không đủ nguyên liệu khi tạo đơn (bước 4) & Transaction rollback; không tạo đơn; báo món nào không đủ nguyên liệu \\
+E4 & Kho vừa hết do đơn khác thanh toán trước (bước 8) & Transaction bị hủy trước khi gọi cổng thanh toán: không trừ tiền, không trừ kho; đơn chuyển PAYMENT\_FAILED kèm lý do; khách thử lại hoặc hủy đơn \\
+E5 & Mã khuyến mãi sai, hết hạn hoặc hết lượt & Từ chối mã kèm lý do; khách vẫn đặt được đơn không dùng mã \\
+E6 & Cổng thanh toán trả thất bại (bước 9), hoặc QR sai PIN, thiếu số dư hay hết hạn (A3) & Transaction rollback nên kho không đổi; không trừ tiền; Ví và Thẻ thì đơn chuyển PAYMENT\_FAILED. Giao diện báo lỗi, giữ giỏ hàng và cho thử lại \\
+E7 & Yêu cầu chuyển trạng thái không hợp lệ & API trả 400; đơn giữ nguyên trạng thái \\
+\end{longtable}
+}

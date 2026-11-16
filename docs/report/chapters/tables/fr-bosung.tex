@@ -1,0 +1,20 @@
+{\small
+\begin{longtable}{@{}L{1.2cm}L{1.6cm}L{4.9cm}L{1.3cm}L{4.9cm}@{}}
+\caption{Yêu cầu chức năng bổ sung (Should, Could, Won't)}\label{tab:frbosung}\\
+\toprule
+\textbf{Mã} & \textbf{Nhóm} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Nhóm} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận} \\ \midrule \endhead
+\bottomrule \endfoot
+FR-13 & Khuyến mãi & Áp mã khuyến mãi hợp lệ để giảm giá & Should & Mã hợp lệ giảm đúng số tiền; mã sai, hết hạn hoặc hết lượt bị từ chối kèm lý do; giá cuối do máy chủ tính \\
+FR-14 & Điểm thưởng & Cộng điểm khi đơn chuyển PAID; trừ lại khi hủy đơn đã PAID; mỗi lần thay đổi điểm ghi một giao dịch & Should & \code{User.points} tăng 1 điểm cho mỗi 10.000đ và giảm lại khi hủy; có bản ghi \code{LoyaltyTransaction} tương ứng (EARN, REVERSAL) \\
+FR-15 & Nhân viên & Màn hình nhân viên xem đơn theo trạng thái và chuyển trạng thái & Should & \code{PATCH /\allowbreak{}orders/\allowbreak{}:id/\allowbreak{}status} chỉ STAFF gọi được (CUSTOMER nhận 403); trang nhân viên chỉ STAFF vào được \\
+FR-16 & Nguyên liệu & Định lượng nguyên liệu theo công thức: công thức size S, size M và L nhân 125\% và 150\%, topping có định lượng riêng, đường và đá theo mức chọn & Should & Lượng nguyên liệu của một ly khớp công thức và hệ số (làm tròn lên); món hết nguyên liệu hiện "Hết" và không thêm vào giỏ được; trang chi tiết hiện "có thể đặt thêm tối đa N ly" mà không lộ số tồn kho \\
+FR-17 & Nguyên liệu & Nhân viên xem tồn kho nguyên liệu, cờ "Sắp hết" và "Hết", và nhập thêm (restock) & Should & \code{GET /\allowbreak{}ingredients} và \code{PATCH /\allowbreak{}ingredients/\allowbreak{}:id/\allowbreak{}restock} chỉ STAFF gọi được; số lượng nhập phải dương \\
+FR-18 & Thanh toán & Thanh toán bằng QR qua cổng mô phỏng: khách quét mã bằng điện thoại, chọn tài khoản thử nghiệm và nhập PIN & Should & Xác nhận đúng PIN và đủ số dư thì đơn chuyển PAID và trang đặt hàng tự chuyển sang xác nhận. Sai PIN, thiếu số dư hoặc QR hết hạn thì không trừ tiền. Xác nhận lặp lại chỉ thành công một lần \\
+FR-19 & Đổi quà & Khách đổi điểm lấy quà và nhận mã quà để dùng tại quầy & Could & Đủ điểm thì trừ điểm và trả mã quà; không đủ điểm thì từ chối; đổi đồng thời không làm âm điểm \\
+FR-20 & Đặt đơn & Tự hủy đơn chưa thanh toán sau thời gian cấu hình được (mặc định 15 phút) & Could & Đơn PENDING quá hạn chuyển CANCELLED và trả lại lượt dùng mã khuyến mãi; không đụng tới kho \\
+FR-21 & Thanh toán & Thanh toán qua VNPay sandbox (môi trường thử nghiệm, không dùng tiền thật) & Could & Thanh toán thành công trên sandbox thì đơn chuyển PAID qua Return URL; máy chủ kiểm tra chữ ký HMAC và số tiền trước khi chốt đơn; sai chữ ký hoặc sai số tiền thì từ chối và đơn giữ nguyên trạng thái; thông tin cấu hình sandbox chỉ nằm trong biến môi trường \\
+FR-22 & Quản trị & Giao diện quản lý sản phẩm, khuyến mãi, báo cáo doanh thu & Won't & Không làm trong phiên bản này \\
+FR-23 & Thanh toán & Kết nối cổng thanh toán thật (tiền thật) và cổng MoMo & Won't & Không làm trong phiên bản này \\
+\end{longtable}
+}

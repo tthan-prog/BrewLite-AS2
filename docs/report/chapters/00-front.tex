@@ -1,0 +1,67 @@
+\section*{Danh mục từ viết tắt}\addcontentsline{toc}{section}{Danh mục từ viết tắt}
+\begin{longtable}{@{}p{3cm}p{11cm}@{}}
+\toprule
+\textbf{Viết tắt} & \textbf{Nghĩa đầy đủ} \\ \midrule \endhead
+ADR & Architecture Decision Record -- bản ghi quyết định kiến trúc \\
+API & Application Programming Interface -- giao diện lập trình ứng dụng \\
+C4 & Mô hình C4 (Context, Container, Component, Code) mô tả kiến trúc phần mềm \\
+CD & Continuous Delivery / Deployment -- phân phối, triển khai liên tục \\
+CI & Continuous Integration -- tích hợp liên tục \\
+CORS & Cross-Origin Resource Sharing \\
+DoD & Definition of Done -- định nghĩa hoàn thành \\
+DTO & Data Transfer Object -- đối tượng truyền dữ liệu \\
+E2E & End-to-End -- kiểm thử đầu cuối \\
+ERD & Entity Relationship Diagram -- sơ đồ thực thể, quan hệ \\
+FR / NFR & Functional / Non-functional Requirement -- yêu cầu chức năng / phi chức năng \\
+GHCR & GitHub Container Registry \\
+HMAC & Hash-based Message Authentication Code \\
+IPN & Instant Payment Notification -- thông báo thanh toán tức thời của VNPay \\
+JWT & JSON Web Token \\
+MoSCoW & Must, Should, Could, Won't -- cách xếp mức ưu tiên yêu cầu \\
+MVP & Minimum Viable Product -- sản phẩm khả dụng tối thiểu \\
+PO & Product Owner \\
+PR & Pull Request \\
+PWA & Progressive Web App \\
+RBAC & Role-Based Access Control -- phân quyền theo vai trò \\
+SRS & Software Requirements Specification -- đặc tả yêu cầu phần mềm \\
+UC & Use Case \\
+UML & Unified Modeling Language \\
+US & User Story \\
+\bottomrule
+\end{longtable}
+
+\section*{Bảng thuật ngữ}\addcontentsline{toc}{section}{Bảng thuật ngữ}
+\begin{longtable}{@{}p{3.4cm}p{3.2cm}p{7.4cm}@{}}
+\toprule
+\textbf{Thuật ngữ} & \textbf{Tiếng Anh} & \textbf{Ý nghĩa trong báo cáo} \\ \midrule \endhead
+Khóa idempotency & Idempotency key & Khóa do client gửi kèm yêu cầu thanh toán (header \code{Idempotency-Key}). Gửi lại cùng khóa và cùng nội dung thì nhận lại kết quả cũ, không tạo thêm thanh toán. \\
+Cập nhật có điều kiện & Conditional update & Câu lệnh \code{UPDATE .\allowbreak{}.\allowbreak{}.\allowbreak{} WHERE stock >= q}: chỉ trừ kho khi còn đủ, nên nhiều yêu cầu đồng thời không làm kho âm. \\
+Máy trạng thái & State machine & Tập trạng thái của đơn hàng và các chuyển trạng thái hợp lệ giữa chúng. \\
+Kiểm thử khói & Smoke test & Kiểm tra nhanh ngay sau khi triển khai: \code{/health} trả đúng phiên bản, database hoạt động, các trang chính trả mã 200. \\
+Quay lui & Rollback & Triển khai lại image của một phiên bản ổn định trước đó. \\
+Số ly làm được & Availability & Số ly tối đa còn đặt được của một món với lựa chọn size, đường, đá, topping, tính từ tồn kho nguyên liệu và công thức. \\
+Tạo phẩm & Artifact & Sản phẩm bắt buộc của từng task: tài liệu, sơ đồ, mã nguồn, pipeline, bằng chứng. \\
+Truy vết & Traceability & Liên kết từ yêu cầu đến user story, thiết kế, mã nguồn và test. \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section*{Tóm tắt}\addcontentsline{toc}{section}{Tóm tắt}
+Báo cáo trình bày Bài tập lớn 2 của nhóm: phát triển ứng dụng đặt đồ uống BrewLite theo một chuỗi công việc hoàn chỉnh, từ khai thác yêu cầu đến triển khai production. Năm task của đề được thực hiện tuần tự trên repository riêng \url{https://github.com/tthan-prog/BrewLite-AS2}:
+
+\begin{enumerate}
+\item \textbf{Yêu cầu:} bối cảnh và 6 nhóm stakeholder; SRS với 23 yêu cầu chức năng (12 Must, 6 Should, 3 Could, 2 Won't) và 11 yêu cầu phi chức năng; đặc tả use case trọng tâm UC-01 ``Đặt và thanh toán đơn hàng''.
+\item \textbf{Mô hình hóa:} activity diagram có các nhánh hết hàng, chưa đăng nhập và thanh toán thất bại; sequence diagram thể hiện kiểm tra JWT, transaction và idempotency; class diagram miền và ERD 17 bảng.
+\item \textbf{Kiến trúc:} kiến trúc phân lớp kết hợp module theo domain (modular monolith), trình bày theo mô hình C4; 8 ADR; deployment diagram trên Render và GHCR.
+\item \textbf{Sprint 1:} monorepo \code{apps/web}, \code{apps/api}, \code{docs}; database có migration và seed; API và trang menu; CI chặn merge khi lỗi.
+\item \textbf{Sprint 2 và bàn giao:} hoàn thiện luồng xem menu, chọn tùy chọn, giỏ hàng, đặt đơn, thanh toán (Ví, Thẻ, QR mô phỏng, VNPay sandbox) và theo dõi đơn; pipeline CD từ tag phiên bản qua GHCR lên Render kèm smoke test và rollback; phát hành \code{v1.0.0} ngày 16/11/2026.
+\end{enumerate}
+
+Sau bàn giao, nhóm chạy thêm Sprint 3 để hoàn thiện sản phẩm: chọn nhiều topping, tính số ly làm được theo công thức cho khách và nhân viên, trang theo dõi đơn, PWA và test E2E Playwright trong CI (\code{v1.1.0}). Kiểm thử thủ công trên production phát hiện 3 lỗi giao diện, được sửa ở \code{v1.1.1} cùng ngày 17/11/2026.
+
+Bản \code{v1.1.1} có 62 unit test API, 16 test HTTP API, 53 integration test chạy trên PostgreSQL thật, 72 unit test giao diện và 8 test E2E trên trình duyệt. CI gồm 2 job, cả hai đều phải xanh. Ma trận truy vết nối từng FR, NFR với user story, sơ đồ, mã nguồn và test.
+
+\vspace{6pt}
+\noindent\textbf{Từ khóa:} đặc tả yêu cầu; UML; kiến trúc phần mềm; Scrum; CI/CD; triển khai; kiểm thử; truy vết.
+
+\clearpage

@@ -1,0 +1,307 @@
+\section{Task 5 -- Triển khai Sprint 2, CI/CD và bàn giao}\label{ch:sprint2}
+
+\textbf{Sprint Goal:} hoàn thành luồng đặt và thanh toán end-to-end, tự động đóng gói và triển khai bản production truy cập được qua HTTPS.
+
+Sprint 2 diễn ra từ 15/11 đến 16/11/2026 và kết thúc bằng bản phát hành \code{v1.0.0}.
+
+\input{chapters/tables/backlog-s2}
+
+\subsection{Task 5.1 -- Hoàn thiện MVP}
+Nhóm thống nhất \textbf{hợp đồng API} (\code{docs/\allowbreak{}api/\allowbreak{}api-contract.\allowbreak{}md}) trước khi làm giao diện, theo hành động cải tiến của Sprint 1. Hợp đồng ghi rõ cho từng endpoint:
+\begin{itemize}
+\item đường dẫn;
+\item quyền truy cập;
+\item định dạng request và response;
+\item mã lỗi và thông báo tiếng Việt.
+\end{itemize}
+
+Nhờ vậy giao diện của PR \#12, \#19 gọi đúng API ngay lần nối đầu.
+
+\begin{longtable}{@{}L{5.2cm}L{2.2cm}L{6.4cm}@{}}
+\caption{Các endpoint chính của API}\label{tab:endpoint}\\
+\toprule
+\textbf{Endpoint} & \textbf{Quyền} & \textbf{Chức năng} \\ \midrule \endfirsthead
+\toprule \textbf{Endpoint} & \textbf{Quyền} & \textbf{Chức năng} \\ \midrule \endhead
+\bottomrule \endfoot
+\code{GET /health} & Công khai & Trạng thái API, phiên bản, kết nối database (NFR-09) \\
+\code{GET /products}, \code{GET /\allowbreak{}products/\allowbreak{}:id} & Công khai & Menu và chi tiết món (FR-01, FR-03) \\
+\code{POST /\allowbreak{}products/\allowbreak{}availability} & Công khai & Số ly tối đa từng dòng giỏ hàng (FR-04, FR-16; Sprint 3) \\
+\code{POST /\allowbreak{}auth/\allowbreak{}register}, \code{POST /\allowbreak{}auth/\allowbreak{}login}, \code{GET /auth/me} & Công khai / đăng nhập & Đăng ký, đăng nhập JWT, thông tin người dùng (FR-05) \\
+\code{POST /orders} & Đăng nhập & Tạo đơn PENDING, tính giá, áp mã, kiểm tra nguyên liệu (FR-07, FR-13) \\
+\code{GET /\allowbreak{}orders/\allowbreak{}me}, \code{GET /\allowbreak{}orders/\allowbreak{}:id} & Đăng nhập & Lịch sử và chi tiết đơn (FR-11) \\
+\code{GET /\allowbreak{}orders?status=}, \code{PATCH /\allowbreak{}orders/\allowbreak{}:id/\allowbreak{}status} & STAFF & Nhân viên xem và chuyển trạng thái đơn (FR-10, FR-15) \\
+\code{POST /\allowbreak{}payments} & Đăng nhập & Thanh toán Ví/Thẻ, header \code{Idempotency-Key} (FR-08, FR-09, FR-12, FR-14) \\
+\code{POST /\allowbreak{}payments/\allowbreak{}qr}, \code{GET /\allowbreak{}payments/\allowbreak{}qr/\allowbreak{}:token/\allowbreak{}status} & Đăng nhập, chủ đơn & Tạo mã QR có hạn; hỏi trạng thái (FR-18) \\
+\code{GET /\allowbreak{}payments/\allowbreak{}qr/\allowbreak{}:token}, \code{POST /\allowbreak{}payments/\allowbreak{}qr/\allowbreak{}:token/\allowbreak{}confirm} & Công khai (cho điện thoại) & Xem số tiền; xác nhận bằng tài khoản thử và PIN (FR-18) \\
+\code{GET /\allowbreak{}payments/\allowbreak{}vnpay/\allowbreak{}config}, \code{POST /\allowbreak{}payments/\allowbreak{}vnpay} & Công khai / chủ đơn & Bật/tắt VNPay; tạo URL thanh toán đã ký (FR-21) \\
+\code{GET /\allowbreak{}payments/\allowbreak{}vnpay/\allowbreak{}return}, \code{GET /\allowbreak{}payments/\allowbreak{}vnpay/\allowbreak{}ipn} & Công khai / VNPay gọi & Kiểm tra chữ ký, số tiền, chốt đơn (FR-21) \\
+\code{GET /\allowbreak{}ingredients}, \code{PATCH /\allowbreak{}ingredients/\allowbreak{}:id/\allowbreak{}restock}, \code{GET /\allowbreak{}ingredients/\allowbreak{}recipes} & STAFF & Tồn kho, nhập kho, công thức và số ly (FR-17; recipes ở Sprint 3) \\
+\code{GET /rewards}, \code{POST /\allowbreak{}rewards/\allowbreak{}:id/\allowbreak{}redeem}, \code{GET /\allowbreak{}rewards/\allowbreak{}me} & Công khai / đăng nhập & Danh sách quà, đổi quà, mã quà đã đổi (FR-19) \\
+\end{longtable}
+
+\subsubsection{Đặt đơn và tính giá}
+\code{POST /orders} nhận danh sách món: mỗi dòng có \code{productId}, \code{quantity} (1--50), \code{size}, \code{sugar}, \code{ice} và tối đa 5 \code{toppingIds}, kèm mã khuyến mãi tùy chọn. Client \emph{không} gửi giá.
+
+Máy chủ thực hiện trong một transaction:
+\begin{enumerate}
+\item Tính đơn giá từng dòng.
+\item Áp mã khuyến mãi. Mã sai, hết hạn, hết lượt hoặc chưa đủ đơn tối thiểu đều bị từ chối kèm lý do tiếng Việt.
+\item Cộng dồn nhu cầu nguyên liệu của cả đơn và kiểm tra đủ kho.
+\item Thiếu nguyên liệu thì trả 400 kèm danh sách món thiếu và không tạo đơn. Đủ thì tạo đơn PENDING và ghi \code{OrderIngredientUse}. Kho chưa bị trừ ở bước này.
+\end{enumerate}
+
+\subsubsection{Thanh toán Ví và Thẻ, idempotency}
+Cổng mô phỏng có kết quả xác định để kiểm thử được:
+\begin{itemize}
+\item \textbf{Ví:} thành công nếu tổng tiền không quá 2.000.000 đồng.
+\item \textbf{Thẻ \code{4242 4242 4242 4242}:} thành công.
+\item \textbf{Thẻ \code{4000 0000 0000 0002}:} bị từ chối.
+\item \textbf{Số thẻ không qua kiểm tra Luhn:} báo không hợp lệ.
+\end{itemize}
+
+Mỗi lần bấm ``Thanh toán'', giao diện tạo một \code{Idempotency-Key} mới và dùng lại đúng khóa đó khi gửi lại cùng yêu cầu. Máy chủ phản hồi như sau:
+\begin{itemize}
+\item \textbf{Lần đầu:} trả 201.
+\item \textbf{Gửi lại cùng khóa:} trả 200 kèm header \code{Idempotent-Replayed: true} và đúng kết quả cũ.
+\item \textbf{Cùng khóa nhưng khác nội dung, đơn đã thanh toán, hoặc đơn đang được thanh toán ở yêu cầu khác:} trả 409.
+\end{itemize}
+
+Khi thanh toán thất bại, giao diện giữ giỏ hàng, hiện lý do và cho thử lại bằng khóa mới.
+
+\subsubsection{Tồn kho theo công thức và nhân viên}
+Mỗi món có công thức cho size S. Lượng nguyên liệu của một ly được tính như sau:
+\begin{itemize}
+\item nhân hệ số size, làm tròn lên;
+\item đường và đá nhân theo mức chọn;
+\item topping có định lượng riêng.
+\end{itemize}
+
+Kho chỉ bị trừ khi thanh toán thành công, bằng cập nhật có điều kiện trong transaction (ADR 005). Hủy đơn chỉ hoàn phần đã trừ.
+
+Nhân viên (STAFF) có trang \code{/staff} (PR \#48) với các chức năng:
+\begin{itemize}
+\item xem đơn theo trạng thái;
+\item chuyển trạng thái theo máy trạng thái;
+\item xem tồn kho có cờ ``Sắp hết'', ``Hết'';
+\item nhập thêm nguyên liệu.
+\end{itemize}
+
+Đơn chưa thanh toán tự hủy sau 15 phút (FR-20): API quét mỗi phút, trả lại lượt dùng mã khuyến mãi và không đụng tới kho.
+
+\subsubsection{Thanh toán QR mô phỏng}
+Luồng QR (FR-18, PR \#49) mô phỏng việc quét mã bằng ứng dụng ngân hàng:
+\begin{enumerate}
+\item Trang thanh toán tạo mã QR có hạn 5 phút. Mã chứa đường dẫn \code{/\allowbreak{}pay/\allowbreak{}qr/\allowbreak{}<token>} của web.
+\item Khách quét bằng điện thoại, chọn tài khoản thử nghiệm và nhập PIN 6 số.
+\item Trang thanh toán trên máy tính hỏi trạng thái mỗi 3 giây và tự chuyển sang trang thành công khi đơn PAID.
+\end{enumerate}
+
+Các trường hợp lỗi:
+\begin{itemize}
+\item \textbf{Sai PIN:} không trừ tiền, cho nhập lại.
+\item \textbf{Thiếu số dư:} không trừ tiền, đơn PAYMENT\_FAILED.
+\item \textbf{QR hết hạn:} không trừ tiền.
+\end{itemize}
+
+Trang trên điện thoại không hiện số dư tài khoản.
+
+PR \#51 sửa một lỗi phát hiện qua CI chập chờn: hai lần xác nhận đồng thời cùng một mã có thể cùng nhận ``thành công'', dù tiền chỉ bị trừ một lần. Sau khi sửa, lần đến sau nhận 409 ``Mã QR này đã được thanh toán''. Hai test xác định (INT-Q05, INT-Q06) kiểm tra cả trường hợp tuần tự và đồng thời.
+
+\subsubsection{VNPay sandbox}
+PR \#50 tích hợp VNPay sandbox phiên bản 2.1.0:
+\begin{enumerate}
+\item API tạo \code{paymentUrl} đã ký bằng HMAC-SHA512. Số tiền nhân 100 theo quy định của VNPay, hạn 15 phút.
+\item Khách thanh toán trên trang VNPay bằng thẻ test NCB.
+\item VNPay chuyển về \code{/\allowbreak{}checkout/\allowbreak{}vnpay-return}. Trang gửi nguyên chuỗi query về API.
+\item API kiểm tra chữ ký, mã website và số tiền rồi mới chốt đơn.
+\end{enumerate}
+
+Sai chữ ký hoặc sai số tiền thì từ chối và đơn giữ nguyên. Endpoint IPN xử lý giống Return URL và trả mã theo tài liệu VNPay. Return URL và IPN cùng đến vẫn chỉ ghi một kết quả.
+
+Ngày 16/11/2026 nhóm đăng ký merchant môi trường TEST của VNPay và khai báo cấu hình vào biến môi trường của Render. Nhóm thanh toán thử thành công 2 đơn trên production. Hai giao dịch hiện trong Merchant Admin của VNPay (hình \ref{fig:vnpayadmin}), là xác nhận từ phía VNPay chứ không chỉ từ hệ thống của nhóm.
+
+\subsubsection{Giao diện khách hàng}
+\begin{itemize}
+\item \textbf{PR \#19 (Hà Thiên Long):} trang đăng nhập, đăng ký, lịch sử đơn; xử lý 401.
+\item \textbf{PR \#12 (Giản Thiên Lực):} chi tiết món, giỏ hàng, thanh toán với cả bốn phương thức (Ví, Thẻ, QR, VNPay), khôi phục khi thanh toán thất bại, đổi quà, thanh điều hướng chung.
+\end{itemize}
+
+Khi chưa đăng nhập mà bấm thanh toán, giao diện chuyển sang \code{/\allowbreak{}login?next=/\allowbreak{}checkout} và giữ giỏ hàng (FR-06).
+
+\subsection{Task 5.2 -- Tích hợp và kiểm thử}
+Kiểm thử ở Sprint 2 có bốn mức. Chi tiết và danh sách test case ở mục \ref{ch:kiemthu}.
+
+\begin{itemize}
+\item \textbf{Unit test} cho các hàm thuần: tính giá, máy trạng thái, công thức nguyên liệu, chữ ký VNPay, mã quà.
+\item \textbf{Test HTTP} với Prisma giả: xác thực, phân quyền, validate.
+\item \textbf{Integration test} chạy trên PostgreSQL thật, kể cả các tình huống đồng thời:
+  \begin{itemize}
+  \item 8 khách thanh toán cùng lúc khi kho chỉ đủ 5 ly;
+  \item hai yêu cầu đồng thời cho cùng một đơn;
+  \item đổi quà đồng thời.
+  \end{itemize}
+\item \textbf{Chạy toàn hệ thống} bằng Docker Compose (NFR-07).
+\end{itemize}
+
+Khi đóng Sprint 2 (\code{v1.0.0}): 55 unit test API, 55 unit test web, 16 test HTTP API, 44 integration test.
+
+Test E2E giao diện tự động chưa có ở thời điểm này. Nhóm ghi rõ thành hạn chế trong release notes \code{v1.0.0} và hoàn thành ở Sprint 3.
+
+CI được mở rộng (hình \ref{fig:ci42}): sau Unit Test có thêm hai bước, rồi mới đến Build.
+\begin{itemize}
+\item \textbf{E2E Test (API, Prisma giả):} các test HTTP.
+\item \textbf{Integration Test:} chạy với PostgreSQL 16 trong service container; database được migrate ngay trong job.
+\end{itemize}
+
+\anh{t5-03-pr42-ci-cac-buoc-integration-test.jpg}{0.85\linewidth}{CI của PR \#42: các bước Install, Lint, Unit Test, E2E Test, Migrate, Integration Test (PostgreSQL thật), Build đều thành công\label{fig:ci42}}
+\anh{t5-04-docker-compose-build-health-ok.jpg}{\linewidth}{\code{docker compose up --build}: \code{GET /health} trả \code{status: ok}, \code{db: up} (NFR-07)}
+
+\subsection{Task 5.3 -- Continuous Delivery}
+Workflow \code{.\allowbreak{}github/\allowbreak{}workflows/\allowbreak{}cd.\allowbreak{}yml} (PR \#43) chạy khi push tag \code{v*}, gồm ba job nối tiếp:
+
+\begin{enumerate}
+\item \textbf{CI (lint, test, build):} gọi lại \code{ci.yml}, nên mỗi lần phát hành đều chạy đủ test, kể cả integration (từ Sprint 3 có thêm E2E).
+\item \textbf{Build và push image lên GHCR:} build image API và Web. Mỗi image gắn ba tag: phiên bản (\code{v1.0.0}), \code{sha-<commit>} và \code{latest}. \code{NEXT\_\allowbreak{}PUBLIC\_\allowbreak{}API\_\allowbreak{}URL} được nhúng vào image web lúc build.
+\item \textbf{Deploy Render và smoke test:}
+  \begin{enumerate}
+  \item Kiểm tra cấu hình và kiểm tra image của phiên bản có trên GHCR.
+  \item Đánh thức dịch vụ.
+  \item Gọi deploy hook của Render với đúng image tag.
+  \item Smoke test:
+    \begin{itemize}
+    \item \code{/health} phải trả đúng phiên bản và \code{db: up} trong tối đa 15 phút;
+    \item \code{/products} phải trả danh sách;
+    \item trang \code{/} và \code{/menu} phải trả 200.
+    \end{itemize}
+  \end{enumerate}
+\end{enumerate}
+
+Smoke test thất bại thì pipeline đỏ.
+
+\anh{t5-15-cd-v0.9.2-success-deploy-smoke.jpg}{0.9\linewidth}{Pipeline CD tag \code{v0.9.2}: CI $\rightarrow$ build và push GHCR $\rightarrow$ deploy Render và smoke test, tổng 6 phút 45 giây}
+
+\subsubsection{Một lần CD phát hiện lỗi thật}
+Lần CD đầu tiên có deploy (\code{v0.9.1}) bị đỏ. Smoke test thấy \code{/health} vẫn trả \code{v0.9.0} suốt 10 phút.
+
+\textbf{Chẩn đoán} (hình \ref{fig:v091}):
+\begin{itemize}
+\item Image \code{v0.9.1} trên GHCR đúng là có \code{APP\_\allowbreak{}VERSION=v0.\allowbreak{}9.\allowbreak{}1}, nên image không sai.
+\item Nguyên nhân thật: gói Free của Render tắt dịch vụ khi không có truy cập. Request đầu tiên của smoke test đã đánh thức bản cũ, nên traffic tiếp tục đi vào bản cũ.
+\end{itemize}
+
+\textbf{Cách sửa} (PR \#46): đánh thức dịch vụ \emph{trước} khi gọi deploy hook, và chờ tối đa 15 phút cho đến khi \code{/health} trả đúng phiên bản. Từ \code{v0.9.2}, mọi lần CD đều xanh.
+
+Đây cũng là bằng chứng cho tiêu chí ``ít nhất một lần pipeline phát hiện lỗi'' của NFR-08: smoke test có kiểm tra phiên bản đã chặn được tình huống ``xanh nhưng production vẫn chạy bản cũ''.
+
+\anh{t5-14-cd-v0.9.1-chan-doan-image-dung.jpg}{0.9\linewidth}{Chẩn đoán lần CD \code{v0.9.1} bị đỏ: image đúng phiên bản, lỗi do dịch vụ đang ngủ\label{fig:v091}}
+
+\subsubsection{Container registry}
+Image được lưu ở GitHub Container Registry:
+\begin{itemize}
+\item \code{ghcr.\allowbreak{}io/\allowbreak{}tthan-prog/\allowbreak{}brewlite-as2-api}
+\item \code{ghcr.\allowbreak{}io/\allowbreak{}tthan-prog/\allowbreak{}brewlite-as2-web}
+\end{itemize}
+
+Hai package để chế độ Public để Render kéo được image không cần thông tin đăng nhập. Mỗi phiên bản giữ lại tag riêng, nên rollback chỉ cần triển khai lại tag cũ.
+
+\haianh{t5-06-ghcr-brewlite-as2-api-public.jpg}{t5-08-render-api-live.jpg}{GHCR: package \code{brewlite-as2-api}, tag phiên bản, \code{sha-...}, \code{latest}}{Render: Web Service \code{brewlite-as2-api} chạy từ image GHCR, Live}{Image trên GHCR và dịch vụ API trên Render}
+
+\subsubsection{Rollback}
+Có hai cách rollback, ghi trong \code{docs/\allowbreak{}deploy/\allowbreak{}runbook.\allowbreak{}md}:
+\begin{enumerate}
+\item \textbf{Qua pipeline (ưu tiên):}
+  \begin{enumerate}
+  \item Vào Actions $\rightarrow$ CD $\rightarrow$ Run workflow, nhập một tag đã có trên GHCR (ví dụ \code{v1.1.0}).
+  \item Pipeline bỏ qua build, kiểm tra image tag đó có tồn tại, gọi deploy hook với đúng image, rồi chạy cùng bộ smoke test.
+  \end{enumerate}
+\item \textbf{Trên Render:} dịch vụ $\rightarrow$ Events $\rightarrow$ chọn lần deploy trước $\rightarrow$ Rollback.
+\end{enumerate}
+
+Migration chạy bằng \code{prisma migrate deploy} mỗi khi API khởi động và chỉ áp migration chưa áp. Các phiên bản từ \code{v1.0.0} đến \code{v1.1.1} không có migration mới, nên rollback giữa chúng không cần đổi database.
+
+\subsection{Task 5.4 -- Triển khai và bàn giao}\label{sec:production}
+
+\subsubsection{Production}
+Toàn bộ production chạy trên Render, region Singapore, gói Free, trong workspace riêng ``BrewLite AS2''. Workspace riêng là bắt buộc vì Render chỉ cho một database Free mỗi workspace.
+
+\input{chapters/tables/deploy-thanhphan}
+
+
+\subsubsection{Bảo mật và secret}
+\begin{itemize}
+\item \textbf{Database:} Inbound IP Rules để trống, nên chỉ API trong cùng region Render kết nối được (NFR-03).
+\item \textbf{Repository:}
+  \begin{itemize}
+  \item Không chứa secret; \code{.env} nằm trong \code{.gitignore}.
+  \item \code{.env.example} chỉ có giá trị mẫu.
+  \end{itemize}
+\item \textbf{Secret của production:}
+  \begin{itemize}
+  \item Biến môi trường của Render: \code{DATABASE\_URL}, \code{JWT\_SECRET}, cấu hình VNPay.
+  \item GitHub Secrets: deploy hook.
+  \end{itemize}
+\item \textbf{Ảnh bằng chứng:} không chứa giá trị secret. Ảnh log seed production không được lưu vì có chuỗi kết nối database.
+\end{itemize}
+
+\input{chapters/tables/deploy-secret}
+
+\anh{t5-12-github-secrets-deploy-hooks.jpg}{0.75\linewidth}{GitHub Actions secrets: chỉ hiện tên, giá trị được mã hóa (NFR-03)}
+
+\subsubsection{Bằng chứng VNPay sandbox trên production}
+\haianh{t5-20-vnpay-sandbox-the-ncb.jpg}{t5-22-web-vnpay-return-thanh-cong.jpg}{Cổng VNPay mở từ \code{paymentUrl} do API ký: đơn \#2, thẻ test NCB, 34.000 VND}{VNPay chuyển về web; API kiểm tra chữ ký và số tiền rồi chốt đơn \#1}{VNPay sandbox trên production}
+\anh{t5-25-vnpay-merchant-admin-gd-thanh-toan.jpg}{0.9\linewidth}{Merchant Admin VNPay sandbox: 2 giao dịch thành công ngày 16/11/2026, tổng 68.000 VND\label{fig:vnpayadmin}}
+
+\textbf{Đối chiếu.} Nhóm chạy thử hai lần, tạo hai đơn, mỗi đơn thanh toán VNPay đúng một lần:
+\begin{itemize}
+\item Đơn \#1: giao dịch 15739049.
+\item Đơn \#2: giao dịch 15739051, nội dung ``Thanh toan don hang BrewLite 2''.
+\end{itemize}
+API \code{GET /\allowbreak{}orders/\allowbreak{}me} trả cả hai đơn PAID, mỗi đơn 34.000 đồng. Không có đơn nào bị trừ tiền hai lần.
+
+\subsubsection{Phát hành và tài liệu bàn giao}
+Bản bàn giao \code{v1.0.0} được tag ngày 16/11/2026 sau khi merge giao diện (PR \#12, \#19) và bản sửa QR (PR \#51). Pipeline CD xanh. Tài liệu bàn giao:
+\begin{itemize}
+\item \code{README.md}: cài đặt; chạy bằng Docker Compose hoặc từng phần; chạy test; build; deploy; rollback; tài khoản thử.
+\item \code{docs/\allowbreak{}release/\allowbreak{}release-notes-v1.\allowbreak{}0.\allowbreak{}0.\allowbreak{}md}:
+  \begin{itemize}
+  \item URL production;
+  \item tài khoản và thẻ thử;
+  \item tính năng theo user story kèm số PR;
+  \item số test;
+  \item cách rollback;
+  \item hạn chế đã biết.
+  \end{itemize}
+\item \code{docs/\allowbreak{}deployment.\allowbreak{}md} và \code{docs/\allowbreak{}deploy/\allowbreak{}runbook.\allowbreak{}md}: mô tả production, thao tác tạo dịch vụ, seed, phát hành, rollback, bật VNPay.
+\item \code{CHANGELOG.md} theo Keep a Changelog và Semantic Versioning.
+\end{itemize}
+
+\subsection{Sprint Review và Retrospective Sprint 2}
+\textbf{Kết quả:} đạt Sprint Goal. Luồng xem menu $\rightarrow$ chọn tùy chọn $\rightarrow$ giỏ hàng $\rightarrow$ đặt đơn $\rightarrow$ thanh toán $\rightarrow$ theo dõi đơn chạy được trên production. Khi đóng Sprint, 16/17 user story hoàn thành. US-20 mới xong phần integration test; phần E2E giao diện chuyển sang Sprint 3.
+
+\textbf{Điều làm tốt:}
+\begin{itemize}
+\item Có hợp đồng API trước khi làm giao diện.
+\item Nghiệp vụ khó có test với database thật.
+\item CD phát hiện lỗi thật ở \code{v0.9.1}.
+\item Secret không nằm trong repository; database production chặn kết nối Internet.
+\end{itemize}
+
+\textbf{Điều chưa tốt:}
+\begin{itemize}
+\item \textbf{Ghi đè file:} chép đè cả file khi làm nhiều nhánh làm README mất mục Triển khai (sửa lại ở PR \#45).
+\item \textbf{Phát hiện giới hạn muộn:} giới hạn một database Free mỗi workspace của Render được phát hiện giữa lúc triển khai.
+\item \textbf{Lộ thông tin nhạy cảm:} chuỗi kết nối database bị dán vào kênh trao đổi khi seed production. Nhóm đã khóa kết nối từ Internet ngay sau đó.
+\item \textbf{Tiến độ:} giao diện xong chậm hơn API.
+\item \textbf{Quy trình:} nhiều PR vẫn merge khi chưa có approve.
+\end{itemize}
+
+\textbf{Hành động:}
+\begin{itemize}
+\item Merge \code{main} vào nhánh rồi sửa, không chép đè file.
+\item Kiểm tra giới hạn gói miễn phí trước khi lên kế hoạch.
+\item Không dán chuỗi kết nối, mật khẩu, token vào chat hay ảnh.
+\item Chia giao diện thành PR nhỏ.
+\item Bật yêu cầu 1 approval khi cả nhóm cùng online.
+\end{itemize}
+
+Phản hồi của Product Owner chưa được điền trong biên bản và đang chờ bổ sung.

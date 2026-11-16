@@ -1,0 +1,20 @@
+{\small
+\begin{longtable}{@{}L{2.6cm}L{5.6cm}L{5.7cm}@{}}
+\caption{Ký hiệu mã test dùng trong ma trận truy vết}\label{tab:tvkyhieu}\\
+\toprule
+\textbf{Mã} & \textbf{Loại} & \textbf{Tệp} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Loại} & \textbf{Tệp} \\ \midrule \endhead
+\bottomrule \endfoot
+UT-* & Unit test API & \code{apps/\allowbreak{}api/\allowbreak{}src/\allowbreak{}**/\allowbreak{}*.\allowbreak{}spec.\allowbreak{}ts} \\
+WEB-* & Unit/component test giao diện & \code{apps/\allowbreak{}web/\allowbreak{}**/\allowbreak{}*.\allowbreak{}test.\allowbreak{}tsx} \\
+API-T01--T07 & Test HTTP API (Prisma giả) & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}app.\allowbreak{}e2e-spec.\allowbreak{}ts} (theo thứ tự trong tệp) \\
+AUTH-T01--T09 & Test HTTP xác thực, phân quyền, validate & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}auth-guard.\allowbreak{}e2e-spec.\allowbreak{}ts} \\
+INT-A01--A11 & Integration: xác thực, đơn hàng & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}integration/\allowbreak{}auth-orders.\allowbreak{}int-spec.\allowbreak{}ts} \\
+INT-P01--P10 & Integration: thanh toán Ví/Thẻ, idempotency, tồn kho đồng thời & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}integration/\allowbreak{}payments.\allowbreak{}int-spec.\allowbreak{}ts} \\
+INT-Q01--Q09 & Integration: thanh toán QR & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}integration/\allowbreak{}qr-payments.\allowbreak{}int-spec.\allowbreak{}ts} \\
+INT-V01--V06 & Integration: VNPay sandbox & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}integration/\allowbreak{}vnpay.\allowbreak{}int-spec.\allowbreak{}ts} \\
+INT-R01--R09 & Integration: số ly làm được, công thức & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}integration/\allowbreak{}recipes-availability.\allowbreak{}int-spec.\allowbreak{}ts} \\
+INT-S01--S08 & Integration: kho, đổi quà, tự hủy đơn & \code{apps/\allowbreak{}api/\allowbreak{}test/\allowbreak{}integration/\allowbreak{}staff-rewards.\allowbreak{}int-spec.\allowbreak{}ts} \\
+E2E-T01--T07 & E2E trình duyệt (Playwright) trên API, web, PostgreSQL thật & \code{tests/\allowbreak{}e2e/\allowbreak{}brewlite-flow.\allowbreak{}spec.\allowbreak{}ts} \\
+\end{longtable}
+}

@@ -1,0 +1,20 @@
+{\small
+\begin{longtable}{@{}L{1.3cm}L{1.6cm}L{4.8cm}L{1.3cm}L{4.9cm}@{}}
+\caption{Yêu cầu phi chức năng}\label{tab:nfr}\\
+\toprule
+\textbf{Mã} & \textbf{Nhóm} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Nhóm} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận} \\ \midrule \endhead
+\bottomrule \endfoot
+NFR-01 & Hiệu năng & \code{GET /products} phản hồi nhanh với dữ liệu seed & Should & 95\% trong 20 yêu cầu liên tiếp dưới 500 ms khi chạy cục bộ bằng Docker Compose \\
+NFR-02 & Bảo mật & Mật khẩu và PIN được băm; JWT có hạn; kiểm tra phân quyền theo vai trò & Must & Có test xác thực và phân quyền; không có mật khẩu hoặc PIN thô trong database hay log \\
+NFR-03 & Bảo mật & Secret không nằm trong repository hoặc log CI & Must & \code{.env} có trong \code{.gitignore}; secret của production lưu trên nền tảng triển khai hoặc GitHub Secrets \\
+NFR-04 & Bảo mật & Kiểm tra dữ liệu đầu vào ở cả frontend và backend & Must & Dữ liệu sai hoặc trường lạ trả 400 với thông báo rõ ràng \\
+NFR-05 & Khả dụng & Giao diện mobile-first & Must & Dùng được trên viewport 360--414 px, không cuộn ngang \\
+NFR-06 & Khả dụng & Thông báo lỗi bằng tiếng Việt, dễ hiểu, không lộ chi tiết kỹ thuật & Should & Không hiển thị stack trace hay thông báo lỗi gốc của máy chủ \\
+NFR-07 & Triển khai & Chạy toàn bộ hệ thống bằng \code{docker compose up} & Must & Người ngoài nhóm chạy được theo README \\
+NFR-08 & Triển khai & CI chạy lint, test và build cho mọi PR; CD build image, triển khai và smoke test, có cách rollback & Must & Có log pipeline chạy thành công và ít nhất một lần pipeline phát hiện lỗi \\
+NFR-09 & Vận hành & Có endpoint \code{GET /health} và log & Must & \code{/health} trả \code{status: ok}; smoke test gọi \code{/health} sau mỗi lần deploy \\
+NFR-10 & Độ tin cậy & Migration và seed tái tạo được database & Must & Chạy migration và seed trên database trống luôn cho cùng kết quả \\
+NFR-11 & Bảo trì & Mã nguồn có lint, định dạng thống nhất và test tự động & Should & CI chạy lint và test; có unit test và integration test cho nghiệp vụ lõi \\
+\end{longtable}
+}

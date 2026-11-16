@@ -1,0 +1,12 @@
+# Tệp sinh ra khi biên dịch LaTeX; PDF không commit (nộp riêng)
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.pdf
+!uml/*.pdf

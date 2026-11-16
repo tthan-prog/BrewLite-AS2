@@ -1,0 +1,13 @@
+{\small
+\begin{longtable}{@{}L{3.8cm}L{4.4cm}L{5.7cm}@{}}
+\caption{Trade-off kiến trúc đã chấp nhận}\label{tab:tradeoff}\\
+\toprule
+\textbf{Lựa chọn} & \textbf{Thay vì} & \textbf{Lý do} \\ \midrule \endfirsthead
+\toprule \textbf{Lựa chọn} & \textbf{Thay vì} & \textbf{Lý do} \\ \midrule \endhead
+\bottomrule \endfoot
+Modular monolith & Microservices & Quy mô nhỏ, cần transaction xuyên module (đơn, kho, thanh toán, điểm) \\
+Trừ kho có điều kiện trong transaction & Khóa bi quan (\code{SELECT .\allowbreak{}.\allowbreak{}.\allowbreak{} FOR UPDATE}) hoặc hàng đợi & Đơn giản, đủ an toàn cho mức tải của một cửa hàng, kiểm thử được bằng test đồng thời \\
+Idempotency lưu trên bảng \code{payments} & Bảng idempotency riêng & Ít bảng hơn, mỗi lần thanh toán đúng một bản ghi \\
+Giỏ hàng lưu ở trình duyệt & Lưu giỏ hàng trên server & Giảm API và bảng; giá cuối vẫn do server tính khi tạo đơn \\
+\end{longtable}
+}

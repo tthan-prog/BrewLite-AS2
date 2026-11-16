@@ -1,0 +1,17 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Integration test kho, đổi quà, tự hủy đơn (\code{staff-rewards.\allowbreak{}int-spec.\allowbreak{}ts})}\label{tab:ints}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+INT-S01 & STAFF xem tồn kho kèm cờ OUT, LOW, OK; CUSTOMER 403; chưa đăng nhập 401 & Đạt \\
+INT-S02 & nhập thêm cộng dồn đúng; số lượng không dương trả 400; nguyên liệu không tồn tại trả 404 & Đạt \\
+INT-S03 & sau khi nhập thêm, món hết hàng bán lại được & Đạt \\
+INT-S04 & GET /rewards chỉ trả quà đang mở, xếp theo điểm & Đạt \\
+INT-S05 & đủ điểm: trừ điểm, trả mã quà, ghi giao dịch REDEEM; không đủ điểm: 400, điểm giữ nguyên & Đạt \\
+INT-S06 & quà ngừng hoặc không tồn tại trả 404; chưa đăng nhập trả 401 & Đạt \\
+INT-S07 & đổi đồng thời không làm âm điểm: 100 điểm, 5 yêu cầu 50 điểm $\rightarrow$ đúng 2 thành công & Đạt \\
+INT-S08 & hủy đơn PENDING quá 15 phút, trả lượt mã khuyến mãi, không đụng đơn mới hoặc đơn đã thanh toán, không đụng kho & Đạt \\
+\end{longtable}
+}

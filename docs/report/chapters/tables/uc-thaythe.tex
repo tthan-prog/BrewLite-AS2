@@ -1,0 +1,13 @@
+{\small
+\begin{longtable}{@{}L{0.9cm}L{4.4cm}L{8.6cm}@{}}
+\caption{Luồng thay thế của UC-01}\label{tab:ucalt}\\
+\toprule
+\textbf{\#} & \textbf{Điều kiện} & \textbf{Xử lý} \\ \midrule \endfirsthead
+\toprule \textbf{\#} & \textbf{Điều kiện} & \textbf{Xử lý} \\ \midrule \endhead
+\bottomrule \endfoot
+A1 & Khách nhập mã khuyến mãi hợp lệ trước bước 1 & Giá được giảm; tổng tiền cập nhật trước khi đặt đơn \\
+A2 & Khách gửi lại yêu cầu thanh toán với cùng Idempotency-Key, ví dụ khi mạng chập chờn & API trả lại kết quả cũ, không tạo thanh toán thứ hai \\
+A3 & Ở bước 6 khách chọn QR & Thay cho bước 6--7:  1. API tạo mã QR có hạn dùng.  2. Khách quét mã bằng điện thoại, chọn tài khoản thử nghiệm và nhập PIN.  3. API thực hiện bước 8; cổng mô phỏng kiểm tra PIN và số dư thay cho lời gọi cổng ở bước 9.  4. Trang đặt hàng hỏi trạng thái định kỳ và tự chuyển sang trang xác nhận.  Phần ghi nhận của bước 9 và bước 10 giữ nguyên \\
+A4 & STAFF hủy đơn ở trạng thái cho phép (PENDING, PAYMENT\_FAILED hoặc PAID) & Đơn chuyển CANCELLED. Chỉ phần nguyên liệu đã trừ được hoàn lại; đơn chưa thanh toán không đụng tới kho. Điểm đã cộng bị trừ lại \\
+\end{longtable}
+}

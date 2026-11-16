@@ -1,0 +1,16 @@
+{\small
+\begin{longtable}{@{}L{1.9cm}L{10.6cm}L{1.3cm}@{}}
+\caption{Test HTTP API với Prisma giả (\code{app.\allowbreak{}e2e-spec.\allowbreak{}ts})}\label{tab:apit}\\
+\toprule
+\textbf{Mã} & \textbf{Test case (tên trong mã nguồn)} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Test case} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+API-T01 & GET /health trả 200, status ok, db up & Đạt \\
+API-T02 & GET /health trả 503 khi database lỗi & Đạt \\
+API-T03 & GET /products trả danh sách menu & Đạt \\
+API-T04 & GET /products/:id trả chi tiết kèm size và mức đường, đá & Đạt \\
+API-T05 & GET /products/:id trả 404 khi không có sản phẩm & Đạt \\
+API-T06 & GET /products/:id trả 400 khi id không phải số & Đạt \\
+API-T07 & trả 404 cho đường dẫn không tồn tại & Đạt \\
+\end{longtable}
+}

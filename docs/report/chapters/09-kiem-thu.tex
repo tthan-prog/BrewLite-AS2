@@ -1,0 +1,106 @@
+\section{Kiểm thử}\label{ch:kiemthu}
+
+\subsection{Chiến lược kiểm thử}
+Nhóm kiểm thử theo nhiều mức, mỗi mức nhắm vào một loại rủi ro.
+
+\begin{longtable}{@{}L{2.7cm}L{3.4cm}L{4.7cm}L{3cm}@{}}
+\caption{Các mức kiểm thử}\label{tab:mucktest}\\
+\toprule
+\textbf{Mức} & \textbf{Công cụ, môi trường} & \textbf{Nội dung} & \textbf{Rủi ro nhắm tới} \\ \midrule \endfirsthead
+\toprule \textbf{Mức} & \textbf{Công cụ, môi trường} & \textbf{Nội dung} & \textbf{Rủi ro nhắm tới} \\ \midrule \endhead
+\bottomrule \endfoot
+Unit test API & Vitest, không cần database & Hàm thuần: tính giá, máy trạng thái, công thức nguyên liệu, số ly, chữ ký VNPay, cổng mô phỏng, mã quà, health & Sai công thức, sai quy tắc nghiệp vụ \\
+Test HTTP API & Vitest, Supertest, Prisma giả & Toàn bộ pipeline NestJS: guard, \code{ValidationPipe}, mã HTTP, định dạng lỗi & Lỗ hổng phân quyền, dữ liệu sai lọt vào \\
+Integration test & Vitest, Supertest, PostgreSQL 16 thật & API kết hợp database: transaction, cập nhật có điều kiện, ràng buộc duy nhất, yêu cầu đồng thời & Bán vượt kho, trừ tiền hai lần, âm điểm \\
+Unit test giao diện & Vitest, Testing Library, jsdom & Trang và component: trạng thái tải/rỗng/lỗi, form, giỏ hàng, thanh toán, khôi phục khi lỗi & Giao diện hiển thị sai trạng thái \\
+E2E & Playwright, Chromium, API, web, PostgreSQL thật đã seed & Luồng của người dùng trên trình duyệt thật & Các phần riêng lẻ đúng nhưng ghép lại sai \\
+Kiểm thử thủ công trên production & Trình duyệt máy tính và điện thoại & Toàn bộ luồng khách và nhân viên, 4 phương thức thanh toán, VNPay thật (sandbox) & Lỗi chỉ xuất hiện trên môi trường thật \\
+\end{longtable}
+
+\textbf{Nguyên tắc: các tình huống đồng thời phải test trên PostgreSQL thật.} Cập nhật có điều kiện và ràng buộc duy nhất chỉ có ý nghĩa khi có transaction của database. Mock Prisma sẽ không phát hiện được lỗi bán vượt kho. Vì vậy integration test chạy trong CI với PostgreSQL trong service container, không bỏ qua khi thiếu database.
+
+\subsection{Số lượng và kết quả}
+Bảng \ref{tab:sotest} là số test tại \code{v1.1.1}. Nhóm chạy lại toàn bộ test (trừ E2E) trên mã của \code{main} lúc 04:24 ngày 17/11/2026:
+\begin{itemize}
+\item Unit test API: 62/62.
+\item Test HTTP API: 16/16.
+\item Integration test (6 tệp, PostgreSQL 16): 53/53.
+\item Unit test web: 72/72.
+\end{itemize}
+
+E2E: 8/8 test đạt khi chạy trên máy với mã của PR \#55. CI của PR \#55 và các PR sau đều xanh ở cả hai job.
+
+\begin{table}[H]
+\centering
+\caption{Số test theo phiên bản}\label{tab:sotest}
+\begin{tabular}{@{}L{5cm}rrL{5cm}@{}}
+\toprule
+\textbf{Loại} & \textbf{\code{v1.0.0}} & \textbf{\code{v1.1.1}} & \textbf{Lệnh} \\ \midrule
+Unit API & 55 & 62 & \code{npm test -w apps/\allowbreak{}api} \\
+Test HTTP API (Prisma giả) & 16 & 16 & \code{npm run test:e2e -w apps/\allowbreak{}api} \\
+Integration API (PostgreSQL thật) & 44 & 53 & \code{npm run test:int -w apps/\allowbreak{}api} \\
+Unit web & 55 & 72 & \code{npm test -w apps/\allowbreak{}web} \\
+E2E trình duyệt (Playwright) & 0 & 8 & \code{cd tests/\allowbreak{}e2e \&\& npx playwright test} \\
+\midrule
+\textbf{Tổng} & \textbf{170} & \textbf{211} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Danh sách test case}
+Mã test (bảng \ref{tab:tvkyhieu}) đánh theo thứ tự \code{it(...)} trong tệp và được dùng trong ma trận truy vết. Tên test case lấy nguyên từ mã nguồn. Nhiều test case ghi luôn mã FR mà nó kiểm chứng.
+
+\input{chapters/tables/tv-kyhieu}
+
+\subsubsection{Test HTTP API}
+\input{chapters/tables/test-api-t}
+\input{chapters/tables/test-auth-t}
+
+\subsubsection{Integration test}
+\input{chapters/tables/test-int-a}
+\input{chapters/tables/test-int-p}
+
+Hai test quan trọng nhất của bảng \ref{tab:intp}:
+\begin{itemize}
+\item \textbf{INT-P07:} nhiều khách thanh toán đồng thời khi kho chỉ đủ cho một phần. Số đơn PAID đúng bằng số ly kho cho phép, tồn kho không âm, các đơn còn lại PAYMENT\_FAILED và không bị trừ tiền.
+\item \textbf{INT-P08:} hai yêu cầu đồng thời cho cùng một đơn. Chỉ một lần thanh toán được ghi nhận.
+\end{itemize}
+
+\input{chapters/tables/test-int-q}
+\input{chapters/tables/test-int-v}
+\input{chapters/tables/test-int-r}
+\input{chapters/tables/test-int-s}
+
+\subsubsection{Test E2E trên trình duyệt}\label{sec:e2e}
+Các kịch bản E2E chạy trên dữ liệu seed và tạo tài khoản mới mỗi lần chạy. Test thay đổi dữ liệu (tạo đơn, nhập kho), nên chỉ chạy trên database riêng, không chạy trên production.
+
+\input{chapters/tables/test-e2e}
+
+\subsection{Kiểm thử thủ công trên production}
+Ngoài test tự động, nhóm kiểm thử thủ công trên production ở hai đợt:
+\begin{itemize}
+\item \textbf{16/11/2026:} VNPay sandbox, đối soát 2 giao dịch với Merchant Admin.
+\item \textbf{17/11/2026:} toàn bộ luồng trên \code{v1.1.0}, sau đó kiểm tra lại sau khi phát hành \code{v1.1.1}.
+\end{itemize}
+
+Các trường hợp được thử, kèm ảnh bằng chứng trong Phụ lục \ref{app:bangchung}:
+
+\begin{longtable}{@{}L{4.6cm}L{6.2cm}L{1.6cm}L{1.4cm}@{}}
+\caption{Kiểm thử thủ công trên production}\label{tab:thucong}\\
+\toprule
+\textbf{Trường hợp} & \textbf{Kết quả quan sát} & \textbf{Ảnh} & \textbf{Kết quả} \\ \midrule \endfirsthead
+\toprule \textbf{Trường hợp} & \textbf{Kết quả quan sát} & \textbf{Ảnh} & \textbf{Kết quả} \\ \midrule \endhead
+\bottomrule \endfoot
+Chưa đăng nhập bấm thanh toán & Chuyển sang \code{/\allowbreak{}login?next=/\allowbreak{}checkout}, giỏ hàng giữ nguyên & 34 & Đạt \\
+Thanh toán Ví với mã \code{GIAM10} & Đơn \#12 PAID; $1.426.000 - 142.600 = 1.283.400$ đồng; cộng 128 điểm & 35--37 & Đạt \\
+Thẻ bị từ chối rồi thử lại & Báo ``Thẻ bị ngân hàng từ chối'', có nút tạo đơn mới; thẻ hợp lệ thì đơn \#13 PAID, $186.000 \times 0{,}9 = 167.400$ đồng & 38--39 & Đạt \\
+QR thành công & Điện thoại xác nhận đơn \#19; trang thanh toán trên máy tính tự chuyển sang thành công & 40--42 & Đạt \\
+QR thiếu số dư & Đơn \#14 (390.600 đồng) bằng TEST-0001 sau khi tài khoản đã trả 882.000 đồng cho đơn \#7: báo ``Số dư tài khoản không đủ'', không trừ tiền & 43--46 & Đạt \\
+VNPay sandbox & Đơn \#16, 522.000 đồng qua thẻ NCB; trở về web báo thành công, cộng 52 điểm & 47--48 & Đạt \\
+Nhân viên chuyển trạng thái & Đơn \#2 qua Chờ pha $\rightarrow$ Đang pha $\rightarrow$ Sẵn sàng $\rightarrow$ Hoàn tất; khách thấy ``Hoàn tất'' & 52--56 & Đạt \\
+Đơn quá hạn tự hủy & Đơn \#11 ``Quá hạn thanh toán, đơn tự hủy'' & 57 & Đạt \\
+Nhập kho cập nhật số ly & Nhập 200 g đá viên: 116/93/77 $\rightarrow$ 118/94/78 & 59--61 & Đạt \\
+Giao diện điện thoại & Header, thực đơn, thẻ món hiển thị đủ, không cuộn ngang & 62 & Đạt \\
+Biểu tượng PWA & \code{v1.1.0}: Chrome báo lỗi biểu tượng; \code{v1.1.1}: hiện biểu tượng PNG 192 và 512 & 63, 65 & Lỗi, đã sửa \\
+Nhân viên đăng xuất & \code{v1.1.0}: ở lại form đăng nhập nhân viên; \code{v1.1.1}: về trang chủ & 66--67 & Lỗi, đã sửa \\
+\end{longtable}
