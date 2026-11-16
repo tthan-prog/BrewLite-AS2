@@ -45,6 +45,8 @@ export interface SettleRequest {
   onSuccess?: (tx: Prisma.TransactionClient) => Promise<void>;
   /** Đã trừ tiền nhưng đơn không còn chờ thanh toán (bị hủy giữa chừng): hoàn tiền. */
   onRefund?: (tx: Prisma.TransactionClient) => Promise<void>;
+  /** Lý do khi nguyên liệu vừa hết; mặc định "chưa trừ tiền" (đúng với cổng trừ tiền sau khi giữ kho). */
+  outOfStockReason?: (ingredientName: string) => string;
 }
 
 /** Dùng nội bộ để rollback transaction giữ kho khi một nguyên liệu không đủ. */
@@ -149,7 +151,8 @@ export class PaymentsService {
     } catch (e) {
       if (!(e instanceof OutOfStock)) throw e;
       const ingredient = await this.prisma.ingredient.findUnique({ where: { id: e.ingredientId } });
-      const reason = `Nguyên liệu vừa hết (${ingredient?.name ?? 'không rõ'}), chưa trừ tiền`;
+      const name = ingredient?.name ?? 'không rõ';
+      const reason = req.outOfStockReason?.(name) ?? `Nguyên liệu vừa hết (${name}), chưa trừ tiền`;
       const payment = await this.prisma.$transaction((tx) => this.recordFailure(tx, base, reason, null));
       return { result: await this.toResult(payment.id), replayed: false };
     }

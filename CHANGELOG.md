@@ -6,7 +6,8 @@ Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic 
 
 ### Thêm
 - Trang nhân viên `/staff` (xử lý đơn theo trạng thái) và `/staff/ingredients` (kho nguyên liệu, nhập thêm) (PR #48).
-- Thanh toán QR mô phỏng: `POST /payments/qr`, trang xác nhận trên điện thoại `/pay/qr/[token]`, thành phần `QrPaymentPanel` (US-16).
+- Thanh toán QR mô phỏng: `POST /payments/qr`, trang xác nhận trên điện thoại `/pay/qr/[token]`, thành phần `QrPaymentPanel` (US-16, PR #49).
+- VNPay sandbox: `POST /payments/vnpay`, Return URL và IPN kiểm tra chữ ký HMAC-SHA512 và số tiền, trang `/checkout/vnpay-return`, thành phần `VnpayButton` (US-19).
 
 Đang chờ merge giao diện khách hàng (PR #12, #19). Chi tiết: [docs/release/release-notes-v1.0.0.md](docs/release/release-notes-v1.0.0.md).
 
