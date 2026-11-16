@@ -175,9 +175,133 @@ Khi `status` là `FAILED`: giữ giỏ hàng, hiện `failureReason`, cho bấm 
 
 Thanh toán thành công cộng 1 điểm cho mỗi 10.000đ của `total`.
 
+## Thanh toán QR mô phỏng (FR-18)
+
+Luồng: trang thanh toán tạo mã QR → khách quét bằng điện thoại → trang `/pay/qr/<token>` trên điện thoại chọn tài khoản thử và nhập PIN → trang thanh toán hỏi trạng thái và tự chuyển sang xác nhận khi `PAID`. Giao diện có sẵn thành phần `apps/web/components/qr-payment-panel.tsx` để gắn vào trang thanh toán.
+
+### `POST /payments/qr` → `201` (đăng nhập, chủ đơn)
+
+```json
+{ "orderId": 12 }
+```
+
+Trả mã QR còn hạn (tạo lại khi đơn đã có mã còn hạn thì trả cùng mã):
+
+```json
+{
+  "token": "3f9c…(32 ký tự hex)", "orderId": 12, "amount": 73800, "status": "PENDING",
+  "expiresAt": "2026-11-16T03:05:00.000Z",
+  "qrContent": "https://brewlite-as2-web.onrender.com/pay/qr/3f9c…",
+  "qrImage": "data:image/png;base64,…"
+}
+```
+
+Hạn dùng: `QR_TTL_MINUTES` (mặc định 5). Link trong QR dùng `WEB_PUBLIC_URL`, nếu không có thì origin đầu tiên của `WEB_ORIGIN`. Đơn đã thanh toán trả `409`, đơn đã hủy trả `400`, đơn của người khác trả `404`.
+
+### `GET /payments/qr/:token/status` → `200` (đăng nhập, chủ đơn)
+
+`{ "token", "orderId", "status": "PENDING" | "PAID" | "FAILED" | "EXPIRED", "orderStatus" }`. Trang thanh toán gọi mỗi 3 giây.
+
+### `GET /payments/qr/:token` → `200` (công khai, cho điện thoại)
+
+`{ "token", "orderId", "amount", "status", "expiresAt", "accounts": [{ "identifier", "holderName" }] }`. Không trả số dư. Token sai trả `404`.
+
+### `POST /payments/qr/:token/confirm` → `200` (công khai)
+
+```json
+{ "accountIdentifier": "TEST-0001", "pin": "123456" }
+```
+
+| Trường hợp | Kết quả |
+|---|---|
+| Đúng PIN, đủ số dư | `200`, cùng dạng kết quả với `POST /payments`, `status: "SUCCESS"`, `method: "QR"`; trừ số dư, đơn `PAID`, mã QR `PAID` |
+| Sai tài khoản hoặc PIN | `400` `"Sai tài khoản hoặc PIN"`; không trừ tiền, được nhập lại |
+| Thiếu số dư | `200`, `status: "FAILED"`, `failureReason: "Số dư tài khoản không đủ"`; không trừ tiền, đơn `PAYMENT_FAILED`, mã QR `FAILED` (khách tạo mã mới) |
+| Mã hết hạn | `400` `"Mã QR đã hết hạn, vui lòng tạo mã mới"` |
+| Xác nhận lại mã đã thanh toán | `409` `"Mã QR này đã được thanh toán"`; nhiều lần bấm đồng thời chỉ một lần thành công |
+
+Tài khoản thử (seed): `TEST-0001` số dư 1.000.000đ, `TEST-0002` số dư 10.000đ, PIN `123456`.
+
+## Thanh toán VNPay sandbox (FR-21)
+
+Môi trường thử nghiệm của VNPay, không dùng tiền thật. Bật khi máy chủ có đủ `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_URL`, `VNPAY_RETURN_URL`; thiếu thì các API dưới trả `503`.
+
+Luồng: trang thanh toán gọi `POST /payments/vnpay` → chuyển khách tới `paymentUrl` → khách thanh toán trên trang VNPay → VNPay chuyển về `VNPAY_RETURN_URL` (trang `/checkout/vnpay-return`) → trang gửi nguyên chuỗi query về `GET /payments/vnpay/return` → máy chủ kiểm tra chữ ký HMAC-SHA512, mã website, số tiền rồi mới chốt đơn. Giao diện có sẵn `apps/web/components/vnpay-button.tsx`.
+
+### `GET /payments/vnpay/config` → `200`
+
+`{ "enabled": true }` — giao diện ẩn nút VNPay khi `false`.
+
+### `POST /payments/vnpay` → `201` (đăng nhập, chủ đơn)
+
+```json
+{ "orderId": 12 }
+```
+
+Trả `{ "orderId", "txnRef", "amount", "expiresAt", "paymentUrl" }`. `paymentUrl` đã ký theo VNPay 2.1.0 (`vnp_Amount` = tổng tiền × 100, hạn 15 phút). Đơn đã thanh toán `409`, đã hủy `400`.
+
+### `GET /payments/vnpay/return?vnp_...` (công khai)
+
+| Trường hợp | Kết quả |
+|---|---|
+| Chữ ký đúng, số tiền đúng, `vnp_ResponseCode=00` | `200`, kết quả như `POST /payments`, `method: "VNPAY"`, `status: "SUCCESS"`; đơn `PAID`, trừ kho, cộng điểm |
+| Chữ ký đúng, mã khác `00` (ví dụ `24` khách hủy) | `200`, `status: "FAILED"`, `failureReason` tiếng Việt; đơn `PAYMENT_FAILED`, khách thanh toán lại bằng giao dịch mới |
+| Sai chữ ký hoặc sai mã website | `400` `"Chữ ký VNPay không hợp lệ"`; đơn giữ nguyên |
+| Chữ ký đúng nhưng số tiền khác đơn | `400` `"Số tiền giao dịch không khớp với đơn hàng"`; đơn giữ nguyên |
+| Gọi lại cùng giao dịch | Trả lại kết quả cũ, không tạo thêm thanh toán |
+
+### `GET /payments/vnpay/ipn?vnp_...` (VNPay gọi máy chủ–máy chủ)
+
+Xử lý giống Return URL, trả `{ "RspCode", "Message" }` theo tài liệu VNPay: `00` đã ghi nhận, `97` sai chữ ký, `01` không tìm thấy giao dịch, `04` sai số tiền, `02` đã xác nhận trước đó. Return URL và IPN cùng đến vẫn chỉ ghi một kết quả.
+
+## Kho nguyên liệu (STAFF, FR-17)
+
+### `GET /ingredients` → `200`
+
+```json
+[{ "id": 1, "name": "Cà phê rang xay", "unit": "g", "stock": 4954, "lowThreshold": 500, "flag": "OK" }]
+```
+
+`flag`: `OUT` (hết, tồn kho ≤ 0), `LOW` (sắp hết, tồn kho ≤ `lowThreshold`), `OK`.
+
+### `PATCH /ingredients/:id/restock` → `200`
+
+```json
+{ "quantity": 500 }
+```
+
+Số nguyên dương, tối đa 1.000.000 mỗi lần; cộng dồn vào tồn kho. Trả nguyên liệu sau khi nhập (cùng dạng như trên). Số lượng không dương trả `400`, id không tồn tại trả `404`. CUSTOMER gọi nhận `403`.
+
+## Đổi quà (FR-19)
+
+### `GET /rewards` → `200` (công khai)
+
+```json
+[{ "id": 1, "name": "Giảm 10.000đ", "pointsCost": 50 }]
+```
+
+### `POST /rewards/:id/redeem` → `201` (đăng nhập)
+
+Không có body. Đủ điểm thì trừ điểm và trả mã quà để dùng tại quầy:
+
+```json
+{ "redemptionId": 1, "rewardId": 1, "rewardName": "Giảm 10.000đ", "pointsSpent": 50, "code": "BL-7K3QX9MP", "pointsLeft": 77 }
+```
+
+Không đủ điểm trả `400` (`"Không đủ điểm để đổi phần thưởng này"`), điểm giữ nguyên. Quà đã ngừng hoặc không tồn tại trả `404`. Nhiều yêu cầu đổi cùng lúc không làm điểm âm.
+
+### `GET /rewards/me` → `200` (đăng nhập)
+
+Các mã quà đã đổi, mới nhất trước: `[{ "id", "rewardId", "rewardName", "pointsSpent", "code" }]`.
+
+## Tự hủy đơn quá hạn (FR-20)
+
+Đơn `PENDING` quá `ORDER_TIMEOUT_MINUTES` phút (mặc định 15) tự chuyển `CANCELLED` với `failureReason: "Quá hạn thanh toán, đơn tự hủy"` và trả lại lượt dùng mã khuyến mãi. API quét mỗi phút. Đơn đã thanh toán không bị ảnh hưởng.
+
 ## Gợi ý nối giao diện
 
 - **Đăng nhập (Long, PR #19):** đọc `accessToken` từ `POST /auth/login`, lưu `sessionStorage["brewlite_token"]` như hiện tại.
 - **Lịch sử đơn (Long, PR #19):** `GET /orders/me` trả mảng; mã đơn hiển thị là `#${id}`.
 - **Chi tiết món (Lực, PR #12):** gọi `GET ${API_URL}/products/:id` (không phải `/api/products`). Lưu vào giỏ `productId` (số), `size`, `sugar`, `ice`, `toppingIds` (mảng id) để gửi thẳng lên `POST /orders`.
+- **Đổi quà (Lực, PR #12):** điểm lấy từ `GET /auth/me`, danh sách quà từ `GET /rewards`, bấm đổi gọi `POST /rewards/:id/redeem` rồi hiện `code`.
 - **Thanh toán (Lực, PR #12):** chưa đăng nhập thì chuyển `/login` và giữ giỏ (FR-06). Gọi `POST /orders` → lấy `id` → `POST /payments` kèm `Idempotency-Key`. `SUCCESS` thì xóa giỏ và chuyển trang xác nhận; `FAILED` thì giữ giỏ và hiện lý do.

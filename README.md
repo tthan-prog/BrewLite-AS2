@@ -80,6 +80,21 @@ Chi tiết request, response và mã lỗi: [docs/api/api-contract.md](docs/api/
 | GET | `/orders?status=` | STAFF | Danh sách đơn theo trạng thái | FR-15 |
 | PATCH | `/orders/:id/status` | STAFF | Chuyển trạng thái đơn theo máy trạng thái | FR-10, FR-15 |
 | POST | `/payments` | Đăng nhập | Thanh toán Ví hoặc Thẻ mô phỏng, header `Idempotency-Key` bắt buộc | FR-08, FR-09, FR-12, FR-14 |
+| POST | `/payments/qr` | Đăng nhập | Tạo mã QR thanh toán (hạn 5 phút) | FR-18 |
+| GET | `/payments/qr/:token/status` | Chủ đơn | Trạng thái mã QR | FR-18 |
+| GET | `/payments/qr/:token` | Công khai | Thông tin cho trang xác nhận trên điện thoại | FR-18 |
+| POST | `/payments/qr/:token/confirm` | Công khai | Chọn tài khoản thử, nhập PIN để thanh toán | FR-18 |
+| GET | `/payments/vnpay/config` | Công khai | VNPay sandbox đã bật chưa | FR-21 |
+| POST | `/payments/vnpay` | Đăng nhập | Tạo URL thanh toán VNPay sandbox đã ký | FR-21 |
+| GET | `/payments/vnpay/return` | Công khai | Kiểm tra chữ ký, số tiền và chốt đơn khi VNPay chuyển khách về | FR-21 |
+| GET | `/payments/vnpay/ipn` | VNPay | Thông báo máy chủ–máy chủ của VNPay | FR-21 |
+| GET | `/ingredients` | STAFF | Tồn kho nguyên liệu kèm cờ hết, sắp hết | FR-17 |
+| PATCH | `/ingredients/:id/restock` | STAFF | Nhập thêm nguyên liệu | FR-17 |
+| GET | `/rewards` | Công khai | Danh sách quà đổi bằng điểm | FR-19 |
+| POST | `/rewards/:id/redeem` | Đăng nhập | Đổi điểm lấy mã quà | FR-19 |
+| GET | `/rewards/me` | Đăng nhập | Mã quà đã đổi | FR-19 |
+
+Đơn chưa thanh toán tự hủy sau `ORDER_TIMEOUT_MINUTES` phút (mặc định 15, FR-20).
 
 ## Lint, test, build
 
@@ -104,6 +119,12 @@ npm run test:int
 
 CI chạy Install → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`).
 
+## Triển khai (CD)
+
+Push tag `v*` chạy `.github/workflows/cd.yml`: CI → build image API và Web → push GHCR → deploy Render → smoke test `/health` (đúng phiên bản, database up), `/products`, trang `/` và `/menu`. Rollback: Actions → CD → Run workflow với tag cũ.
+
+Cấu hình Render, biến môi trường, seed production và rollback: [docs/deploy/runbook.md](docs/deploy/runbook.md).
+
 ## Quy ước làm việc
 
 Xem [docs/contributing.md](docs/contributing.md): chiến lược nhánh, pull request, quy ước commit, Definition of Done.
@@ -113,3 +134,14 @@ Xem [docs/contributing.md](docs/contributing.md): chiến lược nhánh, pull r
 - Yêu cầu: [docs/requirements](docs/requirements)
 - Sơ đồ: [docs/diagrams](docs/diagrams)
 - Kiến trúc và ADR: [docs/architecture](docs/architecture)
+- API: [docs/api/api-contract.md](docs/api/api-contract.md)
+- Triển khai production: [docs/deployment.md](docs/deployment.md), runbook: [docs/deploy/runbook.md](docs/deploy/runbook.md)
+- Scrum: [Product Backlog](docs/scrum/product-backlog.md), [Sprint 1 Review và Retro](docs/scrum/sprint-1-review-retro.md), [Sprint 2 Review và Retro](docs/scrum/sprint-2-review-retro.md)
+- Phiên bản: [CHANGELOG.md](CHANGELOG.md), [release notes v1.0.0](docs/release/release-notes-v1.0.0.md)
+
+## Production
+
+- Web: https://brewlite-as2-web.onrender.com
+- API: https://brewlite-as2-api-k8xj.onrender.com, health check: https://brewlite-as2-api-k8xj.onrender.com/health
+
+Gói Free của Render ngủ khi không có truy cập; lần mở đầu có thể chậm khoảng 50 giây.

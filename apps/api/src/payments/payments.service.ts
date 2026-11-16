@@ -13,7 +13,7 @@ import { earnPoints } from '../loyalty/loyalty';
 import { PAYABLE_STATUSES } from '../orders/order-status';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { PAYMENT_GATEWAY, PaymentGateway } from './payment-gateway';
+import { ChargeResult, PAYMENT_GATEWAY, PaymentGateway } from './payment-gateway';
 
 export const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9_-]{8,100}$/;
 
@@ -31,6 +31,23 @@ export interface PaymentResult {
 
 /** Dữ liệu chung của một bản ghi Payment, chưa có status. */
 type PaymentBase = Omit<Prisma.PaymentUncheckedCreateInput, 'status' | 'id' | 'createdAt'>;
+
+/** Một yêu cầu thanh toán đi qua luồng chung (Ví/Thẻ hoặc QR). */
+export interface SettleRequest {
+  userId: number;
+  orderId: number;
+  method: PaymentMethod;
+  idempotencyKey: string;
+  requestHash: string;
+  /** Trừ tiền với số tiền của đơn. */
+  charge: (amount: number) => Promise<ChargeResult>;
+  /** Chạy trong transaction chốt sau khi đơn chuyển PAID. */
+  onSuccess?: (tx: Prisma.TransactionClient) => Promise<void>;
+  /** Đã trừ tiền nhưng đơn không còn chờ thanh toán (bị hủy giữa chừng): hoàn tiền. */
+  onRefund?: (tx: Prisma.TransactionClient) => Promise<void>;
+  /** Lý do khi nguyên liệu vừa hết; mặc định "chưa trừ tiền" (đúng với cổng trừ tiền sau khi giữ kho). */
+  outOfStockReason?: (ingredientName: string) => string;
+}
 
 /** Dùng nội bộ để rollback transaction giữ kho khi một nguyên liệu không đủ. */
 class OutOfStock extends Error {
@@ -67,19 +84,39 @@ export class PaymentsService {
       .update(JSON.stringify([dto.orderId, dto.method, dto.cardNumber ?? null]))
       .digest('hex');
 
-    const previous = await this.findByKey(user.id, idempotencyKey);
+    return this.settle({
+      userId: user.id,
+      orderId: dto.orderId,
+      method: dto.method as PaymentMethod,
+      idempotencyKey,
+      requestHash,
+      charge: (amount) =>
+        this.gateway.charge({ orderId: dto.orderId, method: dto.method, amount, cardNumber: dto.cardNumber }),
+    });
+  }
+
+  /**
+   * Luồng thanh toán dùng chung cho Ví/Thẻ và QR (UC-01):
+   *  1. Khóa (userId, idempotencyKey) đã có → trả lại kết quả cũ (FR-09).
+   *  2. Transaction 1: giữ nguyên liệu bằng trừ kho có điều kiện TRƯỚC khi trừ tiền (FR-12).
+   *  3. Gọi charge (cổng Ví/Thẻ, hoặc trừ số dư tài khoản QR).
+   *  4. Transaction 2: thành công → PAID, Payment SUCCESS, cộng điểm, onSuccess;
+   *     thất bại → hoàn kho, PAYMENT_FAILED; đơn đã bị hủy giữa chừng → hoàn kho, onRefund.
+   */
+  async settle(req: SettleRequest): Promise<{ result: PaymentResult; replayed: boolean }> {
+    const previous = await this.findByKey(req.userId, req.idempotencyKey);
     if (previous) {
-      if (previous.requestHash !== requestHash) {
+      if (previous.requestHash !== req.requestHash) {
         throw new ConflictException('Idempotency-Key này đã được dùng cho một yêu cầu thanh toán khác');
       }
       return { result: await this.toResult(previous.id), replayed: true };
     }
 
     const order = await this.prisma.order.findUnique({
-      where: { id: dto.orderId },
+      where: { id: req.orderId },
       include: { ingredientUses: true },
     });
-    if (!order || order.userId !== user.id) throw new NotFoundException('Không tìm thấy đơn hàng');
+    if (!order || order.userId !== req.userId) throw new NotFoundException('Không tìm thấy đơn hàng');
     if (!PAYABLE_STATUSES.includes(order.status)) {
       if (order.status === OrderStatus.CANCELLED) throw new BadRequestException('Đơn đã bị hủy, không thể thanh toán');
       throw new ConflictException('Đơn đã được thanh toán');
@@ -90,11 +127,11 @@ export class PaymentsService {
     }));
     const base: PaymentBase = {
       orderId: order.id,
-      userId: user.id,
-      method: dto.method as PaymentMethod,
+      userId: req.userId,
+      method: req.method,
       amount: order.total,
-      idempotencyKey,
-      requestHash,
+      idempotencyKey: req.idempotencyKey,
+      requestHash: req.requestHash,
     };
 
     // --- Bước 1: giữ nguyên liệu (trừ kho có điều kiện) ---
@@ -114,20 +151,16 @@ export class PaymentsService {
     } catch (e) {
       if (!(e instanceof OutOfStock)) throw e;
       const ingredient = await this.prisma.ingredient.findUnique({ where: { id: e.ingredientId } });
-      const reason = `Nguyên liệu vừa hết (${ingredient?.name ?? 'không rõ'}), chưa trừ tiền`;
+      const name = ingredient?.name ?? 'không rõ';
+      const reason = req.outOfStockReason?.(name) ?? `Nguyên liệu vừa hết (${name}), chưa trừ tiền`;
       const payment = await this.prisma.$transaction((tx) => this.recordFailure(tx, base, reason, null));
       return { result: await this.toResult(payment.id), replayed: false };
     }
 
-    // --- Bước 2: gọi cổng thanh toán ---
-    let charge: { success: boolean; reason?: string };
+    // --- Bước 2: trừ tiền ---
+    let charge: ChargeResult;
     try {
-      charge = await this.gateway.charge({
-        orderId: order.id,
-        method: dto.method,
-        amount: order.total,
-        cardNumber: dto.cardNumber,
-      });
+      charge = await req.charge(order.total);
     } catch {
       charge = { success: false, reason: 'Cổng thanh toán không phản hồi' };
     }
@@ -142,13 +175,15 @@ export class PaymentsService {
         data: { status: OrderStatus.PAID, failureReason: null },
       });
       if (moved.count === 0) {
-        // Đơn bị hủy trong lúc thanh toán: cổng mô phỏng coi như hoàn tiền, hoàn lại kho
+        // Đơn bị hủy trong lúc thanh toán: hoàn tiền, hoàn lại kho
         await restoreStock(tx, uses);
         await tx.orderIngredientUse.updateMany({ where: { orderId: order.id }, data: { consumed: false } });
+        await req.onRefund?.(tx);
         return (await tx.payment.create({ data: { ...base, status: PaymentStatus.FAILED } })).id;
       }
       const payment = await tx.payment.create({ data: { ...base, status: PaymentStatus.SUCCESS } });
-      await earnPoints(tx, user.id, order.id, order.total);
+      await earnPoints(tx, req.userId, order.id, order.total);
+      await req.onSuccess?.(tx);
       return payment.id;
     });
     return { result: await this.toResult(paymentId), replayed: false };

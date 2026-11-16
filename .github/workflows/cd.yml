@@ -1,0 +1,201 @@
+# CD (Task 5, NFR-08, ADR 007): CI → build image → push GHCR → deploy Render → smoke test.
+# - Push tag v* (ví dụ v1.0.0): chạy toàn bộ pipeline cho phiên bản đó.
+# - Rollback: Actions → CD → Run workflow, nhập tag đã có trên GHCR (ví dụ v1.0.0):
+#   bỏ qua build, triển khai lại đúng image của tag đó rồi smoke test.
+name: CD
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag image đã có trên GHCR để triển khai lại (rollback), ví dụ v1.0.0'
+        required: true
+        type: string
+
+# Không chạy hai lần triển khai production cùng lúc
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+env:
+  API_IMAGE: ghcr.io/${{ github.repository_owner }}/brewlite-as2-api
+  WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/brewlite-as2-web
+
+jobs:
+  ci:
+    name: CI (lint, test, build)
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/ci.yml
+
+  build-push:
+    name: Build và push image lên GHCR
+    if: github.event_name == 'push'
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Đăng nhập GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build và push image API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          build-args: |
+            APP_VERSION=${{ github.ref_name }}
+          tags: |
+            ${{ env.API_IMAGE }}:${{ github.ref_name }}
+            ${{ env.API_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.API_IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build và push image Web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          # URL API production được nhúng vào bundle lúc build (ADR 008)
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.API_URL || 'http://localhost:3001' }}
+          tags: |
+            ${{ env.WEB_IMAGE }}:${{ github.ref_name }}
+            ${{ env.WEB_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.WEB_IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  deploy:
+    name: Deploy Render và smoke test
+    needs: build-push
+    # Chạy sau build-push thành công, hoặc khi rollback thủ công (build-push bị bỏ qua)
+    if: always() && (github.event_name == 'workflow_dispatch' || needs.build-push.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: ${{ vars.WEB_URL }}
+    permissions:
+      contents: read
+      packages: read
+    env:
+      VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+      API_URL: ${{ vars.API_URL }}
+      WEB_URL: ${{ vars.WEB_URL }}
+      RENDER_DEPLOY_HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
+      RENDER_DEPLOY_HOOK_WEB: ${{ secrets.RENDER_DEPLOY_HOOK_WEB }}
+    steps:
+      - name: Kiểm tra cấu hình triển khai
+        id: config
+        run: |
+          missing=""
+          [ -n "$RENDER_DEPLOY_HOOK_API" ] || missing="$missing RENDER_DEPLOY_HOOK_API"
+          [ -n "$RENDER_DEPLOY_HOOK_WEB" ] || missing="$missing RENDER_DEPLOY_HOOK_WEB"
+          [ -n "$API_URL" ] || missing="$missing API_URL"
+          [ -n "$WEB_URL" ] || missing="$missing WEB_URL"
+          if [ -n "$missing" ]; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Thiếu cấu hình:$missing"; exit 1
+            fi
+            # Lần chạy đầu (chưa tạo dịch vụ Render): chỉ đẩy image, bỏ qua deploy
+            echo "::warning::Chưa cấu hình Render ($missing). Image $VERSION đã lên GHCR; bỏ qua deploy."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Đăng nhập GHCR
+        if: steps.config.outputs.ready == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Kiểm tra image của phiên bản có trên GHCR
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          docker manifest inspect "$API_IMAGE:$VERSION" > /dev/null
+          docker manifest inspect "$WEB_IMAGE:$VERSION" > /dev/null
+          echo "Triển khai phiên bản $VERSION"
+
+      # Gói Free của Render tắt dịch vụ khi không có truy cập. Nếu gọi deploy khi dịch vụ đang ngủ,
+      # lần gọi /health đầu tiên của smoke test sẽ đánh thức bản cũ và yêu cầu tiếp tục đi vào bản cũ.
+      # Vì vậy đánh thức API và web trước, rồi mới deploy.
+      - name: Đánh thức dịch vụ trước khi deploy
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          for url in "$API_URL/health" "$WEB_URL/"; do
+            for i in $(seq 1 18); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$url" || true)
+              echo "[$i] GET $url → $code"
+              if [ "$code" = "200" ]; then break; fi
+              sleep 10
+            done
+          done
+          echo "Phiên bản đang chạy trước khi deploy:"
+          curl -fsS --max-time 30 "$API_URL/health" || true
+
+      - name: Gọi deploy hook Render
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          enc() { python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"; }
+          curl -fsS -X POST "${RENDER_DEPLOY_HOOK_API}&imgURL=$(enc "$API_IMAGE:$VERSION")" > /dev/null
+          curl -fsS -X POST "${RENDER_DEPLOY_HOOK_WEB}&imgURL=$(enc "$WEB_IMAGE:$VERSION")" > /dev/null
+          echo "Đã yêu cầu Render triển khai $VERSION"
+
+      - name: Smoke test API (/health trả đúng phiên bản, database up)
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          # Tối đa 15 phút: Render kéo image, chạy migration, chờ health check rồi mới chuyển traffic
+          for i in $(seq 1 90); do
+            body=$(curl -fsS --max-time 30 "$API_URL/health" || true)
+            echo "[$i] $body"
+            if echo "$body" | grep -q "\"version\":\"$VERSION\"" && echo "$body" | grep -q '"db":"up"'; then
+              curl -fsS --max-time 30 "$API_URL/products" | python3 -c 'import sys, json; d = json.load(sys.stdin); assert isinstance(d, list); print(f"GET /products: {len(d)} món")'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::API không lên phiên bản $VERSION sau 15 phút"
+          exit 1
+
+      - name: Smoke test Web (trang chủ và menu)
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          for path in / /menu; do
+            ok=""
+            for i in $(seq 1 30); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$WEB_URL$path" || true)
+              echo "[$i] GET $path → $code"
+              if [ "$code" = "200" ]; then ok=1; break; fi
+              sleep 10
+            done
+            [ -n "$ok" ] || { echo "::error::Web $path không trả 200"; exit 1; }
+          done
