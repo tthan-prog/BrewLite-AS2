@@ -59,9 +59,14 @@ export function SiteHeader() {
 
   function logout() {
     sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem("brewlite_user");
     window.dispatchEvent(new Event("brewlite-auth"));
     router.push("/menu");
     router.refresh();
+  }
+
+  if (pathname?.startsWith("/staff") || pathname?.startsWith("/pay/")) {
+    return null;
   }
 
   const linkStyle = "rounded-lg px-2 py-2 text-sm font-medium hover:bg-[#594437] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";

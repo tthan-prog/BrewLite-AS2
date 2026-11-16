@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { API_URL } from "../../lib/config";
@@ -117,11 +117,11 @@ export default function MenuPage() {
           <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-[#98734D]">
             BrewLite Coffee House
           </p>
-          <h2 className="max-w-xl text-4xl font-bold leading-tight sm:text-5xl">
+          <h1 className="max-w-xl text-4xl font-bold leading-tight sm:text-5xl">
             Một chút cà phê,
             <br />
             một ngày thật vui.
-          </h2>
+          </h1>
           <p className="mt-5 max-w-lg text-[#685B4B]">
             Khám phá thực đơn đồ uống được chuẩn bị dành riêng cho bạn.
           </p>
@@ -237,4 +237,3 @@ export default function MenuPage() {
     </main>
   );
 }
-
