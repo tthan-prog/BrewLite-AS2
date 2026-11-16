@@ -10,6 +10,10 @@ beforeEach(() => {
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
   localStorage.setItem("brewlite-as2-cart", "[]");
+  sessionStorage.setItem(
+    "brewlite-as2-pending-payment",
+    JSON.stringify({ orderId: 12, cartSnapshot: "test-snapshot" }),
+  );
 });
 afterEach(() => {
   cleanup();
@@ -19,6 +23,8 @@ afterEach(() => {
 
 describe("Trang /checkout/vnpay-return (FR-21)", () => {
   it("gửi nguyên query VNPay về API; thành công thì báo đơn, điểm và xóa giỏ", async () => {
+    const cartChanged = vi.fn();
+window.addEventListener("brewlite-cart", cartChanged);
     window.history.replaceState(null, "", "/checkout/vnpay-return?vnp_Amount=7380000&vnp_TxnRef=abc&vnp_SecureHash=xyz");
     fetchMock.mockImplementation((url: string) => {
       expect(url).toMatch(/\/payments\/vnpay\/return\?vnp_Amount=7380000&vnp_TxnRef=abc&vnp_SecureHash=xyz$/);
@@ -28,6 +34,9 @@ describe("Trang /checkout/vnpay-return (FR-21)", () => {
     expect(await screen.findByText("Thanh toán thành công")).toBeInTheDocument();
     expect(screen.getByText(/Đơn #12 · 73\.800 ₫ · \+7 điểm/)).toBeInTheDocument();
     expect(localStorage.getItem("brewlite-as2-cart")).toBeNull();
+    expect(sessionStorage.getItem("brewlite-as2-pending-payment")).toBeNull();
+    expect(cartChanged).toHaveBeenCalledTimes(1);
+    window.removeEventListener("brewlite-cart", cartChanged);
   });
 
   it("thất bại thì hiện lý do và giữ giỏ hàng", async () => {
@@ -39,6 +48,7 @@ describe("Trang /checkout/vnpay-return (FR-21)", () => {
     expect(await screen.findByText("Thanh toán không thành công")).toBeInTheDocument();
     expect(screen.getByText("Khách hàng hủy giao dịch")).toBeInTheDocument();
     expect(localStorage.getItem("brewlite-as2-cart")).toBe("[]");
+    expect(sessionStorage.getItem("brewlite-as2-pending-payment")).not.toBeNull();
   });
 
   it("API từ chối (sai chữ ký) thì báo lỗi; không có query VNPay thì không gọi API", async () => {

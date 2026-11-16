@@ -23,7 +23,11 @@ export default function VnpayReturnPage() {
       }
       try {
         const result = await confirmVnpayReturn(search);
-        if (result.status === "SUCCESS") localStorage.removeItem("brewlite-as2-cart");
+        if (result.status === "SUCCESS") {
+          localStorage.removeItem("brewlite-as2-cart");
+          sessionStorage.removeItem("brewlite-as2-pending-payment");
+          window.dispatchEvent(new Event("brewlite-cart"));
+        }
         setState({ kind: "done", result });
       } catch (e) {
         setState({ kind: "error", message: e instanceof Error ? e.message : "Không xác nhận được giao dịch." });
