@@ -2,7 +2,9 @@
 
 Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic Versioning](https://semver.org/lang/vi/). Mỗi phiên bản là một tag Git; tag `v*` chạy pipeline CD (`.github/workflows/cd.yml`).
 
-## [Chưa phát hành] – dự kiến v1.1.0 (Sprint 3)
+## [v1.1.0] – 17/11/2026
+
+Sprint 3: hoàn thiện sau bản bàn giao (PR #53).
 
 ### Thêm
 - Chọn nhiều topping cho một ly (tối đa 5); giá và số ly tối đa cập nhật theo size, đường, đá, topping.
