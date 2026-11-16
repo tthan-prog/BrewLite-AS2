@@ -26,6 +26,11 @@ services:
       WEB_ORIGIN: http://localhost:3000
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      # VNPay sandbox (FR-21), tùy chọn: để trống thì tắt
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
+      VNPAY_URL: ${VNPAY_URL:-https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL:-http://localhost:3000/checkout/vnpay-return}
     ports:
       - "3001:3001"
     depends_on:
