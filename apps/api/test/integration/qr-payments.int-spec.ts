@@ -127,6 +127,17 @@ describe('Thanh toán QR mô phỏng (integration)', () => {
     expect(await coffee()).toBe(900);
   });
 
+  it('lần xác nhận đến sau trong lúc lần trước vừa ghi xong (kết quả được trả lại) vẫn nhận 409, không trừ tiền lần hai', async () => {
+    const qr = await createQr(await createOrder());
+    await confirm(qr.token, 'TEST-0001').expect(200);
+    // Mô phỏng cửa sổ tranh chấp: lần đến sau đọc mã QR lúc vẫn còn PENDING, trước khi lần đầu đổi sang PAID
+    await prisma.paymentIntent.update({ where: { token: qr.token }, data: { status: 'PENDING' } });
+    const late = await confirm(qr.token, 'TEST-0001').expect(409);
+    expect(late.body.message).toBe('Mã QR này đã được thanh toán');
+    expect(await balance('TEST-0001')).toBe(1_000_000 - 73800);
+    expect(await prisma.payment.count({ where: { status: 'SUCCESS' } })).toBe(1);
+  });
+
   it('thiếu số dư: không trừ tiền, hoàn kho, đơn PAYMENT_FAILED; tạo mã mới và trả bằng tài khoản khác thì PAID', async () => {
     const orderId = await createOrder();
     const qr = await createQr(orderId);
