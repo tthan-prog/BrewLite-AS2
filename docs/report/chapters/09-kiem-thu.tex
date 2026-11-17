@@ -14,19 +14,14 @@ Test HTTP API & Vitest, Supertest, Prisma giả & Toàn bộ pipeline NestJS: gu
 Integration test & Vitest, Supertest, PostgreSQL 16 thật & API kết hợp database: transaction, cập nhật có điều kiện, ràng buộc duy nhất, yêu cầu đồng thời & Bán vượt kho, trừ tiền hai lần, âm điểm \\
 Unit test giao diện & Vitest, Testing Library, jsdom & Trang và component: trạng thái tải/rỗng/lỗi, form, giỏ hàng, thanh toán, khôi phục khi lỗi & Giao diện hiển thị sai trạng thái \\
 E2E & Playwright, Chromium, API, web, PostgreSQL thật đã seed & Luồng của người dùng trên trình duyệt thật & Các phần riêng lẻ đúng nhưng ghép lại sai \\
+Phi chức năng & Script Node.js trong CI & Độ trễ \code{GET /products} (NFR-01), quét secret trong repository (NFR-03) & API chậm dần, lộ secret khi commit \\
 Kiểm thử thủ công trên production & Trình duyệt máy tính và điện thoại & Toàn bộ luồng khách và nhân viên, 4 phương thức thanh toán, VNPay thật (sandbox) & Lỗi chỉ xuất hiện trên môi trường thật \\
 \end{longtable}
 
 \textbf{Nguyên tắc: các tình huống đồng thời phải test trên PostgreSQL thật.} Cập nhật có điều kiện và ràng buộc duy nhất chỉ có ý nghĩa khi có transaction của database. Mock Prisma sẽ không phát hiện được lỗi bán vượt kho. Vì vậy integration test chạy trong CI với PostgreSQL trong service container, không bỏ qua khi thiếu database.
 
 \subsection{Số lượng và kết quả}
-Bảng \ref{tab:sotest} là số test tại \code{v1.1.1}. Nhóm chạy lại toàn bộ test (trừ E2E) trên mã của \code{main} lúc 04:24 ngày 17/11/2026:
-\begin{itemize}
-\item Unit test API: 62/62.
-\item Test HTTP API: 16/16.
-\item Integration test (6 tệp, PostgreSQL 16): 53/53.
-\item Unit test web: 72/72.
-\end{itemize}
+Bảng \ref{tab:sotest} là số test tại \code{v1.1.1}. Nhóm chạy lại toàn bộ test (trừ E2E) trên mã của \code{main} lúc 04:24 ngày 17/11/2026: unit test API 62/62, test HTTP API 16/16, integration test (6 tệp, PostgreSQL 16) 53/53, unit test web 72/72.
 
 E2E: 8/8 test đạt khi chạy trên máy với mã của PR \#55. CI của PR \#55 và các PR sau đều xanh ở cả hai job.
 
@@ -43,6 +38,8 @@ Unit web & 55 & 72 & \code{npm test -w apps/\allowbreak{}web} \\
 E2E trình duyệt (Playwright) & 0 & 8 & \code{cd tests/\allowbreak{}e2e \&\& npx playwright test} \\
 \midrule
 \textbf{Tổng} & \textbf{170} & \textbf{211} & \\
+\midrule
+Phi chức năng (sau \code{v1.1.1}) & -- & 6 & mục \ref{sec:nfrtest} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -75,6 +72,25 @@ Hai test quan trọng nhất của bảng \ref{tab:intp}:
 Các kịch bản E2E chạy trên dữ liệu seed và tạo tài khoản mới mỗi lần chạy. Test thay đổi dữ liệu (tạo đơn, nhập kho), nên chỉ chạy trên database riêng, không chạy trên production.
 
 \input{chapters/tables/test-e2e}
+
+\subsection{Kiểm thử phi chức năng}\label{sec:nfrtest}
+Sau \code{v1.1.1}, nhóm bổ sung test tự động cho hai NFR trước đó chỉ kiểm chứng thủ công. Đây là script Node.js không cần thư viện ngoài, chạy trong CI.
+
+{\small
+\begin{longtable}{@{}L{1.9cm}L{1.3cm}L{7.6cm}L{3cm}@{}}
+\caption{Test phi chức năng}\label{tab:nfrtest}\\
+\toprule
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Cách kiểm tra} & \textbf{Vị trí trong CI} \\ \midrule \endfirsthead
+\toprule \textbf{Mã} & \textbf{Yêu cầu} & \textbf{Cách kiểm tra} & \textbf{Vị trí trong CI} \\ \midrule \endhead
+\bottomrule \endfoot
+PERF-T01 & NFR-01 & 1 yêu cầu khởi động, rồi 20 yêu cầu \code{GET /products} liên tiếp trên dữ liệu seed; tính min, trung bình, p95 (nearest-rank), max; trượt khi p95 $\ge$ 500 ms, API lỗi hoặc danh sách rỗng & Job E2E, sau khi API và web đã khởi động \\
+PERF-U01--U04 & NFR-01 & Unit test hàm phân vị: p95 của 20 mẫu là mẫu thứ 19; 1 yêu cầu chậm trong 20 vẫn đạt, 2 yêu cầu chậm thì trượt & Job chính, sau unit test \\
+SEC-T01 & NFR-03 & Quét các tệp Git theo dõi: tệp \code{.env}, khóa riêng, token GitHub, khóa AWS, URL deploy hook, chuỗi kết nối database có mật khẩu, \code{JWT\_SECRET} hoặc \code{VNPAY\_\allowbreak{}HASH\_\allowbreak{}SECRET} có giá trị thật; che giá trị khi in & Job chính, ngay sau \code{npm ci} \\
+\end{longtable}}
+
+\textbf{Kết quả} chạy trên máy ngày 17/11/2026 (API build từ nhánh \code{test/\allowbreak{}nfr-perf}, PostgreSQL 16, dữ liệu seed): PERF-T01 đạt, 20/20 yêu cầu dưới 500 ms (min 2,9; trung bình 5,2; p95 9,5; max 10,7 ms); đặt ngưỡng 1 ms thì script báo ``KHÔNG ĐẠT'' và trả mã thoát 1. PERF-U01--U04 đạt 4/4. SEC-T01 quét 339 tệp, không phát hiện secret; trên repository thử có chèn \code{.env}, chuỗi kết nối database ngoài, \code{JWT\_SECRET} ngẫu nhiên và URL deploy hook, script bắt đủ 4 vị trí và che giá trị.
+
+\textbf{Giới hạn:} PERF-T01 đo độ trễ tuần tự từ một máy, chưa phải load test đồng thời; trong CI, API và database chạy cùng runner nên số đo thấp hơn production. SEC-T01 quét theo mẫu, không quét lịch sử commit.
 
 \subsection{Kiểm thử thủ công trên production}
 Ngoài test tự động, nhóm kiểm thử thủ công trên production ở hai đợt:

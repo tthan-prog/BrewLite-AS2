@@ -2,6 +2,12 @@
 
 Ghi theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/) và [Semantic Versioning](https://semver.org/lang/vi/). Mỗi phiên bản là một tag Git; tag `v*` chạy pipeline CD (`.github/workflows/cd.yml`).
 
+## [Chưa phát hành]
+
+### Thêm
+- Test hiệu năng PERF-T01 (`npm run test:perf`, NFR-01): 20 yêu cầu `GET /products` liên tiếp, đạt khi p95 < 500 ms; chạy trong job E2E của CI.
+- Quét secret SEC-T01 (`npm run check:secrets`, NFR-03): trượt khi có tệp `.env`, khóa, token, URL deploy hook hoặc secret thật trong repository; chạy trong CI ngay sau `npm ci`.
+
 ## [v1.1.1] – 17/11/2026
 
 Bản sửa lỗi sau kiểm thử production (PR #55). Chi tiết: [docs/release/release-notes-v1.1.1.md](docs/release/release-notes-v1.1.1.md).

@@ -29,8 +29,8 @@ Bảng \ref{tab:tvuc} đi theo từng bước của UC-01 và chỉ ra test ki�
 \subsection{Nhận xét về độ phủ}
 \begin{itemize}
 \item \textbf{Yêu cầu Must:} 11/12 FR Must có ít nhất một integration test hoặc E2E. FR-02 (trạng thái menu) là hành vi thuần giao diện nên được kiểm chứng bằng component test.
-\item \textbf{NFR-01 (hiệu năng):} mới đo thủ công khi chạy Docker Compose ở Sprint 1, chưa có test tự động. Đây là khoảng trống đã biết, ghi trong release notes.
-\item \textbf{NFR-03 (secret):} kiểm chứng bằng rà soát repository và cấu hình nền tảng, không bằng test tự động.
+\item \textbf{NFR-01 (hiệu năng):} đến \code{v1.1.1} chỉ đo thủ công khi chạy Docker Compose ở Sprint 1. Sau đó nhóm bổ sung PERF-T01 chạy trong CI (mục \ref{sec:nfrtest}). Test này đo độ trễ tuần tự, chưa phải load test.
+\item \textbf{NFR-03 (secret):} kiểm chứng bằng SEC-T01 (quét repository trong CI) kết hợp rà soát cấu hình GitHub Secrets và Render.
 \item \textbf{NFR-07, NFR-08:} kiểm chứng bằng log chạy pipeline và ảnh bằng chứng.
 \item \textbf{FR-22, FR-23 (Won't):} không có thiết kế và test, đúng phạm vi đã chốt.
 \end{itemize}

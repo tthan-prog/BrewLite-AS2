@@ -49,11 +49,17 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Kiểm tra secret (NFR-03, SEC-T01)
+        run: npm run check:secrets
+
       - name: Lint
         run: npm run lint
 
       - name: Unit Test
         run: npm test
+
+      - name: Unit Test script hiệu năng
+        run: node --test tests/perf/percentile.test.mjs
 
       - name: E2E Test (API, Prisma giả)
         run: npm run test:e2e -w apps/api
@@ -124,6 +130,9 @@ jobs:
           nohup npm run start -w apps/web > /tmp/web.log 2>&1 &
           npx --yes wait-on@8 -t 90000 http://localhost:3001/health http://localhost:3000/menu
 
+      - name: Hiệu năng GET /products (NFR-01, PERF-T01)
+        run: npm run test:perf -- --json /tmp/perf-products.json
+
       - name: Playwright
         working-directory: tests/e2e
         run: |
@@ -141,4 +150,5 @@ jobs:
             tests/e2e/test-results
             /tmp/api.log
             /tmp/web.log
+            /tmp/perf-products.json
           retention-days: 7
