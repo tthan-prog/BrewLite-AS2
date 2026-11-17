@@ -46,7 +46,7 @@ Video demo & Chưa có & Ghi ngoài repository \\
 \item \textbf{Biên bản bổ sung muộn:} phản hồi của Product Owner và góp ý riêng của các thành viên được điền ngày 17/11/2026, sau khi các Sprint đã kết thúc. Video demo chưa có.
 \item \textbf{Kỹ thuật:}
   \begin{itemize}
-  \item NFR-01 chưa có test hiệu năng tự động.
+  \item Test hiệu năng (PERF-T01) mới đo độ trễ tuần tự, chưa có load test nhiều người dùng đồng thời.
   \item JWT không thu hồi được trước khi hết hạn.
   \item Gói Free của Render ngủ khi không có truy cập (lần mở đầu chậm khoảng 50 giây), và database Free có thời hạn sử dụng theo chính sách của Render.
   \item Cổng Ví, Thẻ, QR là mô phỏng; VNPay chỉ dùng sandbox.
@@ -67,7 +67,7 @@ Video demo & Chưa có & Ghi ngoài repository \\
 \begin{itemize}
 \item Bật yêu cầu ít nhất 1 approval trong ruleset; luân phiên người review.
 \item Thêm E2E cho đăng xuất nhân viên, manifest có biểu tượng PNG, và chạy E2E trên image Docker.
-\item Thêm test hiệu năng cho \code{GET /products} (NFR-01).
+\item Mở rộng PERF-T01 thành load test đồng thời (ví dụ k6).
 \item Giao diện quản trị sản phẩm, khuyến mãi và báo cáo doanh thu (FR-22).
 \item Kết nối cổng thanh toán thật sau khi đáp ứng yêu cầu pháp lý (FR-23).
 \item Thu hồi phiên đăng nhập (refresh token hoặc danh sách token bị thu hồi).
@@ -80,4 +80,4 @@ Phiên bản \code{v1.1.1} đang chạy trên production. Luồng nghiệp vụ 
 
 Các hạn chế về quy trình review và phân bố công việc là điểm nhóm cần cải thiện nhất trong các dự án sau.
 
-\clearpage
+\bigskip

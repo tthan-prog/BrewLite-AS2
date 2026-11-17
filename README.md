@@ -103,7 +103,11 @@ npm run lint                     # ESLint cho api và web
 npm test                         # Unit test (Vitest) cho api và web
 npm run test:e2e -w apps/api     # Test HTTP của API (supertest, Prisma giả lập)
 npm run build                    # Build api và web
+npm run check:secrets            # NFR-03: quét secret trong các tệp Git theo dõi
+npm run test:perf                # NFR-01: 20 yêu cầu GET /products, p95 < 500 ms (cần API đang chạy, đã seed)
 ```
+
+Chi tiết hai test phi chức năng: [tests/perf/README.md](tests/perf/README.md).
 
 Test tích hợp dùng PostgreSQL thật. Test sẽ **xóa toàn bộ dữ liệu** của database được trỏ tới, nên dùng database riêng, không dùng database đang chạy thử:
 
@@ -119,7 +123,7 @@ npm run test:int
 
 Test E2E trên trình duyệt (Playwright, `tests/e2e`) chạy trên API, web và database thật đã seed; cách chạy trên máy xem [tests/e2e/README.md](tests/e2e/README.md).
 
-CI chạy Install → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`). Job thứ hai **E2E (Playwright)** migrate và seed một database riêng, khởi động API và web rồi chạy 7 kịch bản trên Chromium; khi lỗi, báo cáo và log được lưu thành artifact.
+CI chạy Install → Kiểm tra secret → Lint → Unit Test → E2E Test → Integration Test (PostgreSQL trong service container) → Build cho mọi pull request (`.github/workflows/ci.yml`). Job thứ hai **E2E (Playwright)** migrate và seed một database riêng, khởi động API và web, đo hiệu năng `GET /products` (NFR-01) rồi chạy các kịch bản Playwright trên Chromium; khi lỗi, báo cáo và log được lưu thành artifact.
 
 ## Triển khai (CD)
 

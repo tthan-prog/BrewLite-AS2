@@ -67,9 +67,9 @@ Số thứ tự trong mã test là thứ tự `it(...)` trong tệp. Integration
 
 | Mã yêu cầu | User story | Thiết kế | Hiện thực | Kiểm chứng |
 |---|---|---|---|---|
-| NFR-01 Hiệu năng `GET /products` | US-01 | C4-01 | Một truy vấn có include, dữ liệu seed | Đo thủ công khi chạy Docker Compose (Sprint 1); chưa có test tự động |
+| NFR-01 Hiệu năng `GET /products` | US-01 | C4-01 | Một truy vấn có include, dữ liệu seed | PERF-T01 (`tests/perf/products-latency.mjs`, chạy trong job E2E của CI: 20 yêu cầu liên tiếp, p95 < 500 ms); PERF-U01–U04 (hàm phân vị) |
 | NFR-02 Băm mật khẩu, PIN; JWT có hạn; phân quyền | US-07 | ADR-006, Sequence-01 | bcrypt, `JWT_EXPIRES_IN`, `RolesGuard` | UT `auth.service.spec`; AUTH-T01–T05; INT-A01; INT-R07; INT-Q03 |
-| NFR-03 Secret không nằm trong repo/log | US-21 | Deploy-01, ADR-007 | `.env.example` không có giá trị thật; GitHub Secrets, biến Render | Rà soát repo; `docs/deployment.md`; database production chặn kết nối Internet |
+| NFR-03 Secret không nằm trong repo/log | US-21 | Deploy-01, ADR-007 | `.env.example` không có giá trị thật; GitHub Secrets, biến Render | SEC-T01 (`scripts/check-secrets.mjs`, chạy trong CI sau `npm ci`); rà soát repo; `docs/deployment.md`; database production chặn kết nối Internet |
 | NFR-04 Validate đầu vào hai phía | US-07, US-08 | ADR-002 | `ValidationPipe` (whitelist, forbidNonWhitelisted), DTO; kiểm tra form ở web | AUTH-T06, T08, T09; INT-R05; WEB `login/page.test`, `product/[id]/page.test` |
 | NFR-05 Mobile-first, PWA | US-01, US-25 | C4-01 | Tailwind; `app/manifest.ts`, `app/icon.svg`, `public/icon-192.png`, `public/icon-512.png` | E2E-T06 (375px không cuộn ngang, manifest); WEB `page.test` (kích thước biểu tượng); bằng chứng task5 ảnh 62, 65 |
 | NFR-06 Thông báo lỗi tiếng Việt | US-25 | ADR-008 | Thông báo trong service, `lib/api.ts` | Các test INT, WEB kiểm tra nội dung thông báo |

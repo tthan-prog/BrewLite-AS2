@@ -25,7 +25,7 @@ npm run dev:web                 # Web ở cổng 3000
 
 \noindent\textit{Chạy test}
 \begin{Verbatim}
-npm run lint
+npm run lint && npm run check:secrets   # check:secrets: quét secret (NFR-03)
 npm test -w apps/api            # unit test API
 npm run test:e2e -w apps/api    # test HTTP API (Prisma giả)
 npm run test:int -w apps/api    # integration test, cần DATABASE_URL đã migrate
