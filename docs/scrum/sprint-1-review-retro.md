@@ -44,7 +44,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task4` của nhóm (ảnh 01–17).
 - Một số tạo phẩm phải sửa nhiều lần trước khi merge: ảnh sơ đồ là PNG nhưng đặt đuôi `.svg`, `erd.puml` bị lỗi cú pháp, trang menu dùng class Tailwind khi chưa cài Tailwind, bản backlog đầu chép kế hoạch cũ.
 - Công cụ gặp lỗi môi trường: Jest không chạy với NestJS 12 (chuyển sang Vitest); Windows Smart App Control chặn binary của SWC (bỏ SWC, dùng `@Inject` tường minh).
 - Nhiều PR được merge mà chưa có approve của thành viên khác (ruleset đặt 0 approval), chưa đạt đủ mục 4 của Definition of Done.
-- [cần nhóm bổ sung]
+- Sơ đồ class và ERD (B) vẽ khi chưa đối chiếu hết UC-01 nên phải sửa sau khi đã merge (bỏ `Product.stock`, `usesRecipe`, PR #13); PR #13 chỉ đưa file `.puml`, ảnh PNG trên `main` vẫn là bản cũ cho tới PR #18.
 
 ### Hành động cho Sprint 2
 
