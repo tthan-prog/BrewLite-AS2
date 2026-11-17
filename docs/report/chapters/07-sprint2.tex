@@ -304,4 +304,17 @@ Bản bàn giao \code{v1.0.0} được tag ngày 16/11/2026 sau khi merge giao d
 \item Bật yêu cầu 1 approval khi cả nhóm cùng online.
 \end{itemize}
 
+
+\textbf{Góp ý riêng của từng thành viên} (ghi trong \code{docs/scrum/sprint-2-review-retro.md}):
+\begin{longtable}{@{}L{2.4cm}L{6cm}L{5.4cm}@{}}
+\caption{Góp ý Retrospective Sprint 2 của từng thành viên}\label{tab:retro2}\\
+\toprule
+\textbf{Thành viên} & \textbf{Điều chưa tốt} & \textbf{Hành động} \\ \midrule \endfirsthead
+\toprule \textbf{Thành viên} & \textbf{Điều chưa tốt} & \textbf{Hành động} \\ \midrule \endhead
+\bottomrule \endfoot
+Hồ Thiên Ngân (B) & -- & Đối chiếu SRS, use case với sơ đồ trước khi vẽ; mở ảnh xuất ra so với tệp \code{.puml} trước khi commit \\
+Hà Thiên Long (C) & Tiêu chí của US-20 gộp cả integration test và E2E nên story không đóng được trong Sprint 2 & Tách story lớn thành các story nhỏ đủ làm xong trong một Sprint \\
+Giản Thiên Lực (D) & Checkout có nhiều trường hợp (đăng nhập, thanh toán thất bại, thử lại, QR, VNPay) gộp trong một PR lớn (PR \#12) nên review và tích hợp mất thêm thời gian & Chia PR giao diện theo từng chức năng; kiểm tra các trường hợp thanh toán lỗi trước khi merge \\
+\end{longtable}
+
 \textbf{Phản hồi của Product Owner:} Chấp nhận 16/17 user story. US-20 được chấp nhận phần integration test; phần E2E chuyển sang Sprint 3. Tiêu chí nghiệm thu chính của sprint là luồng chọn món, giỏ hàng, đặt đơn và thanh toán chạy được trên production bản \code{v1.0.0}. VNPay đã thanh toán thử thành công 2 đơn trên production; các phương thức Ví, Thẻ, QR đã được demo trên giao diện. Ưu tiên cho Sprint 3: test E2E trên giao diện, nhiều topping và số ly theo công thức.

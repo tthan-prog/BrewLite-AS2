@@ -143,4 +143,17 @@ PR \#10 không được merge, đúng mục đích minh chứng.
 \item thống nhất hợp đồng API trước khi làm giao diện.
 \end{itemize}
 
+
+\textbf{Góp ý riêng của từng thành viên} (ghi trong \code{docs/scrum/sprint-1-review-retro.md}):
+\begin{longtable}{@{}L{2.4cm}L{6cm}L{5.4cm}@{}}
+\caption{Góp ý Retrospective Sprint 1 của từng thành viên}\label{tab:retro1}\\
+\toprule
+\textbf{Thành viên} & \textbf{Điều chưa tốt} & \textbf{Hành động} \\ \midrule \endfirsthead
+\toprule \textbf{Thành viên} & \textbf{Điều chưa tốt} & \textbf{Hành động} \\ \midrule \endhead
+\bottomrule \endfoot
+Hồ Thiên Ngân (B) & Class diagram và ERD vẽ khi chưa đối chiếu hết UC-01 nên phải sửa sau khi merge (bỏ \code{Product.stock}, \code{usesRecipe}, PR \#13); ảnh PNG còn là bản cũ cho tới PR \#18 & (xem hành động của B ở Sprint 2) \\
+Hà Thiên Long (C) & Phản hồi PO viết muộn; tiêu chí nghiệm thu của từng story chưa được chốt trước khi Sprint bắt đầu & Chốt tiêu chí nghiệm thu trong \code{product-backlog.md} trước Sprint; viết phản hồi PO ngay sau Sprint Review \\
+Giản Thiên Lực (D) & Trang Menu chưa kiểm tra đủ cấu hình giao diện và kết nối API từ đầu nên phải chỉnh sửa trước khi merge & Kiểm tra cấu hình giao diện và kết nối API trên máy trước khi mở PR \\
+\end{longtable}
+
 \textbf{Phản hồi của Product Owner:} Chấp nhận US-01 đến US-05 theo tiêu chí trong \code{product-backlog.md}. Sprint đạt Sprint Goal: API và trang \code{/menu} chạy được với dữ liệu thật từ database, CI chặn merge khi lỗi. Ghi nhận việc bản backlog đầu chép kế hoạch cũ đã được sửa trước khi chốt. Ưu tiên cho Sprint 2: hoàn thành giỏ hàng, đặt đơn và thanh toán để có luồng đặt món end-to-end.
