@@ -61,8 +61,9 @@ Mỗi yêu cầu có mã, mức ưu tiên MoSCoW và tiêu chí chấp nhận ki
 \input{chapters/tables/fr-mvp}
 \input{chapters/tables/fr-bosung}
 
-Các yêu cầu phi chức năng tập trung vào bốn nhóm:
+Các yêu cầu phi chức năng tập trung vào năm nhóm:
 \begin{itemize}
+\item \textbf{Hiệu năng:} NFR-01.
 \item \textbf{Bảo mật:} NFR-02 đến NFR-04.
 \item \textbf{Khả dụng:} NFR-05, NFR-06.
 \item \textbf{Triển khai, vận hành:} NFR-07 đến NFR-09.
@@ -106,7 +107,7 @@ Nhóm chọn \textbf{UC-01 ``Đặt và thanh toán đơn hàng''} làm use case
   \item Đơn ở trạng thái PAID; nguyên liệu đã bị trừ; có bản ghi \code{Payment}; điểm thưởng đã được cộng.
   \item Khách thấy trang xác nhận đơn.
   \end{itemize}
-\item \textbf{Thanh toán thất bại:} đơn ở PAYMENT\_FAILED, giỏ hàng được giữ; khách có thể thử lại hoặc hủy đơn.
+\item \textbf{Thanh toán thất bại:} đơn ở PAYMENT\_FAILED, giỏ hàng được giữ; khách có thể thử lại. Nhân viên có quyền hủy đơn theo phân quyền.
 \item \textbf{Thiếu nguyên liệu khi đặt:} không tạo đơn, tồn kho không đổi.
 \end{itemize}
 
@@ -125,8 +126,8 @@ Nhóm chọn \textbf{UC-01 ``Đặt và thanh toán đơn hàng''} làm use case
 \item API trả mã đơn; giao diện chuyển sang màn hình thanh toán.
 \item Khách chọn Ví hoặc Thẻ và xác nhận.
 \item Giao diện gửi \code{POST /\allowbreak{}payments} kèm \code{Idempotency-Key}.
-\item API mở một transaction và trừ nguyên liệu bằng cập nhật có điều kiện (\code{stock >= lượng cần}).
-\item API gọi cổng thanh toán mô phỏng. Cổng trả thành công. Trong cùng transaction, API:
+\item API thực hiện transaction thứ nhất: trừ nguyên liệu bằng cập nhật có điều kiện (\code{stock >= lượng cần}); nếu đủ thì commit, nếu thiếu thì rollback.
+\item API gọi cổng thanh toán mô phỏng. Nếu cổng trả thành công, API mở transaction thứ hai để:
   \begin{itemize}
   \item ghi \code{Payment};
   \item chuyển đơn sang PAID;

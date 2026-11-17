@@ -60,7 +60,7 @@ alt Đã có Payment với cùng key (client gửi lại yêu cầu)
   API --> UI : 200 + kết quả đã lưu lần trước\n(không gọi Payment Service, không tạo Payment mới)
   UI --> C : Hiển thị kết quả như lần trước
 else Key mới
-  API -> DB : BEGIN TRANSACTION
+  API -> DB : BEGIN TRANSACTION 1
   API -> DB : UPDATE Ingredient SET stock = stock - cần\nWHERE id = ? AND stock >= cần
   DB --> API : Số dòng cập nhật
   alt Kho vừa hết (đơn khác thanh toán trước)
@@ -68,19 +68,22 @@ else Key mới
     API -> DB : INSERT Payment (FAILED, idempotencyKey)\nUPDATE Order SET status = PAYMENT_FAILED, failureReason
     API --> UI : 200 {status: PAYMENT_FAILED, reason}
     UI --> C : Báo hết nguyên liệu; không gọi Payment Service nên không trừ tiền
-  else Đã giữ đủ nguyên liệu trong transaction
+  else Đã giữ đủ nguyên liệu
+    API -> DB : COMMIT TRANSACTION 1
     API -> PS : charge(orderId, amount, method)
     PS --> API : Kết quả thanh toán
+    API -> DB : BEGIN TRANSACTION 2
     alt Thanh toán thành công
       API -> DB : INSERT Payment (SUCCESS, idempotencyKey)
-      API -> DB : UPDATE Order SET status = PAID,\nOrderIngredientUse.consumed = true
+      API -> DB : UPDATE Order SET status = PAID
       API -> DB : UPDATE User.points\nINSERT LoyaltyTransaction (EARN)
-      API -> DB : COMMIT
+      API -> DB : COMMIT TRANSACTION 2
       API --> UI : 200 {status: PAID, pointsEarned}
       UI --> C : Hiển thị trang xác nhận đơn
     else Thanh toán thất bại
-      API -> DB : ROLLBACK (hoàn lại phần kho vừa trừ)
+      API -> DB : Hoàn nguyên liệu đã giữ\nĐặt consumed = false
       API -> DB : INSERT Payment (FAILED, idempotencyKey)\nUPDATE Order SET status = PAYMENT_FAILED
+      API -> DB : COMMIT TRANSACTION 2
       API --> UI : 200 {status: PAYMENT_FAILED}
       UI --> C : Báo thanh toán thất bại, giữ giỏ hàng, cho thử lại
     end
