@@ -88,7 +88,7 @@ PERF-U01--U04 & NFR-01 & Unit test hàm phân vị: p95 của 20 mẫu là mẫu
 SEC-T01 & NFR-03 & Quét các tệp Git theo dõi: tệp \code{.env}, khóa riêng, token GitHub, khóa AWS, URL deploy hook, chuỗi kết nối database có mật khẩu, \code{JWT\_SECRET} hoặc \code{VNPAY\_\allowbreak{}HASH\_\allowbreak{}SECRET} có giá trị thật; che giá trị khi in & Job chính, ngay sau \code{npm ci} \\
 \end{longtable}}
 
-\textbf{Kết quả} chạy trên máy ngày 17/11/2026 (API build từ nhánh \code{test/\allowbreak{}nfr-perf}, PostgreSQL 16, dữ liệu seed): PERF-T01 đạt, 20/20 yêu cầu dưới 500 ms (min 2,9; trung bình 5,2; p95 9,5; max 10,7 ms); đặt ngưỡng 1 ms thì script báo ``KHÔNG ĐẠT'' và trả mã thoát 1. PERF-U01--U04 đạt 4/4. SEC-T01 quét 339 tệp, không phát hiện secret; trên repository thử có chèn \code{.env}, chuỗi kết nối database ngoài, \code{JWT\_SECRET} ngẫu nhiên và URL deploy hook, script bắt đủ 4 vị trí và che giá trị.
+\textbf{Kết quả} ngày 17/11/2026, dữ liệu seed. PERF-T01 trên máy (PostgreSQL 16 cục bộ): 20/20 dưới 500 ms, p95 9,5 ms (min 2,9; max 10,7); đặt ngưỡng 1 ms thì script trả mã thoát 1. Trong CI của PR \#64 (GitHub Actions): PERF-T01 20/20, p95 4,8 ms (min 2,4; trung bình 3,5; max 5); SEC-T01 quét 339 tệp, không có secret; PERF-U01--U04 đạt 4/4; CI trên \code{main} sau merge xanh cả hai job. Trên repository thử có chèn \code{.env}, chuỗi kết nối database ngoài, \code{JWT\_SECRET} ngẫu nhiên và URL deploy hook, SEC-T01 bắt đủ 4 vị trí.
 
 \textbf{Giới hạn:} PERF-T01 đo độ trễ tuần tự từ một máy, chưa phải load test đồng thời; trong CI, API và database chạy cùng runner nên số đo thấp hơn production. SEC-T01 quét theo mẫu, không quét lịch sử commit.
 
