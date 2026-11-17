@@ -60,7 +60,6 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 - Chuỗi kết nối database bị dán vào kênh trao đổi khi seed production; đã khóa kết nối từ Internet ngay sau đó.
 - Giao diện (PR #12, #19) xong chậm hơn API, làm chậm phát hành `v1.0.0` và test E2E.
 - Nhiều PR vẫn merge khi chưa có người khác approve.
-- B duyệt PR #1 (Task 1) khi chưa đối chiếu hết với yêu cầu tách repo, nên tài liệu còn nhắc AS1 và phải sửa ở PR sau.
 
 ### Hành động
 
