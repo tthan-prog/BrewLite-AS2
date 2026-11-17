@@ -152,5 +152,6 @@ Xem [docs/contributing.md](docs/contributing.md): chiến lược nhánh, pull r
 
 - Web: https://brewlite-as2-web.onrender.com
 - API: https://brewlite-as2-api-k8xj.onrender.com, health check: https://brewlite-as2-api-k8xj.onrender.com/health
+- Video demo luồng chính trên production (`v1.1.1`): https://drive.google.com/file/d/1GOHsErEc5K5mzKjsaq3Mhub-WDvT9ajp/view?usp=drive_link
 
 Gói Free của Render ngủ khi không có truy cập; lần mở đầu có thể chậm khoảng 50 giây.
