@@ -21,7 +21,7 @@
   - nguyên liệu đã bị trừ và có bản ghi `Payment`;
   - điểm thưởng đã được cộng;
   - khách thấy trang xác nhận đơn.
-- **Thanh toán thất bại:** đơn ở trạng thái PAYMENT_FAILED và giỏ hàng được giữ; khách có thể thử lại hoặc hủy đơn.
+- **Thanh toán thất bại:** đơn ở trạng thái PAYMENT_FAILED và giỏ hàng được giữ; khách có thể thử lại; nhân viên có quyền hủy đơn theo phân quyền.
 - **Thiếu nguyên liệu khi đặt:** không tạo đơn, tồn kho không đổi.
 
 ## Luồng chính
@@ -37,8 +37,8 @@
 5. API trả mã đơn; giao diện chuyển sang màn hình thanh toán.
 6. Khách chọn Ví hoặc Thẻ và xác nhận.
 7. Giao diện gửi `POST /payments` kèm `Idempotency-Key`.
-8. API mở một transaction và trừ nguyên liệu bằng cập nhật có điều kiện (`stock >= lượng cần`).
-9. API gọi cổng thanh toán mô phỏng; cổng trả kết quả thành công. Trong cùng transaction đó, API:
+8. API thực hiện transaction thứ nhất: trừ nguyên liệu bằng cập nhật có điều kiện (`stock >= lượng cần`); đủ thì commit, thiếu thì rollback.
+9. API gọi cổng thanh toán mô phỏng; nếu thành công, API mở transaction thứ hai để:
    - ghi `Payment`;
    - chuyển đơn sang PAID;
    - cộng điểm thưởng;
@@ -63,7 +63,7 @@
 | E3 | Không đủ nguyên liệu khi tạo đơn (bước 4) | Transaction rollback; không tạo đơn; báo món nào không đủ nguyên liệu |
 | E4 | Kho vừa hết do đơn khác thanh toán trước (bước 8) | Transaction bị hủy trước khi gọi cổng thanh toán: không trừ tiền, không trừ kho; đơn chuyển PAYMENT_FAILED kèm lý do; khách thử lại hoặc hủy đơn |
 | E5 | Mã khuyến mãi sai, hết hạn hoặc hết lượt | Từ chối mã kèm lý do; khách vẫn đặt được đơn không dùng mã |
-| E6 | Cổng thanh toán trả thất bại (bước 9), hoặc QR sai PIN, thiếu số dư hay hết hạn (A3) | Transaction rollback nên kho không đổi; không trừ tiền; Ví và Thẻ thì đơn chuyển PAYMENT_FAILED. Giao diện báo lỗi, giữ giỏ hàng và cho thử lại |
+| E6 | Cổng thanh toán trả thất bại (bước 9), hoặc QR sai PIN, thiếu số dư hay hết hạn (A3) | Nếu cổng từ chối, transaction thứ hai hoàn nguyên liệu đã giữ; không trừ tiền; Ví và Thẻ chuyển đơn sang PAYMENT_FAILED. Giao diện báo lỗi, giữ giỏ hàng và cho thử lại |
 | E7 | Yêu cầu chuyển trạng thái không hợp lệ | API trả 400; đơn giữ nguyên trạng thái |
 
 ## Giá trị nghiệp vụ

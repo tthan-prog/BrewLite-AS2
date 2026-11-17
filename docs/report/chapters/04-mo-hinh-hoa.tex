@@ -14,7 +14,7 @@ Activity diagram (hình \ref{fig:activity}) mô tả luồng đặt và thanh to
 \item Khách hàng;
 \item Giao diện Next.js;
 \item NestJS API;
-\item Cổng thanh toán (mô phỏng, VNPay sandbox).
+\item Cổng thanh toán Ví/Thẻ mô phỏng.
 \end{itemize}
 
 Sơ đồ có đủ ba nhánh rẽ mà đề yêu cầu:
@@ -24,9 +24,11 @@ Sơ đồ có đủ ba nhánh rẽ mà đề yêu cầu:
 \item \textbf{Thanh toán thất bại:} có hai nguyên nhân.
   \begin{itemize}
   \item Kho vừa hết khi trừ có điều kiện: rollback, đơn chuyển PAYMENT\_FAILED, không gọi cổng thanh toán.
-  \item Cổng từ chối: rollback, đơn PAYMENT\_FAILED, cho thử lại.
+  \item Cổng từ chối: giao dịch thứ hai hoàn lại nguyên liệu đã giữ, ghi Payment FAILED, chuyển đơn sang PAYMENT\_FAILED và cho thử lại.
   \end{itemize}
 \end{enumerate}
+
+Luồng Ví/Thẻ sử dụng hai transaction: transaction thứ nhất trừ nguyên liệu có điều kiện trước khi gọi cổng thanh toán; transaction thứ hai ghi kết quả, chốt đơn hoặc hoàn nguyên liệu nếu thanh toán thất bại. QR mô phỏng và VNPay sandbox có luồng giao diện riêng ở mục 7.1.
 
 Sơ đồ cũng thể hiện bước kiểm tra \code{Idempotency-Key}: yêu cầu đã xử lý thì trả lại kết quả đã lưu.
 
@@ -50,13 +52,13 @@ Sơ đồ chia hai phần: Đặt đơn và Thanh toán. Đủ các yếu tố �
 \item \textbf{Transaction:}
   \begin{itemize}
   \item Khi đặt đơn: \code{BEGIN} $\rightarrow$ đọc công thức, tồn kho $\rightarrow$ cộng dồn nhu cầu $\rightarrow$ \code{INSERT Order}, \code{OrderItem}, \code{OrderIngredientUse} $\rightarrow$ \code{COMMIT}.
-  \item Khi thanh toán: \code{UPDATE Ingredient .\allowbreak{}.\allowbreak{}.\allowbreak{} WHERE stock >= cần}, ghi \code{Payment}, đổi trạng thái đơn, cộng điểm, \code{COMMIT}.
+  \item Khi thanh toán: transaction thứ nhất trừ nguyên liệu có điều kiện rồi commit; sau khi gọi cổng thanh toán, transaction thứ hai ghi \code{Payment}, đổi trạng thái đơn và cộng điểm nếu thành công, hoặc hoàn nguyên liệu nếu thất bại.
   \end{itemize}
 \item \textbf{Nhánh thành công và thất bại} (\code{alt}):
   \begin{itemize}
   \item kho vừa hết (không gọi Payment Service);
   \item thanh toán thành công;
-  \item thanh toán thất bại (rollback phần kho vừa trừ).
+  \item thanh toán thất bại (hoàn lại nguyên liệu bằng transaction thứ hai).
   \end{itemize}
 \item \textbf{Gửi lại yêu cầu:} API tìm \code{Payment} theo \code{(userId, idempotencyKey)}. Đã có thì trả kết quả cũ, không gọi cổng, không tạo \code{Payment} mới.
 \end{itemize}

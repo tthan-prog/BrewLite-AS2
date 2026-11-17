@@ -10,7 +10,7 @@ E2 & Dữ liệu không hợp lệ (bước 3) & API trả 400 với thông báo
 E3 & Không đủ nguyên liệu khi tạo đơn (bước 4) & Transaction rollback; không tạo đơn; báo món nào không đủ nguyên liệu \\
 E4 & Kho vừa hết do đơn khác thanh toán trước (bước 8) & Transaction bị hủy trước khi gọi cổng thanh toán: không trừ tiền, không trừ kho; đơn chuyển PAYMENT\_FAILED kèm lý do; khách thử lại hoặc hủy đơn \\
 E5 & Mã khuyến mãi sai, hết hạn hoặc hết lượt & Từ chối mã kèm lý do; khách vẫn đặt được đơn không dùng mã \\
-E6 & Cổng thanh toán trả thất bại (bước 9), hoặc QR sai PIN, thiếu số dư hay hết hạn (A3) & Transaction rollback nên kho không đổi; không trừ tiền; Ví và Thẻ thì đơn chuyển PAYMENT\_FAILED. Giao diện báo lỗi, giữ giỏ hàng và cho thử lại \\
+E6 & Cổng thanh toán trả thất bại (bước 9), hoặc QR sai PIN, thiếu số dư hay hết hạn (A3) & Nếu cổng từ chối, transaction thứ hai hoàn nguyên liệu đã giữ; không trừ tiền; Ví và Thẻ chuyển đơn sang PAYMENT\_FAILED. Giao diện báo lỗi, giữ giỏ hàng và cho thử lại \\
 E7 & Yêu cầu chuyển trạng thái không hợp lệ & API trả 400; đơn giữ nguyên trạng thái \\
 \end{longtable}
 }

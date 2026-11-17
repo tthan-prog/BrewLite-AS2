@@ -82,33 +82,37 @@ endif
 if (Yêu cầu đã được xử lý?) then (Có)
   :Trả lại kết quả đã lưu;
 else (Chưa)
-  :Bắt đầu transaction;
+  :Bắt đầu transaction 1;
   :Trừ nguyên liệu có điều kiện;
 
   if (Nguyên liệu đủ để trừ?) then (Không)
-    :Rollback transaction;
+    :Rollback transaction 1;
     :Cập nhật đơn PAYMENT_FAILED;
     note right
       Không gọi cổng thanh toán.
       Không trừ nguyên liệu.
     end note
   else (Có)
-    |Cổng thanh toán (mô phỏng, VNPay sandbox)|
-    :Xử lý yêu cầu thanh toán;
+    :Commit transaction 1;
+
+    |Cổng thanh toán Ví/Thẻ mô phỏng|
+    :Xử lý thanh toán Ví hoặc Thẻ;
+
+    |NestJS API|
+    :Bắt đầu transaction 2;
 
     if (Cổng chấp nhận?) then (Có)
-      |NestJS API|
-      :Lưu Payment;
+      :Lưu Payment SUCCESS;
       :Chuyển đơn sang PAID;
       :Cộng điểm nếu áp dụng;
-      :Commit transaction;
+      :Commit transaction 2;
     else (Không)
-      |NestJS API|
-      :Rollback transaction;
+      :Hoàn lại nguyên liệu đã trừ;
+      :Lưu Payment FAILED;
       :Cập nhật đơn PAYMENT_FAILED;
+      :Commit transaction 2;
     endif
   endif
-
   |NestJS API|
   :Lưu kết quả theo Idempotency-Key;
 endif
