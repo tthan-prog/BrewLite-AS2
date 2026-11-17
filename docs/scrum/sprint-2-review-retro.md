@@ -60,7 +60,7 @@ Chấp nhận 16/17 user story. US-20 được chấp nhận phần integration 
 - Chuỗi kết nối database bị dán vào kênh trao đổi khi seed production; đã khóa kết nối từ Internet ngay sau đó.
 - Giao diện (PR #12, #19) xong chậm hơn API, làm chậm phát hành `v1.0.0` và test E2E.
 - Nhiều PR vẫn merge khi chưa có người khác approve.
-- US-20 được ghi Done trong `product-backlog.md` khi mới xong integration test, nên backlog và sprint review không khớp nhau.
+- Tiêu chí của US-20 gộp cả integration test và E2E nên story không đóng được trong Sprint 2; nên tách thành hai story nhỏ.
 
 ### Hành động
 
@@ -72,7 +72,7 @@ Chấp nhận 16/17 user story. US-20 được chấp nhận phần integration 
 | Chia giao diện thành PR nhỏ theo từng trang để review và merge sớm | C, D |
 | Bật yêu cầu 1 approval trong ruleset khi cả nhóm cùng online | A |
 | Đối chiếu SRS, use case với sơ đồ trước khi vẽ; mở ảnh xuất ra và so với file `.puml` trước khi commit | B |
-| Đối chiếu trạng thái story trong `product-backlog.md` với sprint review; story chỉ Done khi đủ tiêu chí nghiệm thu | C |
+| Tách story lớn thành các story nhỏ đủ làm xong trong một Sprint | C |
 
 ## Backlog cho phiên bản sau
 
