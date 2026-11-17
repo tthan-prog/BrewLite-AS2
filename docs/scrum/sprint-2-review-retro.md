@@ -55,6 +55,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 
 ### Điều chưa tốt
 
+- **Góp ý của D (Giản Thiên Lực):** Phần Checkout có nhiều trường hợp như đăng nhập, thanh toán thất bại, thử lại và QR/VNPay. Việc gộp nhiều chức năng trong một PR lớn khiến review và tích hợp mất thêm thời gian.
 - Chép đè cả file khi làm nhiều nhánh: README bị mất mục Triển khai sau PR #44, phải sửa lại ở PR #45.
 - Phát hiện giới hạn của Render muộn (mỗi workspace chỉ một database Free) nên phải tạo workspace mới giữa lúc triển khai.
 - Chuỗi kết nối database bị dán vào kênh trao đổi khi seed production; đã khóa kết nối từ Internet ngay sau đó.
@@ -65,6 +66,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 
 | Hành động | Người phụ trách |
 |---|---|
+| D chia PR giao diện theo từng chức năng, kiểm tra các trường hợp thanh toán lỗi trước khi merge | D |
 | Khi nhiều nhánh cùng sửa một file, merge `main` vào nhánh rồi sửa, không chép đè cả file | Cả nhóm |
 | Kiểm tra giới hạn gói miễn phí của nền tảng trước khi lên kế hoạch triển khai | A |
 | Không dán chuỗi kết nối, mật khẩu, token vào chat hoặc ảnh chụp | Cả nhóm |

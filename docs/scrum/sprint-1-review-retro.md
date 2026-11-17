@@ -41,6 +41,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task4` của nhóm (ảnh 01–17).
 
 ### Điều chưa tốt
 
+- **Góp ý của D (Giản Thiên Lực):** Khi làm trang Menu, việc cấu hình giao diện và kết nối API chưa được kiểm tra đầy đủ từ đầu nên phải chỉnh sửa trước khi merge.
 - Một số tạo phẩm phải sửa nhiều lần trước khi merge: ảnh sơ đồ là PNG nhưng đặt đuôi `.svg`, `erd.puml` bị lỗi cú pháp, trang menu dùng class Tailwind khi chưa cài Tailwind, bản backlog đầu chép kế hoạch cũ.
 - Công cụ gặp lỗi môi trường: Jest không chạy với NestJS 12 (chuyển sang Vitest); Windows Smart App Control chặn binary của SWC (bỏ SWC, dùng `@Inject` tường minh).
 - Nhiều PR được merge mà chưa có approve của thành viên khác (ruleset đặt 0 approval), chưa đạt đủ mục 4 của Definition of Done.
@@ -50,6 +51,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task4` của nhóm (ảnh 01–17).
 
 | Hành động | Người phụ trách |
 |---|---|
+| D kiểm tra cấu hình giao diện và kết nối API trên máy trước khi mở PR | D |
 | Chạy `npm run lint`, `npm test`, `npm run build` trên máy trước khi push | Cả nhóm |
 | Mở PR nhỏ, mô tả PR ghi Issue, mã FR/NFR, tick Definition of Done | Cả nhóm |
 | Có ít nhất một thành viên review trước khi merge; ghi người review trong PR | A theo dõi |
