@@ -139,4 +139,17 @@ PR \#55 sửa cả ba lỗi. Tag \code{v1.1.1} (commit \code{6229753}) chạy CD
 \item Xem giao diện ở 375 px và 1920 px trước khi phát hành.
 \end{itemize}
 
+
+\textbf{Góp ý riêng của từng thành viên} (ghi trong \code{docs/scrum/sprint-3-review-retro.md}):
+\begin{longtable}{@{}L{2.4cm}L{6cm}L{5.4cm}@{}}
+\caption{Góp ý Retrospective Sprint 3 của từng thành viên}\label{tab:retro3}\\
+\toprule
+\textbf{Thành viên} & \textbf{Điều chưa tốt} & \textbf{Hành động} \\ \midrule \endfirsthead
+\toprule \textbf{Thành viên} & \textbf{Điều chưa tốt} & \textbf{Hành động} \\ \midrule \endhead
+\bottomrule \endfoot
+Hồ Thiên Ngân (B) & Chưa theo dõi và review các PR giao diện của Sprint 3, chỉ kiểm tra lại phần dữ liệu (schema, seed) sau khi phát hành & Chạy lại \code{prisma migrate reset} và rà ERD với schema sau mỗi bản phát hành \\
+Hà Thiên Long (C) & Tiêu chí nghiệm thu của US-25 (giao diện điện thoại, PWA) chưa có kịch bản kiểm tra cụ thể, nên ba lỗi chỉ lộ ra khi thử tay trên production & Bổ sung tiêu chí nghiệm thu cho US-25 (biểu tượng PWA, đăng xuất, màn hình 375 px và 1920 px) trước Sprint tiếp theo \\
+Giản Thiên Lực (D) & Chưa kiểm thử giao diện thực tế trên cả máy tính và điện thoại trước khi phát hành & Kiểm tra luồng khách hàng trên production ở cả desktop và mobile, lưu ảnh hoặc video minh chứng \\
+\end{longtable}
+
 \textbf{Phản hồi của Product Owner:} Chấp nhận 4/4 user story của sprint (US-20 phần E2E, US-23, US-24, US-25). Ghi nhận ba lỗi giao diện của \code{v1.1.0} do kiểm thử thủ công trên production phát hiện, đã sửa và phát hành \code{v1.1.1} cùng ngày. Ưu tiên cho sprint tiếp theo: thực hiện các hành động đã nêu trong mục Retrospective.
