@@ -42,7 +42,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 
 ### Phản hồi của Product Owner
 
-[cần C bổ sung]
+Chấp nhận 16/17 user story. US-20 được chấp nhận phần integration test; phần E2E chuyển sang Sprint 3. Tiêu chí nghiệm thu chính của sprint là luồng chọn món → giỏ hàng → đặt đơn → thanh toán chạy được trên production bản `v1.0.0`. VNPay đã thanh toán thử thành công 2 đơn trên production; các phương thức Ví, Thẻ, QR đã được demo trên giao diện. Ưu tiên cho Sprint 3: test E2E trên giao diện, nhiều topping và số ly theo công thức.
 
 ## Sprint Retrospective
 
@@ -61,6 +61,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 - Chuỗi kết nối database bị dán vào kênh trao đổi khi seed production; đã khóa kết nối từ Internet ngay sau đó.
 - Giao diện (PR #12, #19) xong chậm hơn API, làm chậm phát hành `v1.0.0` và test E2E.
 - Nhiều PR vẫn merge khi chưa có người khác approve.
+- Tiêu chí của US-20 gộp cả integration test và E2E nên story không đóng được trong Sprint 2; nên tách thành hai story nhỏ.
 
 ### Hành động
 
@@ -73,6 +74,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 | Chia giao diện thành PR nhỏ theo từng trang để review và merge sớm | C, D |
 | Bật yêu cầu 1 approval trong ruleset khi cả nhóm cùng online | A |
 | Đối chiếu SRS, use case với sơ đồ trước khi vẽ; mở ảnh xuất ra và so với file `.puml` trước khi commit | B |
+| Tách story lớn thành các story nhỏ đủ làm xong trong một Sprint | C |
 
 ## Backlog cho phiên bản sau
 

@@ -28,7 +28,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (m�
 
 ### Phản hồi của Product Owner
 
-[cần C bổ sung]
+Chấp nhận 4/4 user story (US-20 phần E2E, US-23, US-24, US-25). Ghi nhận ba lỗi giao diện của `v1.1.0` do kiểm thử thủ công trên production phát hiện, đã sửa và phát hành `v1.1.1` cùng ngày. Ưu tiên cho Sprint tiếp theo: thực hiện các hành động đã ghi trong bảng Hành động ở trên.
 
 ## Sprint Retrospective
 
@@ -46,6 +46,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (m�
 - Test số lượng của AS1 lẽ ra nên được chuyển sang ngay từ Sprint 2.
 - Ba lỗi giao diện của `v1.1.0` chỉ lộ ra khi thử tay trên production: E2E chưa có kịch bản đăng xuất nhân viên; E2E-T06b chỉ kiểm tra biểu tượng đầu tiên trả về được qua HTTP (chạy bằng `npm run start`, không trên image Docker), chưa kiểm tra Chrome dùng được biểu tượng để cài ứng dụng; và chưa xem giao diện ở màn hình rộng.
 - B chưa theo dõi và review các PR giao diện của Sprint 3, chỉ kiểm tra lại phần dữ liệu (schema, seed) sau khi phát hành.
+- Tiêu chí nghiệm thu của US-25 (giao diện điện thoại, PWA) chưa có kịch bản kiểm tra cụ thể, nên ba lỗi chỉ lộ ra khi thử tay trên production.
 
 ### Hành động
 
@@ -57,3 +58,4 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (m�
 | Khi thêm job CI mới, chạy thử trên nhánh nháp trước khi gắn vào PR chính | A |
 | Thêm E2E đăng xuất nhân viên và kiểm tra manifest có biểu tượng PNG 192 và 512; xem giao diện ở 375 px và 1920 px trước khi phát hành | A |
 | Chạy lại `prisma migrate reset` và rà ERD với schema sau mỗi bản phát hành để chắc seed và sơ đồ vẫn khớp code | B |
+| Bổ sung tiêu chí nghiệm thu cho US-25 (biểu tượng PWA, đăng xuất, màn hình 375 px và 1920 px) vào `product-backlog.md` trước sprint tiếp theo | C |

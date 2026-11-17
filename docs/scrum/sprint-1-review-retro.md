@@ -29,7 +29,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task4` của nhóm (ảnh 01–17).
 
 ### Phản hồi của Product Owner
 
-[cần C bổ sung]
+Chấp nhận US-01 đến US-05 theo tiêu chí trong `product-backlog.md`. Sprint đạt Sprint Goal: API và trang `/menu` chạy được với dữ liệu thật từ database, CI chặn merge khi lỗi. Ghi nhận việc bản backlog đầu chép kế hoạch cũ đã được sửa trước khi chốt. Ưu tiên cho Sprint 2: hoàn thành giỏ hàng, đặt đơn và thanh toán để có luồng đặt món end-to-end.
 
 ## Sprint Retrospective
 
@@ -46,6 +46,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task4` của nhóm (ảnh 01–17).
 - Công cụ gặp lỗi môi trường: Jest không chạy với NestJS 12 (chuyển sang Vitest); Windows Smart App Control chặn binary của SWC (bỏ SWC, dùng `@Inject` tường minh).
 - Nhiều PR được merge mà chưa có approve của thành viên khác (ruleset đặt 0 approval), chưa đạt đủ mục 4 của Definition of Done.
 - Sơ đồ class và ERD (B) vẽ khi chưa đối chiếu hết UC-01 nên phải sửa sau khi đã merge (bỏ `Product.stock`, `usesRecipe`, PR #13); PR #13 chỉ đưa file `.puml`, ảnh PNG trên `main` vẫn là bản cũ cho tới PR #18.
+- Phản hồi PO của sprint được viết muộn, nên báo cáo có placeholder trong thời gian dài; tiêu chí nghiệm thu của từng story chưa được chốt trước khi sprint bắt đầu.
 
 ### Hành động cho Sprint 2
 
@@ -56,3 +57,4 @@ Bằng chứng: thư mục `AS2-bang-chung/task4` của nhóm (ảnh 01–17).
 | Mở PR nhỏ, mô tả PR ghi Issue, mã FR/NFR, tick Definition of Done | Cả nhóm |
 | Có ít nhất một thành viên review trước khi merge; ghi người review trong PR | A theo dõi |
 | Thống nhất hợp đồng API trước khi làm giao diện (`docs/api/api-contract.md`) | A |
+| Chốt tiêu chí nghiệm thu của từng story trong `product-backlog.md` trước khi sprint bắt đầu; viết phản hồi PO ngay sau sprint review | C |
