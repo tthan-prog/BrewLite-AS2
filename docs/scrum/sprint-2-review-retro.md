@@ -60,7 +60,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 - Chuỗi kết nối database bị dán vào kênh trao đổi khi seed production; đã khóa kết nối từ Internet ngay sau đó.
 - Giao diện (PR #12, #19) xong chậm hơn API, làm chậm phát hành `v1.0.0` và test E2E.
 - Nhiều PR vẫn merge khi chưa có người khác approve.
-- [cần nhóm bổ sung]
+- B duyệt PR #1 (Task 1) khi chưa đối chiếu hết với yêu cầu tách repo, nên tài liệu còn nhắc AS1 và phải sửa ở PR sau.
 
 ### Hành động
 
@@ -71,7 +71,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm.
 | Không dán chuỗi kết nối, mật khẩu, token vào chat hoặc ảnh chụp | Cả nhóm |
 | Chia giao diện thành PR nhỏ theo từng trang để review và merge sớm | C, D |
 | Bật yêu cầu 1 approval trong ruleset khi cả nhóm cùng online | A |
-| [cần nhóm bổ sung] | |
+| Đối chiếu SRS, use case với sơ đồ trước khi vẽ; mở ảnh xuất ra và so với file `.puml` trước khi commit | B |
 
 ## Backlog cho phiên bản sau
 
