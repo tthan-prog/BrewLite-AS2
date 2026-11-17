@@ -40,6 +40,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (m�
 
 ### Điều chưa tốt
 
+- **Góp ý của D (Giản Thiên Lực):** Cần kiểm thử giao diện thực tế trên cả máy tính và điện thoại trước khi phát hành, vì có những lỗi hiển thị chỉ được phát hiện khi kiểm tra trực tiếp trên production.
 - Toàn bộ Sprint 3 do một người hiện thực; các thành viên khác chưa tham gia review mã.
 - Hai lần CI đỏ vì cấu hình (tên script, hệ điều hành của runner) do chưa chạy thử job E2E trên GitHub trước khi mở PR.
 - Test số lượng của AS1 lẽ ra nên được chuyển sang ngay từ Sprint 2.
@@ -50,6 +51,7 @@ Bằng chứng: thư mục `AS2-bang-chung/task5` của nhóm, ảnh 27–67 (m�
 
 | Hành động | Người phụ trách |
 |---|---|
+| D kiểm tra luồng khách hàng trên production ở cả desktop và mobile, lưu ảnh hoặc video minh chứng | D |
 | Mỗi PR có ít nhất một thành viên khác review và approve | Cả nhóm |
 | Cố định phiên bản hệ điều hành của runner cho job phụ thuộc trình duyệt | A |
 | Khi thêm job CI mới, chạy thử trên nhánh nháp trước khi gắn vào PR chính | A |
